@@ -1,0 +1,132 @@
+{
+  "common": {
+    "appName": "فكرني",
+    "loading": "جارٍ التحميل…",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ…",
+    "create": "إنشاء",
+    "creating": "جارٍ الإنشاء…",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "archive": "أرشفة",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم",
+    "title": "العنوان",
+    "description": "الوصف",
+    "dueDate": "تاريخ الاستحقاق",
+    "household": "المنزل",
+    "status": "الحالة",
+    "search": "بحث",
+    "all": "الكل",
+    "personal": "شخصي",
+    "active": "نشط",
+    "archived": "مؤرشف",
+    "logOut": "تسجيل الخروج",
+    "backToLogin": "العودة لتسجيل الدخول"
+  },
+  "roles": {
+    "owner": "مالك",
+    "admin": "مسؤول",
+    "member": "عضو"
+  },
+  "nav": {
+    "fakras": "فكراتي",
+    "households": "المنازل",
+    "profile": "الملف الشخصي"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "سجّل الدخول إلى حسابك",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "noAccount": "ليس لديك حساب؟",
+      "registerLink": "إنشاء حساب"
+    },
+    "register": {
+      "subtitle": "إنشاء حساب جديد",
+      "submit": "إنشاء حساب",
+      "submitting": "جارٍ إنشاء الحساب…",
+      "haveAccount": "لديك حساب بالفعل؟",
+      "loginLink": "تسجيل الدخول"
+    },
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "سنرسل لك رمز إعادة التعيين عبر البريد الإلكتروني.",
+      "sentMessage": "إذا كان هناك حساب بهذا البريد الإلكتروني، فقد تم إرسال رمز إعادة التعيين.",
+      "enterCode": "إدخال رمز إعادة التعيين",
+      "submit": "إرسال رمز إعادة التعيين",
+      "submitting": "جارٍ الإرسال…"
+    },
+    "resetPassword": {
+      "title": "إعادة تعيين كلمة المرور",
+      "subtitle": "أدخل الرمز الذي أرسلناه إليك وكلمة المرور الجديدة.",
+      "resetCode": "رمز إعادة التعيين",
+      "newPassword": "كلمة المرور الجديدة",
+      "success": "تمت إعادة تعيين كلمة المرور بنجاح.",
+      "submit": "إعادة تعيين كلمة المرور",
+      "submitting": "جارٍ إعادة التعيين…",
+      "logIn": "تسجيل الدخول"
+    }
+  },
+  "profile": {
+    "heading": "الملف الشخصي",
+    "account": "الحساب",
+    "profileUpdated": "تم تحديث الملف الشخصي",
+    "changePassword": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "passwordUpdated": "تم تحديث كلمة المرور",
+    "submit": "تغيير كلمة المرور",
+    "submitting": "جارٍ التحديث…"
+  },
+  "dashboard": {
+    "heading": "فكراتي",
+    "newFakra": "فكرة جديدة",
+    "titleOrDescription": "العنوان أو الوصف",
+    "noFakras": "لا توجد فكرات."
+  },
+  "households": {
+    "heading": "المنازل",
+    "createHousehold": "إنشاء منزل",
+    "joinWithCode": "الانضمام برمز الدعوة",
+    "inviteCode": "رمز الدعوة",
+    "join": "انضمام",
+    "joining": "جارٍ الانضمام…",
+    "joinedSuccess": "تم الانضمام بنجاح",
+    "noHouseholds": "أنت لست عضوًا في أي منزل حتى الآن.",
+    "member": "عضو",
+    "members": "أعضاء"
+  },
+  "householdDetail": {
+    "leave": "ترك المنزل",
+    "inviteCode": "رمز الدعوة",
+    "expires": "تنتهي صلاحيته في {{date}}",
+    "regenerateInvite": "إعادة إنشاء رمز الدعوة",
+    "members": "الأعضاء",
+    "you": " (أنت)",
+    "removeMember": "إزالة العضو",
+    "fakras": "الفكرات",
+    "noFakras": "لا توجد فكرات لهذا المنزل حتى الآن.",
+    "newFakraLink": "+ فكرة جديدة من لوحة التحكم"
+  },
+  "fakraDetail": {
+    "due": "الاستحقاق {{date}}",
+    "hideActivity": "إخفاء النشاط",
+    "showActivity": "عرض النشاط",
+    "activity": "النشاط",
+    "noActivity": "لا يوجد نشاط حتى الآن.",
+    "share": "مشاركة",
+    "sharing": "جارٍ المشاركة…",
+    "shareUserIds": "معرّفات المستخدمين (مفصولة بفواصل)",
+    "shareSuccess": "تمت المشاركة بنجاح",
+    "items": "العناصر",
+    "qty": "الكمية",
+    "unit": "الوحدة",
+    "add": "إضافة",
+    "adding": "جارٍ الإضافة…",
+    "noItems": "لا توجد عناصر حتى الآن.",
+    "deleteItem": "حذف العنصر"
+  }
+}

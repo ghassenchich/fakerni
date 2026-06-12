@@ -1,0 +1,135 @@
+{
+  "common": {
+    "appName": "Fakerni",
+    "loading": "Loading…",
+    "save": "Save",
+    "saving": "Saving…",
+    "create": "Create",
+    "creating": "Creating…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "archive": "Archive",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "title": "Title",
+    "description": "Description",
+    "dueDate": "Due date",
+    "household": "Household",
+    "status": "Status",
+    "search": "Search",
+    "all": "All",
+    "personal": "Personal",
+    "active": "active",
+    "archived": "archived",
+    "logOut": "Log out",
+    "backToLogin": "Back to login"
+  },
+  "roles": {
+    "owner": "owner",
+    "admin": "admin",
+    "member": "member"
+  },
+  "nav": {
+    "fakras": "Fakras",
+    "households": "Households",
+    "profile": "Profile"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Log in to your account",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "No account?",
+      "registerLink": "Register"
+    },
+    "register": {
+      "subtitle": "Create an account",
+      "submit": "Register",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in"
+    },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "subtitle": "We'll send a reset code to your email.",
+      "sentMessage": "If an account with that email exists, a reset code has been sent.",
+      "enterCode": "Enter reset code",
+      "submit": "Send reset code",
+      "submitting": "Sending…"
+    },
+    "resetPassword": {
+      "title": "Reset password",
+      "subtitle": "Enter the code we emailed you and your new password.",
+      "resetCode": "Reset code",
+      "newPassword": "New password",
+      "success": "Your password has been reset.",
+      "submit": "Reset password",
+      "submitting": "Resetting…",
+      "logIn": "Log in"
+    }
+  },
+  "profile": {
+    "heading": "Profile",
+    "account": "Account",
+    "profileUpdated": "Profile updated",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "passwordUpdated": "Password updated",
+    "submit": "Change password",
+    "submitting": "Updating…",
+    "language": "Language"
+  },
+  "dashboard": {
+    "heading": "My Fakras",
+    "newFakra": "New Fakra",
+    "titleOrDescription": "Title or description",
+    "noFakras": "No Fakras found.",
+    "statusActive": "Active",
+    "statusArchived": "Archived"
+  },
+  "households": {
+    "heading": "Households",
+    "createHousehold": "Create a household",
+    "joinWithCode": "Join with invite code",
+    "inviteCode": "Invite code",
+    "join": "Join",
+    "joining": "Joining…",
+    "joinedSuccess": "Joined successfully",
+    "noHouseholds": "You're not part of any household yet.",
+    "member": "member",
+    "members": "members"
+  },
+  "householdDetail": {
+    "leave": "Leave",
+    "inviteCode": "Invite code",
+    "expires": "Expires {{date}}",
+    "regenerateInvite": "Regenerate invite code",
+    "members": "Members",
+    "you": " (you)",
+    "removeMember": "Remove member",
+    "fakras": "Fakras",
+    "noFakras": "No Fakras for this household yet.",
+    "newFakraLink": "+ New Fakra from dashboard"
+  },
+  "fakraDetail": {
+    "due": "Due {{date}}",
+    "hideActivity": "Hide activity",
+    "showActivity": "Show activity",
+    "activity": "Activity",
+    "noActivity": "No activity yet.",
+    "share": "Share",
+    "sharing": "Sharing…",
+    "shareUserIds": "User IDs (comma-separated)",
+    "shareSuccess": "Shared successfully",
+    "items": "Items",
+    "qty": "Qty",
+    "unit": "Unit",
+    "add": "Add",
+    "adding": "Adding…",
+    "noItems": "No items yet.",
+    "deleteItem": "Delete item"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "common": {
+    "appName": "Fakerni",
+    "loading": "Chargement…",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "create": "Créer",
+    "creating": "Création…",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "archive": "Archiver",
+    "email": "Email",
+    "password": "Mot de passe",
+    "name": "Nom",
+    "title": "Titre",
+    "description": "Description",
+    "dueDate": "Date d'échéance",
+    "household": "Foyer",
+    "status": "Statut",
+    "search": "Rechercher",
+    "all": "Tous",
+    "personal": "Personnel",
+    "active": "actif",
+    "archived": "archivé",
+    "logOut": "Se déconnecter",
+    "backToLogin": "Retour à la connexion"
+  },
+  "roles": {
+    "owner": "propriétaire",
+    "admin": "administrateur",
+    "member": "membre"
+  },
+  "nav": {
+    "fakras": "Fakras",
+    "households": "Foyers",
+    "profile": "Profil"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Connectez-vous à votre compte",
+      "submit": "Se connecter",
+      "submitting": "Connexion…",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Pas de compte ?",
+      "registerLink": "S'inscrire"
+    },
+    "register": {
+      "subtitle": "Créer un compte",
+      "submit": "S'inscrire",
+      "submitting": "Création du compte…",
+      "haveAccount": "Vous avez déjà un compte ?",
+      "loginLink": "Se connecter"
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "subtitle": "Nous vous envoyons un code de réinitialisation par email.",
+      "sentMessage": "Si un compte existe avec cet email, un code de réinitialisation a été envoyé.",
+      "enterCode": "Saisir le code de réinitialisation",
+      "submit": "Envoyer le code",
+      "submitting": "Envoi…"
+    },
+    "resetPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Saisissez le code reçu par email et votre nouveau mot de passe.",
+      "resetCode": "Code de réinitialisation",
+      "newPassword": "Nouveau mot de passe",
+      "success": "Votre mot de passe a été réinitialisé.",
+      "submit": "Réinitialiser le mot de passe",
+      "submitting": "Réinitialisation…",
+      "logIn": "Se connecter"
+    }
+  },
+  "profile": {
+    "heading": "Profil",
+    "account": "Compte",
+    "profileUpdated": "Profil mis à jour",
+    "changePassword": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "passwordUpdated": "Mot de passe mis à jour",
+    "submit": "Changer le mot de passe",
+    "submitting": "Mise à jour…",
+    "language": "Langue"
+  },
+  "dashboard": {
+    "heading": "Mes Fakras",
+    "newFakra": "Nouveau Fakra",
+    "titleOrDescription": "Titre ou description",
+    "noFakras": "Aucun Fakra trouvé.",
+    "statusActive": "Actif",
+    "statusArchived": "Archivé"
+  },
+  "households": {
+    "heading": "Foyers",
+    "createHousehold": "Créer un foyer",
+    "joinWithCode": "Rejoindre avec un code d'invitation",
+    "inviteCode": "Code d'invitation",
+    "join": "Rejoindre",
+    "joining": "Adhésion…",
+    "joinedSuccess": "Adhésion réussie",
+    "noHouseholds": "Vous ne faites partie d'aucun foyer pour le moment.",
+    "member": "membre",
+    "members": "membres"
+  },
+  "householdDetail": {
+    "leave": "Quitter",
+    "inviteCode": "Code d'invitation",
+    "expires": "Expire le {{date}}",
+    "regenerateInvite": "Régénérer le code d'invitation",
+    "members": "Membres",
+    "you": " (vous)",
+    "removeMember": "Retirer le membre",
+    "fakras": "Fakras",
+    "noFakras": "Aucun Fakra pour ce foyer pour le moment.",
+    "newFakraLink": "+ Nouveau Fakra depuis le tableau de bord"
+  },
+  "fakraDetail": {
+    "due": "Échéance {{date}}",
+    "hideActivity": "Masquer l'activité",
+    "showActivity": "Afficher l'activité",
+    "activity": "Activité",
+    "noActivity": "Aucune activité pour le moment.",
+    "share": "Partager",
+    "sharing": "Partage…",
+    "shareUserIds": "IDs utilisateurs (séparés par des virgules)",
+    "shareSuccess": "Partagé avec succès",
+    "items": "Articles",
+    "qty": "Qté",
+    "unit": "Unité",
+    "add": "Ajouter",
+    "adding": "Ajout…",
+    "noItems": "Aucun article pour le moment.",
+    "deleteItem": "Supprimer l'article"
+  }
+}
