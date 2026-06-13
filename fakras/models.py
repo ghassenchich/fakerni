@@ -1,5 +1,34 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
+
+
+class FakraQuerySet(models.QuerySet):
+    def due_soon(self, within):
+        now = timezone.now()
+        return self.filter(
+            status="active",
+            due_date__isnull=False,
+            due_date__gte=now,
+            due_date__lte=now + within,
+            reminder_sent_at__isnull=True,
+        )
+
+    def overdue(self):
+        now = timezone.now()
+        return self.filter(
+            status="active",
+            due_date__isnull=False,
+            due_date__lt=now,
+        )
+
+    def due_for_recurrence(self):
+        now = timezone.now()
+        return self.filter(
+            status="active",
+            due_date__isnull=False,
+            due_date__lt=now,
+        ).exclude(recurrence="none")
 
 
 class Fakra(models.Model):
@@ -18,6 +47,28 @@ class Fakra(models.Model):
     )
 
     due_date = models.DateTimeField(blank=True, null=True)
+    reminder_sent_at = models.DateTimeField(blank=True, null=True)
+
+    RECURRENCE_CHOICES = [
+        ("none", "None"),
+        ("daily", "Daily"),
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+    ]
+
+    recurrence = models.CharField(
+        max_length=10,
+        choices=RECURRENCE_CHOICES,
+        default="none",
+    )
+
+    recurrence_parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        related_name="recurrence_children",
+        null=True,
+        blank=True,
+    )
 
     household = models.ForeignKey(
         "household.Household",
@@ -35,6 +86,8 @@ class Fakra(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = FakraQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at"]
@@ -111,6 +164,36 @@ class Item(models.Model):
 
     def __str__(self):
         return self.name
+
+
+def item_attachment_upload_path(instance, filename):
+    return f"fakras/{instance.item.fakra_id}/items/{instance.item_id}/{filename}"
+
+
+class ItemAttachment(models.Model):
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.CASCADE,
+        related_name="attachments"
+    )
+
+    file = models.ImageField(upload_to=item_attachment_upload_path)
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="uploaded_attachments",
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Attachment for {self.item.name}"
 
 
 class ActivityLog(models.Model):

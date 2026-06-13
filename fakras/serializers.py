@@ -1,5 +1,39 @@
 from rest_framework import serializers
-from .models import Fakra, Item, ActivityLog
+from .models import Fakra, Item, ItemAttachment, ActivityLog
+
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    file = serializers.SerializerMethodField()
+
+    uploaded_by_email = serializers.EmailField(
+        source="uploaded_by.email",
+        read_only=True
+    )
+
+    class Meta:
+        model = ItemAttachment
+
+        fields = [
+            "id",
+            "item",
+            "file",
+            "uploaded_by",
+            "uploaded_by_email",
+            "created_at",
+        ]
+
+        read_only_fields = [
+            "item",
+            "uploaded_by",
+            "uploaded_by_email",
+            "created_at",
+        ]
+
+    def get_file(self, obj):
+        request = self.context.get("request")
+        if request is not None:
+            return request.build_absolute_uri(obj.file.url)
+        return obj.file.url
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -12,6 +46,8 @@ class ItemSerializer(serializers.ModelSerializer):
         source="done_by.email",
         read_only=True
     )
+
+    attachments = AttachmentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Item
@@ -31,6 +67,7 @@ class ItemSerializer(serializers.ModelSerializer):
             "done_by_email",
             "done_at",
             "created_at",
+            "attachments",
         ]
 
         read_only_fields = [
@@ -42,6 +79,7 @@ class ItemSerializer(serializers.ModelSerializer):
             "done_by_email",
             "done_at",
             "created_at",
+            "attachments",
         ]
 
     def validate_name(self, value):
@@ -93,6 +131,8 @@ class FakraSerializer(serializers.ModelSerializer):
             "description",
             "status",
             "due_date",
+            "recurrence",
+            "recurrence_parent",
             "household",
             "created_by",
             "created_by_email",
@@ -103,6 +143,7 @@ class FakraSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "status",
+            "recurrence_parent",
             "created_by",
             "created_by_email",
             "created_at",
@@ -119,6 +160,17 @@ class FakraSerializer(serializers.ModelSerializer):
 
         return value
 
+    def validate(self, data):
+        recurrence = data.get("recurrence", getattr(self.instance, "recurrence", "none"))
+        due_date = data.get("due_date", getattr(self.instance, "due_date", None))
+
+        if recurrence != "none" and due_date is None:
+            raise serializers.ValidationError(
+                {"recurrence": "Recurring Fakras must have a due date."}
+            )
+
+        return data
+
     def validate_household(self, value):
         if value is None:
             return value
@@ -131,6 +183,12 @@ class FakraSerializer(serializers.ModelSerializer):
             )
 
         return value
+
+    def update(self, instance, validated_data):
+        if "due_date" in validated_data and validated_data["due_date"] != instance.due_date:
+            instance.reminder_sent_at = None
+
+        return super().update(instance, validated_data)
 
 
 class ShareFakraSerializer(serializers.Serializer):

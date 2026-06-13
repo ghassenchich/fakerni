@@ -188,10 +188,20 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# =====================================================
+# MEDIA
+# =====================================================
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -265,6 +275,28 @@ EMAIL_BACKEND = os.getenv(
 # NOTE: push notifications are a no-op until FIREBASE_CREDENTIALS_PATH points
 # to a Firebase service-account JSON key file. See users/push.py.
 # FIREBASE_CREDENTIALS_PATH is read directly via os.getenv() where needed.
+
+# =====================================================
+# DUE-DATE REMINDERS
+# =====================================================
+
+# How far ahead of a Fakra's due_date a reminder is sent (once), and how
+# often the in-process scheduler checks for Fakras that are due soon. See
+# fakras/reminders.py and fakras/apps.py.
+FAKRA_REMINDER_WINDOW_HOURS = int(os.getenv("FAKRA_REMINDER_WINDOW_HOURS", "24"))
+FAKRA_REMINDER_CHECK_INTERVAL_MINUTES = int(
+    os.getenv("FAKRA_REMINDER_CHECK_INTERVAL_MINUTES", "60")
+)
+
+# =====================================================
+# RECURRING FAKRAS
+# =====================================================
+
+# How often the in-process scheduler checks for overdue recurring Fakras and
+# creates their next occurrence. See fakras/recurrence.py and fakras/apps.py.
+FAKRA_RECURRENCE_CHECK_INTERVAL_MINUTES = int(
+    os.getenv("FAKRA_RECURRENCE_CHECK_INTERVAL_MINUTES", "60")
+)
 
 # =====================================================
 # SIMPLE JWT

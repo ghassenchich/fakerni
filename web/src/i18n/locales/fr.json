@@ -16,6 +16,7 @@
     "title": "Titre",
     "description": "Description",
     "dueDate": "Date d'échéance",
+    "recurrenceLabel": "Récurrence",
     "household": "Foyer",
     "status": "Statut",
     "search": "Rechercher",
@@ -23,8 +24,16 @@
     "personal": "Personnel",
     "active": "actif",
     "archived": "archivé",
+    "dueSoon": "Échéance proche",
+    "overdue": "En retard",
     "logOut": "Se déconnecter",
-    "backToLogin": "Retour à la connexion"
+    "backToLogin": "Retour à la connexion",
+    "recurrence": {
+      "none": "Ne se répète pas",
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel"
+    }
   },
   "roles": {
     "owner": "propriétaire",
@@ -127,6 +136,11 @@
     "add": "Ajouter",
     "adding": "Ajout…",
     "noItems": "Aucun article pour le moment.",
-    "deleteItem": "Supprimer l'article"
+    "deleteItem": "Supprimer l'article",
+    "addPhoto": "Ajouter une photo",
+    "uploadingPhoto": "Envoi de la photo…",
+    "removeAttachment": "Supprimer la photo",
+    "repeats": "Se répète {{frequency}}",
+    "continuesSeries": "Ceci fait partie d'une série récurrente"
   }
 }

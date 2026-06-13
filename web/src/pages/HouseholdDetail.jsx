@@ -7,6 +7,12 @@ import * as householdsApi from "../api/households";
 import * as fakrasApi from "../api/fakras";
 import { useHouseholdSocket } from "../hooks/useHouseholdSocket";
 import { Badge, Button, Card, ErrorText, IconButton, Select, extractError } from "../components/ui";
+import { getDueStatus } from "../utils/dueStatus";
+
+const DUE_STATUS_COLORS = {
+  dueSoon: "yellow",
+  overdue: "red",
+};
 
 const ROLES = ["owner", "admin", "member"];
 
@@ -186,6 +192,9 @@ export default function HouseholdDetail() {
                   <span>{fakra.title}</span>
                   <div className="flex items-center gap-2">
                     <Badge color={fakra.status === "archived" ? "gray" : "green"}>{t(`common.${fakra.status}`, fakra.status)}</Badge>
+                    {getDueStatus(fakra) && (
+                      <Badge color={DUE_STATUS_COLORS[getDueStatus(fakra)]}>{t(`common.${getDueStatus(fakra)}`)}</Badge>
+                    )}
                     <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-150 group-hover:translate-x-1 group-hover:text-blue-600" />
                   </div>
                 </div>

@@ -16,6 +16,7 @@
     "title": "العنوان",
     "description": "الوصف",
     "dueDate": "تاريخ الاستحقاق",
+    "recurrenceLabel": "التكرار",
     "household": "المنزل",
     "status": "الحالة",
     "search": "بحث",
@@ -23,8 +24,16 @@
     "personal": "شخصي",
     "active": "نشط",
     "archived": "مؤرشف",
+    "dueSoon": "يستحق قريبًا",
+    "overdue": "متأخر",
     "logOut": "تسجيل الخروج",
-    "backToLogin": "العودة لتسجيل الدخول"
+    "backToLogin": "العودة لتسجيل الدخول",
+    "recurrence": {
+      "none": "لا يتكرر",
+      "daily": "يوميًا",
+      "weekly": "أسبوعيًا",
+      "monthly": "شهريًا"
+    }
   },
   "roles": {
     "owner": "مالك",
@@ -127,6 +136,11 @@
     "add": "إضافة",
     "adding": "جارٍ الإضافة…",
     "noItems": "لا توجد عناصر حتى الآن.",
-    "deleteItem": "حذف العنصر"
+    "deleteItem": "حذف العنصر",
+    "addPhoto": "إضافة صورة",
+    "uploadingPhoto": "جارٍ رفع الصورة…",
+    "removeAttachment": "إزالة الصورة",
+    "repeats": "يتكرر {{frequency}}",
+    "continuesSeries": "هذه فكرة تابعة لسلسلة متكررة"
   }
 }

@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import * as ImagePicker from "expo-image-picker";
 import {
   Archive,
   CalendarDays,
   CheckCircle2,
   Circle,
   History,
+  Paperclip,
   Pencil,
   Plus,
+  Repeat,
   Share2,
   Trash2,
 } from "lucide-react-native";
@@ -24,10 +27,18 @@ import {
   IconButton,
   Input,
   Label,
+  Select,
+  SelectItem,
   Textarea,
   extractError,
 } from "../../src/components/ui";
 import { colors } from "../../src/constants/colors";
+import { getDueStatus } from "../../src/utils/dueStatus";
+
+const DUE_STATUS_COLORS = {
+  dueSoon: "yellow",
+  overdue: "red",
+};
 
 export default function FakraDetail() {
   const { id } = useLocalSearchParams();
@@ -45,6 +56,7 @@ export default function FakraDetail() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
+  const [editRecurrence, setEditRecurrence] = useState("none");
   const [editError, setEditError] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
@@ -61,6 +73,9 @@ export default function FakraDetail() {
 
   const [showActivity, setShowActivity] = useState(false);
 
+  const [uploadingItemId, setUploadingItemId] = useState(null);
+  const [attachmentError, setAttachmentError] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -71,6 +86,7 @@ export default function FakraDetail() {
       setEditTitle(response.data.title);
       setEditDescription(response.data.description || "");
       setEditDueDate(response.data.due_date ? response.data.due_date.slice(0, 10) : "");
+      setEditRecurrence(response.data.recurrence || "none");
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -114,6 +130,7 @@ export default function FakraDetail() {
         title: editTitle,
         description: editDescription || null,
         due_date: editDueDate || null,
+        recurrence: editRecurrence,
       });
       setEditing(false);
       load();
@@ -189,6 +206,43 @@ export default function FakraDetail() {
     }
   }
 
+  async function handleAddPhoto(item) {
+    setAttachmentError("");
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setAttachmentError(t("fakraDetail.photoPermissionDenied"));
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets?.length) return;
+
+    setUploadingItemId(item.id);
+    try {
+      await fakrasApi.uploadAttachment(id, item.id, result.assets[0]);
+      load();
+    } catch (err) {
+      setAttachmentError(extractError(err));
+    } finally {
+      setUploadingItemId(null);
+    }
+  }
+
+  async function handleDeleteAttachment(itemId, attachmentId) {
+    setAttachmentError("");
+    try {
+      await fakrasApi.deleteAttachment(id, itemId, attachmentId);
+      load();
+    } catch (err) {
+      setAttachmentError(extractError(err));
+    }
+  }
+
   async function handleShare() {
     setShareError("");
     setShareSuccess("");
@@ -243,6 +297,9 @@ export default function FakraDetail() {
         </View>
         <View style={styles.headerMeta}>
           <Badge color={fakra.status === "archived" ? "gray" : "green"}>{t(`common.${fakra.status}`, fakra.status)}</Badge>
+          {getDueStatus(fakra) && (
+            <Badge color={DUE_STATUS_COLORS[getDueStatus(fakra)]}>{t(`common.${getDueStatus(fakra)}`)}</Badge>
+          )}
           {fakra.due_date ? (
             <View style={styles.dueDate}>
               <CalendarDays size={14} color={colors.slate500} />
@@ -251,8 +308,20 @@ export default function FakraDetail() {
               </Text>
             </View>
           ) : null}
+          {fakra.recurrence !== "none" ? (
+            <View style={styles.dueDate}>
+              <Repeat size={14} color={colors.slate500} />
+              <Text style={styles.dueDateText}>
+                {t("fakraDetail.repeats", { frequency: t(`common.recurrence.${fakra.recurrence}`) })}
+              </Text>
+            </View>
+          ) : null}
         </View>
       </View>
+
+      {fakra.recurrence_parent ? (
+        <Text style={styles.muted}>{t("fakraDetail.continuesSeries")}</Text>
+      ) : null}
 
       <ErrorText>{actionError}</ErrorText>
 
@@ -292,6 +361,15 @@ export default function FakraDetail() {
           <View style={styles.field}>
             <Label>{t("common.dueDate")}</Label>
             <Input value={editDueDate} onChangeText={setEditDueDate} placeholder="YYYY-MM-DD" />
+          </View>
+          <View style={styles.field}>
+            <Label>{t("common.recurrenceLabel")}</Label>
+            <Select selectedValue={editRecurrence} onValueChange={setEditRecurrence}>
+              <SelectItem label={t("common.recurrence.none")} value="none" />
+              <SelectItem label={t("common.recurrence.daily")} value="daily" />
+              <SelectItem label={t("common.recurrence.weekly")} value="weekly" />
+              <SelectItem label={t("common.recurrence.monthly")} value="monthly" />
+            </Select>
           </View>
           <ErrorText>{editError}</ErrorText>
           <Button disabled={editLoading} onPress={handleEditSubmit}>
@@ -358,25 +436,57 @@ export default function FakraDetail() {
           <Text style={styles.buttonLabel}>{itemLoading ? t("fakraDetail.adding") : t("fakraDetail.add")}</Text>
         </Button>
         <ErrorText>{itemError}</ErrorText>
+        <ErrorText>{attachmentError}</ErrorText>
 
         {fakra.items.length === 0 ? (
           <Text style={styles.muted}>{t("fakraDetail.noItems")}</Text>
         ) : (
           fakra.items.map((item) => (
-            <View key={item.id} style={styles.itemRow}>
-              <Pressable style={styles.itemToggle} onPress={() => handleToggleItem(item)}>
-                {item.status === "done" ? (
-                  <CheckCircle2 size={20} color={colors.emerald600} />
-                ) : (
-                  <Circle size={20} color={colors.slate300} />
-                )}
-                <Text style={item.status === "done" ? styles.itemNameDone : styles.itemName}>
-                  {item.name}
-                  {item.quantity > 1 ? ` ×${item.quantity}` : ""}
-                  {item.unit ? ` ${item.unit}` : ""}
-                </Text>
-              </Pressable>
-              <IconButton icon={Trash2} label={t("fakraDetail.deleteItem")} onPress={() => handleDeleteItem(item.id)} />
+            <View key={item.id} style={styles.itemContainer}>
+              <View style={styles.itemRow}>
+                <Pressable style={styles.itemToggle} onPress={() => handleToggleItem(item)}>
+                  {item.status === "done" ? (
+                    <CheckCircle2 size={20} color={colors.emerald600} />
+                  ) : (
+                    <Circle size={20} color={colors.slate300} />
+                  )}
+                  <Text style={item.status === "done" ? styles.itemNameDone : styles.itemName}>
+                    {item.name}
+                    {item.quantity > 1 ? ` ×${item.quantity}` : ""}
+                    {item.unit ? ` ${item.unit}` : ""}
+                  </Text>
+                </Pressable>
+                <View style={styles.itemActions}>
+                  <IconButton
+                    icon={Paperclip}
+                    label={t("fakraDetail.addPhoto")}
+                    onPress={() => handleAddPhoto(item)}
+                    disabled={uploadingItemId === item.id}
+                  />
+                  <IconButton icon={Trash2} label={t("fakraDetail.deleteItem")} onPress={() => handleDeleteItem(item.id)} />
+                </View>
+              </View>
+
+              {uploadingItemId === item.id ? (
+                <Text style={styles.muted}>{t("fakraDetail.uploadingPhoto")}</Text>
+              ) : null}
+
+              {item.attachments?.length > 0 ? (
+                <View style={styles.attachmentsRow}>
+                  {item.attachments.map((attachment) => (
+                    <View key={attachment.id} style={styles.attachmentThumb}>
+                      <Image source={{ uri: attachment.file }} style={styles.attachmentImage} />
+                      <Pressable
+                        style={styles.attachmentRemove}
+                        onPress={() => handleDeleteAttachment(item.id, attachment.id)}
+                        accessibilityLabel={t("fakraDetail.removeAttachment")}
+                      >
+                        <Trash2 size={12} color={colors.white} />
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
           ))
         )}
@@ -410,15 +520,37 @@ const styles = StyleSheet.create({
   itemNameField: { flex: 2 },
   itemQtyField: { flex: 1 },
   itemUnitField: { flex: 1 },
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  itemContainer: {
     paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: colors.slate100,
   },
+  itemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   itemToggle: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+  itemActions: { flexDirection: "row", alignItems: "center", gap: 4 },
   itemName: { fontSize: 14, color: colors.slate700 },
   itemNameDone: { fontSize: 14, color: colors.slate300, textDecorationLine: "line-through" },
+  attachmentsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8, marginLeft: 28 },
+  attachmentThumb: { position: "relative" },
+  attachmentImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: colors.slate100,
+  },
+  attachmentRemove: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    backgroundColor: colors.red600,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

@@ -1,7 +1,7 @@
 export function Card({ children, className = "" }) {
   return (
     <div
-      className={`bg-white border border-slate-200 rounded-xl shadow-sm p-4 transition-shadow ${className}`}
+      className={`bg-white border border-slate-200 rounded-2xl shadow-[0_4px_20px_rgba(0,54,61,0.05)] p-4 transition-shadow ${className}`}
     >
       {children}
     </div>
@@ -20,7 +20,7 @@ export function Button({ children, variant = "primary", className = "", ...props
 
   return (
     <button
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors disabled:cursor-not-allowed ${variants[variant]} ${className}`}
       {...props}
     >
       {children}
@@ -45,7 +45,7 @@ export function IconButton({ icon, label, className = "", ...props }) {
 export function Input(props) {
   return (
     <input
-      className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700 transition-shadow"
       {...props}
     />
   );
@@ -54,7 +54,7 @@ export function Input(props) {
 export function Textarea(props) {
   return (
     <textarea
-      className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700 transition-shadow"
       {...props}
     />
   );
@@ -63,7 +63,7 @@ export function Textarea(props) {
 export function Select(props) {
   return (
     <select
-      className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700 transition-shadow"
       {...props}
     />
   );
@@ -84,6 +84,7 @@ export function Badge({ children, color = "gray" }) {
     green: "bg-emerald-100 text-emerald-700",
     blue: "bg-blue-100 text-blue-800",
     yellow: "bg-amber-100 text-amber-700",
+    red: "bg-red-100 text-red-700",
   };
 
   return (

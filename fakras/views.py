@@ -9,14 +9,16 @@ from drf_spectacular.utils import extend_schema
 
 from rest_framework import status, viewsets
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Fakra, Item, FakraAccess
+from .models import Fakra, Item, ItemAttachment, FakraAccess
 from .serializers import (
     FakraSerializer,
     ItemSerializer,
+    AttachmentSerializer,
     ActivityLogSerializer,
     ShareFakraSerializer,
 )
@@ -264,6 +266,117 @@ class ItemUndoView(APIView):
             )
 
         return Response(ItemSerializer(item).data)
+
+
+MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024
+
+
+class ItemAttachmentListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AttachmentSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_item(self, fakra_id, item_id):
+        return get_object_or_404(Item, pk=item_id, fakra_id=fakra_id)
+
+    def get(self, request, fakra_id, item_id):
+        item = self.get_item(fakra_id, item_id)
+        require_fakra_access(request.user, item.fakra)
+
+        serializer = AttachmentSerializer(
+            item.attachments.all(), many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    def post(self, request, fakra_id, item_id):
+        item = self.get_item(fakra_id, item_id)
+        require_fakra_access(request.user, item.fakra)
+
+        file = request.data.get("file")
+        if not file:
+            return Response(
+                {"error": "No file provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not file.content_type.startswith("image/"):
+            return Response(
+                {"error": "Only image files are allowed"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if file.size > MAX_ATTACHMENT_SIZE:
+            return Response(
+                {"error": "File too large (max 5MB)"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        attachment = ItemAttachment.objects.create(
+            item=item, file=file, uploaded_by=request.user
+        )
+
+        log_activity(
+            item.fakra,
+            request.user,
+            "attachment_added",
+            f"{request.user.email} added a photo to '{item.name}'"
+        )
+
+        serializer = AttachmentSerializer(attachment, context={"request": request})
+
+        if item.fakra.household_id:
+            broadcast_to_household(item.fakra.household_id, "attachment.created", {
+                "attachment": serializer.data,
+                "item_id": item.id,
+                "fakra_id": item.fakra_id,
+            })
+
+            notify_household(
+                item.fakra.household_id,
+                "New attachment",
+                f"{request.user.email} added a photo to '{item.name}'",
+                {"event": "attachment.created", "fakra_id": item.fakra_id, "item_id": item.id},
+                exclude_user_id=request.user.id,
+            )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ItemAttachmentDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AttachmentSerializer
+
+    @extend_schema(responses={204: None})
+    def delete(self, request, fakra_id, item_id, attachment_id):
+        attachment = get_object_or_404(
+            ItemAttachment, pk=attachment_id, item_id=item_id, item__fakra_id=fakra_id
+        )
+        item = attachment.item
+        require_fakra_access(request.user, item.fakra)
+
+        if attachment.uploaded_by != request.user and item.fakra.created_by != request.user:
+            raise PermissionDenied(
+                "Only the uploader or the Fakra creator can delete this attachment"
+            )
+
+        attachment.file.delete(save=False)
+        attachment.delete()
+
+        log_activity(
+            item.fakra,
+            request.user,
+            "attachment_removed",
+            f"{request.user.email} removed a photo from '{item.name}'"
+        )
+
+        if item.fakra.household_id:
+            broadcast_to_household(item.fakra.household_id, "attachment.deleted", {
+                "attachment_id": attachment_id,
+                "item_id": item.id,
+                "fakra_id": item.fakra_id,
+            })
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FakraArchiveView(APIView):

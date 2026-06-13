@@ -5,10 +5,16 @@ import { CalendarDays, ChevronRight, Plus, X } from "lucide-react";
 import * as fakrasApi from "../api/fakras";
 import * as householdsApi from "../api/households";
 import { Badge, Button, Card, ErrorText, Input, Label, Select, Textarea, extractError } from "../components/ui";
+import { getDueStatus } from "../utils/dueStatus";
 
 const STATUS_COLORS = {
   active: "green",
   archived: "gray",
+};
+
+const DUE_STATUS_COLORS = {
+  dueSoon: "yellow",
+  overdue: "red",
 };
 
 export default function Dashboard() {
@@ -27,6 +33,7 @@ export default function Dashboard() {
   const [description, setDescription] = useState("");
   const [household, setHousehold] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [recurrence, setRecurrence] = useState("none");
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -77,11 +84,13 @@ export default function Dashboard() {
         description: description || undefined,
         household: household || null,
         due_date: dueDate || null,
+        recurrence,
       });
       setTitle("");
       setDescription("");
       setHousehold("");
       setDueDate("");
+      setRecurrence("none");
       setShowCreate(false);
       loadFakras();
     } catch (err) {
@@ -127,6 +136,15 @@ export default function Dashboard() {
               <div>
                 <Label>{t("common.dueDate")}</Label>
                 <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              </div>
+              <div>
+                <Label>{t("common.recurrenceLabel")}</Label>
+                <Select value={recurrence} onChange={(e) => setRecurrence(e.target.value)}>
+                  <option value="none">{t("common.recurrence.none")}</option>
+                  <option value="daily">{t("common.recurrence.daily")}</option>
+                  <option value="weekly">{t("common.recurrence.weekly")}</option>
+                  <option value="monthly">{t("common.recurrence.monthly")}</option>
+                </Select>
               </div>
             </div>
 
@@ -194,6 +212,9 @@ export default function Dashboard() {
                       </span>
                     )}
                     <Badge color={STATUS_COLORS[fakra.status] || "gray"}>{t(`common.${fakra.status}`, fakra.status)}</Badge>
+                    {getDueStatus(fakra) && (
+                      <Badge color={DUE_STATUS_COLORS[getDueStatus(fakra)]}>{t(`common.${getDueStatus(fakra)}`)}</Badge>
+                    )}
                     <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-150 group-hover:translate-x-1 group-hover:text-blue-600" />
                   </div>
                 </div>

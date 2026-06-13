@@ -7,6 +7,8 @@ from .views import (
     ItemDetailView,
     ItemDoneView,
     ItemUndoView,
+    ItemAttachmentListCreateView,
+    ItemAttachmentDetailView,
     FakraArchiveView,
     FakraActivityView,
     FakraShareView,
@@ -49,6 +51,16 @@ urlpatterns = [
     path(
         "<int:fakra_id>/items/<int:item_id>/undo/",
         ItemUndoView.as_view(),
+    ),
+
+    path(
+        "<int:fakra_id>/items/<int:item_id>/attachments/",
+        ItemAttachmentListCreateView.as_view(),
+    ),
+
+    path(
+        "<int:fakra_id>/items/<int:item_id>/attachments/<int:attachment_id>/",
+        ItemAttachmentDetailView.as_view(),
     ),
 
     path("", include(router.urls)),

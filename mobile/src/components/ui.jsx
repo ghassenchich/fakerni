@@ -105,6 +105,7 @@ const badgeColors = StyleSheet.create({
   green: { backgroundColor: colors.emerald100 },
   blue: { backgroundColor: colors.blue100 },
   yellow: { backgroundColor: colors.amber100 },
+  red: { backgroundColor: colors.red100 },
 });
 
 const badgeTextColors = StyleSheet.create({
@@ -112,6 +113,7 @@ const badgeTextColors = StyleSheet.create({
   green: { color: colors.emerald700 },
   blue: { color: colors.blue800 },
   yellow: { color: colors.amber700 },
+  red: { color: colors.red700 },
 });
 
 export function Badge({ children, color = "gray" }) {
@@ -144,8 +146,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.slate200,
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 16,
+    shadowColor: colors.blue800,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   button: {
     flexDirection: "row",
@@ -154,7 +161,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: 12,
   },
   buttonPressed: {
     opacity: 0.8,
@@ -178,9 +185,10 @@ const styles = StyleSheet.create({
   },
   input: {
     width: "100%",
+    backgroundColor: colors.slate50,
     borderWidth: 1,
-    borderColor: colors.slate300,
-    borderRadius: 6,
+    borderColor: colors.slate200,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,

@@ -16,6 +16,7 @@
     "title": "Title",
     "description": "Description",
     "dueDate": "Due date",
+    "recurrenceLabel": "Recurrence",
     "household": "Household",
     "status": "Status",
     "search": "Search",
@@ -23,8 +24,16 @@
     "personal": "Personal",
     "active": "active",
     "archived": "archived",
+    "dueSoon": "Due soon",
+    "overdue": "Overdue",
     "logOut": "Log out",
-    "backToLogin": "Back to login"
+    "backToLogin": "Back to login",
+    "recurrence": {
+      "none": "Doesn't repeat",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    }
   },
   "roles": {
     "owner": "owner",
@@ -127,6 +136,11 @@
     "add": "Add",
     "adding": "Adding…",
     "noItems": "No items yet.",
-    "deleteItem": "Delete item"
+    "deleteItem": "Delete item",
+    "addPhoto": "Add photo",
+    "uploadingPhoto": "Uploading photo…",
+    "removeAttachment": "Remove photo",
+    "repeats": "Repeats {{frequency}}",
+    "continuesSeries": "This continues a recurring series"
   }
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -7,15 +7,23 @@ import {
   CheckCircle2,
   Circle,
   History,
+  Paperclip,
   Pencil,
   Plus,
+  Repeat,
   Share2,
   Trash2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import * as fakrasApi from "../api/fakras";
 import { useHouseholdSocket } from "../hooks/useHouseholdSocket";
-import { Badge, Button, Card, ErrorText, IconButton, Input, Label, Textarea, extractError } from "../components/ui";
+import { Badge, Button, Card, ErrorText, IconButton, Input, Label, Select, Textarea, extractError } from "../components/ui";
+import { getDueStatus } from "../utils/dueStatus";
+
+const DUE_STATUS_COLORS = {
+  dueSoon: "yellow",
+  overdue: "red",
+};
 
 export default function FakraDetail() {
   const { id } = useParams();
@@ -33,6 +41,7 @@ export default function FakraDetail() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
+  const [editRecurrence, setEditRecurrence] = useState("none");
   const [editError, setEditError] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
@@ -49,6 +58,11 @@ export default function FakraDetail() {
 
   const [showActivity, setShowActivity] = useState(false);
 
+  const fileInputRef = useRef(null);
+  const [pendingItemId, setPendingItemId] = useState(null);
+  const [uploadingItemId, setUploadingItemId] = useState(null);
+  const [attachmentError, setAttachmentError] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -59,6 +73,7 @@ export default function FakraDetail() {
       setEditTitle(response.data.title);
       setEditDescription(response.data.description || "");
       setEditDueDate(response.data.due_date ? response.data.due_date.slice(0, 10) : "");
+      setEditRecurrence(response.data.recurrence || "none");
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -103,6 +118,7 @@ export default function FakraDetail() {
         title: editTitle,
         description: editDescription || null,
         due_date: editDueDate || null,
+        recurrence: editRecurrence,
       });
       setEditing(false);
       load();
@@ -179,6 +195,40 @@ export default function FakraDetail() {
     }
   }
 
+  function handleAddPhotoClick(itemId) {
+    setPendingItemId(itemId);
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileSelected(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || pendingItemId == null) return;
+
+    setAttachmentError("");
+    setUploadingItemId(pendingItemId);
+
+    try {
+      await fakrasApi.uploadAttachment(id, pendingItemId, file);
+      load();
+    } catch (err) {
+      setAttachmentError(extractError(err));
+    } finally {
+      setUploadingItemId(null);
+      setPendingItemId(null);
+    }
+  }
+
+  async function handleDeleteAttachment(itemId, attachmentId) {
+    setAttachmentError("");
+    try {
+      await fakrasApi.deleteAttachment(id, itemId, attachmentId);
+      load();
+    } catch (err) {
+      setAttachmentError(extractError(err));
+    }
+  }
+
   async function handleShare(e) {
     e.preventDefault();
     setShareError("");
@@ -218,14 +268,26 @@ export default function FakraDetail() {
         </div>
         <div className="flex items-center gap-2">
           <Badge color={fakra.status === "archived" ? "gray" : "green"}>{t(`common.${fakra.status}`, fakra.status)}</Badge>
+          {getDueStatus(fakra) && (
+            <Badge color={DUE_STATUS_COLORS[getDueStatus(fakra)]}>{t(`common.${getDueStatus(fakra)}`)}</Badge>
+          )}
           {fakra.due_date && (
             <span className="flex items-center gap-1 text-xs text-slate-400">
               <CalendarDays className="h-3.5 w-3.5" />
               {t("fakraDetail.due", { date: new Date(fakra.due_date).toLocaleDateString() })}
             </span>
           )}
+          {fakra.recurrence !== "none" && (
+            <span className="flex items-center gap-1 text-xs text-slate-400">
+              <Repeat className="h-3.5 w-3.5" />
+              {t("fakraDetail.repeats", { frequency: t(`common.recurrence.${fakra.recurrence}`) })}
+            </span>
+          )}
         </div>
       </div>
+      {fakra.recurrence_parent && (
+        <p className="text-xs text-slate-400">{t("fakraDetail.continuesSeries")}</p>
+      )}
 
       <ErrorText>{actionError}</ErrorText>
 
@@ -266,6 +328,15 @@ export default function FakraDetail() {
             <div>
               <Label>{t("common.dueDate")}</Label>
               <Input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+            </div>
+            <div>
+              <Label>{t("common.recurrenceLabel")}</Label>
+              <Select value={editRecurrence} onChange={(e) => setEditRecurrence(e.target.value)}>
+                <option value="none">{t("common.recurrence.none")}</option>
+                <option value="daily">{t("common.recurrence.daily")}</option>
+                <option value="weekly">{t("common.recurrence.weekly")}</option>
+                <option value="monthly">{t("common.recurrence.monthly")}</option>
+              </Select>
             </div>
             <ErrorText>{editError}</ErrorText>
             <Button type="submit" disabled={editLoading}>
@@ -339,35 +410,82 @@ export default function FakraDetail() {
           </Button>
         </form>
         <ErrorText>{itemError}</ErrorText>
+        <ErrorText>{attachmentError}</ErrorText>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelected}
+        />
 
         {fakra.items.length === 0 ? (
           <p className="text-sm text-slate-500">{t("fakraDetail.noItems")}</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {fakra.items.map((item) => (
-              <li key={item.id} className="group flex items-center justify-between py-2 text-sm">
-                <button
-                  type="button"
-                  onClick={() => handleToggleItem(item)}
-                  className="flex items-center gap-2 text-left"
-                >
-                  {item.status === "done" ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 transition-transform duration-150 group-hover:scale-110" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-slate-300 transition-transform duration-150 group-hover:scale-110 group-hover:text-blue-600" />
-                  )}
-                  <span className={item.status === "done" ? "line-through text-slate-400" : "text-slate-700"}>
-                    {item.name}
-                    {item.quantity > 1 && ` ×${item.quantity}`}
-                    {item.unit && ` ${item.unit}`}
-                  </span>
-                </button>
-                <IconButton
-                  icon={Trash2}
-                  label={t("fakraDetail.deleteItem")}
-                  onClick={() => handleDeleteItem(item.id)}
-                  className="hover:text-red-600 hover:bg-red-50"
-                />
+              <li key={item.id} className="group py-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleItem(item)}
+                    className="flex items-center gap-2 text-left"
+                  >
+                    {item.status === "done" ? (
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600 transition-transform duration-150 group-hover:scale-110" />
+                    ) : (
+                      <Circle className="h-5 w-5 text-slate-300 transition-transform duration-150 group-hover:scale-110 group-hover:text-blue-600" />
+                    )}
+                    <span className={item.status === "done" ? "line-through text-slate-400" : "text-slate-700"}>
+                      {item.name}
+                      {item.quantity > 1 && ` ×${item.quantity}`}
+                      {item.unit && ` ${item.unit}`}
+                    </span>
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <IconButton
+                      icon={Paperclip}
+                      label={t("fakraDetail.addPhoto")}
+                      onClick={() => handleAddPhotoClick(item.id)}
+                      disabled={uploadingItemId === item.id}
+                    />
+                    <IconButton
+                      icon={Trash2}
+                      label={t("fakraDetail.deleteItem")}
+                      onClick={() => handleDeleteItem(item.id)}
+                      className="hover:text-red-600 hover:bg-red-50"
+                    />
+                  </div>
+                </div>
+
+                {uploadingItemId === item.id && (
+                  <p className="text-xs text-slate-400 mt-1 ml-7">{t("fakraDetail.uploadingPhoto")}</p>
+                )}
+
+                {item.attachments?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2 ml-7">
+                    {item.attachments.map((attachment) => (
+                      <div key={attachment.id} className="group/thumb relative">
+                        <a href={attachment.file} target="_blank" rel="noreferrer">
+                          <img
+                            src={attachment.file}
+                            alt=""
+                            className="h-14 w-14 rounded-lg object-cover border border-slate-200"
+                          />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAttachment(item.id, attachment.id)}
+                          aria-label={t("fakraDetail.removeAttachment")}
+                          className="absolute -top-1.5 -right-1.5 hidden group-hover/thumb:flex items-center justify-center h-5 w-5 rounded-full bg-red-600 text-white"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

@@ -55,3 +55,23 @@ export function markItemDone(fakraId, itemId) {
 export function undoItem(fakraId, itemId) {
   return client.post(`/api/fakras/${fakraId}/items/${itemId}/undo/`);
 }
+
+export function listAttachments(fakraId, itemId) {
+  return client.get(`/api/fakras/${fakraId}/items/${itemId}/attachments/`);
+}
+
+export function uploadAttachment(fakraId, itemId, asset) {
+  const formData = new FormData();
+  formData.append("file", {
+    uri: asset.uri,
+    name: asset.fileName || "photo.jpg",
+    type: asset.mimeType || "image/jpeg",
+  });
+  return client.post(`/api/fakras/${fakraId}/items/${itemId}/attachments/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
+export function deleteAttachment(fakraId, itemId, attachmentId) {
+  return client.delete(`/api/fakras/${fakraId}/items/${itemId}/attachments/${attachmentId}/`);
+}

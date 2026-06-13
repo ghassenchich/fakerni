@@ -18,10 +18,16 @@ import {
   extractError,
 } from "../../src/components/ui";
 import { colors } from "../../src/constants/colors";
+import { getDueStatus } from "../../src/utils/dueStatus";
 
 const STATUS_COLORS = {
   active: "green",
   archived: "gray",
+};
+
+const DUE_STATUS_COLORS = {
+  dueSoon: "yellow",
+  overdue: "red",
 };
 
 export default function Dashboard() {
@@ -41,6 +47,7 @@ export default function Dashboard() {
   const [description, setDescription] = useState("");
   const [household, setHousehold] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [recurrence, setRecurrence] = useState("none");
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -89,11 +96,13 @@ export default function Dashboard() {
         description: description || undefined,
         household: household || null,
         due_date: dueDate || null,
+        recurrence,
       });
       setTitle("");
       setDescription("");
       setHousehold("");
       setDueDate("");
+      setRecurrence("none");
       setShowCreate(false);
       loadFakras();
     } catch (err) {
@@ -137,6 +146,15 @@ export default function Dashboard() {
               <Label>{t("common.dueDate")}</Label>
               <Input value={dueDate} onChangeText={setDueDate} placeholder="YYYY-MM-DD" />
             </View>
+          </View>
+          <View style={styles.field}>
+            <Label>{t("common.recurrenceLabel")}</Label>
+            <Select selectedValue={recurrence} onValueChange={setRecurrence}>
+              <SelectItem label={t("common.recurrence.none")} value="none" />
+              <SelectItem label={t("common.recurrence.daily")} value="daily" />
+              <SelectItem label={t("common.recurrence.weekly")} value="weekly" />
+              <SelectItem label={t("common.recurrence.monthly")} value="monthly" />
+            </Select>
           </View>
 
           <ErrorText>{createError}</ErrorText>
@@ -201,6 +219,9 @@ export default function Dashboard() {
                     </View>
                   ) : null}
                   <Badge color={STATUS_COLORS[fakra.status] || "gray"}>{t(`common.${fakra.status}`, fakra.status)}</Badge>
+                  {getDueStatus(fakra) && (
+                    <Badge color={DUE_STATUS_COLORS[getDueStatus(fakra)]}>{t(`common.${getDueStatus(fakra)}`)}</Badge>
+                  )}
                   <ChevronRight size={16} color={colors.slate300} />
                 </View>
               </View>

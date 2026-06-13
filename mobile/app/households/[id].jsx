@@ -18,6 +18,12 @@ import {
   extractError,
 } from "../../src/components/ui";
 import { colors } from "../../src/constants/colors";
+import { getDueStatus } from "../../src/utils/dueStatus";
+
+const DUE_STATUS_COLORS = {
+  dueSoon: "yellow",
+  overdue: "red",
+};
 
 const ROLES = ["owner", "admin", "member"];
 
@@ -209,6 +215,9 @@ export default function HouseholdDetail() {
                 <Text style={styles.fakraTitle}>{fakra.title}</Text>
                 <View style={styles.fakraMeta}>
                   <Badge color={fakra.status === "archived" ? "gray" : "green"}>{t(`common.${fakra.status}`, fakra.status)}</Badge>
+                  {getDueStatus(fakra) && (
+                    <Badge color={DUE_STATUS_COLORS[getDueStatus(fakra)]}>{t(`common.${getDueStatus(fakra)}`)}</Badge>
+                  )}
                   <ChevronRight size={16} color={colors.slate300} />
                 </View>
               </View>

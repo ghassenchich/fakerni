@@ -1,6 +1,49 @@
 @import "tailwindcss";
 
+@theme {
+  /* Teal (primary brand color), replaces Tailwind's default blue scale */
+  --color-blue-950: #00363d;
+  --color-blue-900: #04434a;
+  --color-blue-800: #1e4d54;
+  --color-blue-700: #2f6169;
+  --color-blue-600: #38656c;
+  --color-blue-500: #4a7c84;
+  --color-blue-300: #8fbdc5;
+  --color-blue-200: #a0ced6;
+  --color-blue-100: #bcebf3;
+  --color-blue-50: #eef9fb;
+
+  /* Warm neutral, replaces Tailwind's default slate scale */
+  --color-slate-900: #191c1d;
+  --color-slate-700: #40484a;
+  --color-slate-600: #565e60;
+  --color-slate-500: #71787a;
+  --color-slate-400: #9aa1a2;
+  --color-slate-300: #c0c8c9;
+  --color-slate-200: #e1e3e4;
+  --color-slate-100: #edeeef;
+  --color-slate-50: #f8f9fa;
+
+  /* Soft amber tertiary accent */
+  --color-amber-700: #633f00;
+  --color-amber-100: #ffddb3;
+
+  /* Error red */
+  --color-red-700: #93000a;
+  --color-red-600: #ba1a1a;
+  --color-red-100: #ffdad6;
+  --color-red-50: #fff8f7;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  background-color: #f8f9fa;
+  color: #191c1d;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
 }
