@@ -298,6 +298,38 @@ class FakraTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    # --- Notifications for FakraAccess-shared users ---
+
+    @patch("fakras.views.notify_fakra_access")
+    def test_shared_user_notified_on_item_created(self, mock_notify):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+        FakraAccess.objects.create(fakra=fakra, user=self.outsider)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/", {"name": "Milk", "quantity": 1}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_notify.assert_called_once()
+        self.assertEqual(mock_notify.call_args[0][0], fakra)
+        self.assertEqual(mock_notify.call_args[1]["exclude_user_id"], self.member.id)
+
+    @patch("fakras.notifications.send_push_to_users")
+    def test_creator_notified_when_shared_user_acts(self, mock_send_push):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+        FakraAccess.objects.create(fakra=fakra, user=self.outsider)
+
+        self.client.force_authenticate(self.outsider)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/", {"name": "Milk", "quantity": 1}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_send_push.assert_called_once()
+        notified_users = list(mock_send_push.call_args[0][0])
+        self.assertEqual(notified_users, [self.member])
+
 
 class DueDateReminderTests(APITestCase):
     def setUp(self):

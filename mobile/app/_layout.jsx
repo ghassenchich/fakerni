@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import LoadingScreen from "../src/components/LoadingScreen";
+import LockScreen from "../src/components/LockScreen";
 import { i18nReady } from "../src/i18n";
 
 function PushNotifications() {
@@ -25,6 +26,21 @@ function AppStack() {
   );
 }
 
+function RootContent() {
+  const { locked } = useAuth();
+
+  if (locked) {
+    return <LockScreen />;
+  }
+
+  return (
+    <>
+      <PushNotifications />
+      <AppStack />
+    </>
+  );
+}
+
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
 
@@ -38,8 +54,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <PushNotifications />
-      <AppStack />
+      <RootContent />
     </AuthProvider>
   );
 }

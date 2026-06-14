@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { KeyRound, LogOut, Save, UserCircle } from "lucide-react-native";
+import * as LocalAuthentication from "expo-local-authentication";
+import { Fingerprint, KeyRound, LogOut, Save, UserCircle } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import * as usersApi from "../../src/api/users";
 import { Button, Card, ErrorText, Input, Label, extractError } from "../../src/components/ui";
@@ -9,7 +10,7 @@ import LanguageSwitcher from "../../src/components/LanguageSwitcher";
 import { colors } from "../../src/constants/colors";
 
 export default function Profile() {
-  const { user, refreshProfile, logout } = useAuth();
+  const { user, refreshProfile, logout, biometricEnabled, setBiometricEnabled } = useAuth();
   const { t } = useTranslation();
   const [name, setName] = useState(user?.name || "");
   const [nameError, setNameError] = useState("");
@@ -21,6 +22,9 @@ export default function Profile() {
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
+
+  const [biometricError, setBiometricError] = useState("");
+  const [biometricLoading, setBiometricLoading] = useState(false);
 
   async function handleNameSubmit() {
     setNameError("");
@@ -35,6 +39,27 @@ export default function Profile() {
       setNameError(extractError(err));
     } finally {
       setNameLoading(false);
+    }
+  }
+
+  async function handleBiometricToggle() {
+    setBiometricError("");
+    setBiometricLoading(true);
+
+    try {
+      if (!biometricEnabled) {
+        const hasHardware = await LocalAuthentication.hasHardwareAsync();
+        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+        if (!hasHardware || !isEnrolled) {
+          setBiometricError(t("profile.biometric.unavailable"));
+          return;
+        }
+      }
+
+      await setBiometricEnabled(!biometricEnabled);
+    } finally {
+      setBiometricLoading(false);
     }
   }
 
@@ -107,6 +132,23 @@ export default function Profile() {
 
       <Card style={styles.card}>
         <View style={styles.cardTitleRow}>
+          <Fingerprint size={16} color={colors.blue700} />
+          <Text style={styles.cardTitle}>{t("profile.biometric.title")}</Text>
+        </View>
+        <Text style={styles.description}>{t("profile.biometric.description")}</Text>
+
+        <ErrorText>{biometricError}</ErrorText>
+
+        <Button disabled={biometricLoading} onPress={handleBiometricToggle} variant={biometricEnabled ? "secondary" : "primary"}>
+          <Fingerprint size={16} color={biometricEnabled ? colors.slate700 : colors.white} />
+          <Text style={[styles.buttonLabel, biometricEnabled && { color: colors.slate700 }]}>
+            {biometricEnabled ? t("profile.biometric.disable") : t("profile.biometric.enable")}
+          </Text>
+        </Button>
+      </Card>
+
+      <Card style={styles.card}>
+        <View style={styles.cardTitleRow}>
           <Text style={styles.cardTitle}>{t("profile.language")}</Text>
         </View>
         <LanguageSwitcher />
@@ -128,6 +170,7 @@ const styles = StyleSheet.create({
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   cardTitle: { fontWeight: "500", color: colors.blue950 },
   field: { marginBottom: 0 },
+  description: { fontSize: 14, color: colors.slate500 },
   successText: { fontSize: 14, color: colors.emerald600 },
   buttonLabel: { color: colors.white, fontSize: 14, fontWeight: "500" },
   dangerLabel: { color: colors.red600, fontSize: 14, fontWeight: "500" },

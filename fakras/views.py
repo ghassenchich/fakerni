@@ -22,6 +22,7 @@ from .serializers import (
     ActivityLogSerializer,
     ShareFakraSerializer,
 )
+from .notifications import notify_fakra_access
 from .permissions import require_fakra_access
 from .realtime import broadcast_to_fakra
 from .services import log_activity, mark_item_done, undo_item
@@ -29,6 +30,7 @@ from .services import log_activity, mark_item_done, undo_item
 from household.notifications import notify_household
 from household.permissions import require_role, get_role
 from household.realtime import broadcast_to_household
+from users.realtime import broadcast_to_user
 
 
 class FakraViewSet(viewsets.ModelViewSet):
@@ -76,6 +78,12 @@ class FakraViewSet(viewsets.ModelViewSet):
                 {"event": "fakra.created", "fakra_id": fakra.id, "household_id": household.id},
                 exclude_user_id=self.request.user.id,
             )
+
+            for membership in household.memberships.exclude(user=self.request.user):
+                broadcast_to_user(membership.user_id, "fakra.created", {
+                    "fakra": FakraSerializer(fakra, context=self.get_serializer_context()).data,
+                    "household_id": household.id,
+                })
 
 
 class ItemListCreateView(APIView):
@@ -128,6 +136,14 @@ class ItemListCreateView(APIView):
             "item": ItemSerializer(item).data,
             "fakra_id": fakra.id,
         })
+
+        notify_fakra_access(
+            fakra,
+            "New item added",
+            f"{request.user.email} added '{item.name}' to '{fakra.title}'",
+            {"event": "item.created", "fakra_id": fakra.id, "item_id": item.id},
+            exclude_user_id=request.user.id,
+        )
 
         if fakra.household_id:
             broadcast_to_household(fakra.household_id, "item.created", {
@@ -214,6 +230,14 @@ class ItemDoneView(APIView):
             "done_at": item.done_at.isoformat(),
         })
 
+        notify_fakra_access(
+            item.fakra,
+            "Item done",
+            f"{request.user.email} marked '{item.name}' as done",
+            {"event": "item.done", "fakra_id": item.fakra_id, "item_id": item.id},
+            exclude_user_id=request.user.id,
+        )
+
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "item.done", {
                 "item_id": item.id,
@@ -268,6 +292,14 @@ class ItemUndoView(APIView):
             "fakra_id": item.fakra_id,
             "reverted_by_user": request.user.id,
         })
+
+        notify_fakra_access(
+            item.fakra,
+            "Item reverted",
+            f"{request.user.email} reverted '{item.name}' to pending",
+            {"event": "item.undo", "fakra_id": item.fakra_id, "item_id": item.id},
+            exclude_user_id=request.user.id,
+        )
 
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "item.undo", {
@@ -349,6 +381,14 @@ class ItemAttachmentListCreateView(APIView):
             "fakra_id": item.fakra_id,
         })
 
+        notify_fakra_access(
+            item.fakra,
+            "New attachment",
+            f"{request.user.email} added a photo to '{item.name}'",
+            {"event": "attachment.created", "fakra_id": item.fakra_id, "item_id": item.id},
+            exclude_user_id=request.user.id,
+        )
+
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "attachment.created", {
                 "attachment": serializer.data,
@@ -399,6 +439,14 @@ class ItemAttachmentDetailView(APIView):
             "item_id": item.id,
             "fakra_id": item.fakra_id,
         })
+
+        notify_fakra_access(
+            item.fakra,
+            "Attachment removed",
+            f"{request.user.email} removed a photo from '{item.name}'",
+            {"event": "attachment.deleted", "fakra_id": item.fakra_id, "item_id": item.id},
+            exclude_user_id=request.user.id,
+        )
 
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "attachment.deleted", {
@@ -476,6 +524,11 @@ class FakraShareView(APIView):
         users = get_user_model().objects.filter(id__in=user_ids)
 
         for user in users:
-            FakraAccess.objects.get_or_create(fakra=fakra, user=user)
+            _, created = FakraAccess.objects.get_or_create(fakra=fakra, user=user)
+
+            if created:
+                broadcast_to_user(user.id, "fakra.shared", {
+                    "fakra": FakraSerializer(fakra, context={"request": request}).data,
+                })
 
         return Response(FakraSerializer(fakra, context={"request": request}).data)

@@ -78,6 +78,12 @@
       "submit": "Réinitialiser le mot de passe",
       "submitting": "Réinitialisation…",
       "logIn": "Se connecter"
+    },
+    "lock": {
+      "title": "Déverrouiller Fakerni",
+      "subtitle": "Utilisez l'authentification biométrique pour continuer",
+      "unlock": "Déverrouiller",
+      "unlockFailed": "Authentification échouée. Réessayez."
     }
   },
   "profile": {
@@ -89,7 +95,16 @@
     "passwordUpdated": "Mot de passe mis à jour",
     "submit": "Changer le mot de passe",
     "submitting": "Mise à jour…",
-    "language": "Langue"
+    "language": "Langue",
+    "biometric": {
+      "title": "Verrouillage biométrique",
+      "description": "Exiger une empreinte digitale ou la reconnaissance faciale pour ouvrir l'application",
+      "enable": "Activer le verrouillage biométrique",
+      "disable": "Désactiver le verrouillage biométrique",
+      "unavailable": "L'authentification biométrique n'est pas disponible sur cet appareil",
+      "enabled": "Verrouillage biométrique activé",
+      "disabled": "Verrouillage biométrique désactivé"
+    }
   },
   "dashboard": {
     "heading": "Mes Fakras",

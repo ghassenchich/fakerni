@@ -5,6 +5,7 @@ import { CalendarDays, ChevronRight, Plus, X } from "lucide-react";
 import * as fakrasApi from "../api/fakras";
 import * as householdsApi from "../api/households";
 import { Badge, Button, Card, ErrorText, Input, Label, Select, Textarea, extractError } from "../components/ui";
+import { useUserSocket } from "../hooks/useUserSocket";
 import { getDueStatus } from "../utils/dueStatus";
 
 const STATUS_COLORS = {
@@ -72,6 +73,12 @@ export default function Dashboard() {
     loadFakras();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, householdFilter, search]);
+
+  useUserSocket((message) => {
+    if (["fakra.created", "fakra.shared"].includes(message.event)) {
+      loadFakras();
+    }
+  });
 
   async function handleCreate(e) {
     e.preventDefault();

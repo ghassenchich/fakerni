@@ -78,6 +78,12 @@
       "submit": "Reset password",
       "submitting": "Resetting…",
       "logIn": "Log in"
+    },
+    "lock": {
+      "title": "Unlock Fakerni",
+      "subtitle": "Use biometric authentication to continue",
+      "unlock": "Unlock",
+      "unlockFailed": "Authentication failed. Try again."
     }
   },
   "profile": {
@@ -89,7 +95,16 @@
     "passwordUpdated": "Password updated",
     "submit": "Change password",
     "submitting": "Updating…",
-    "language": "Language"
+    "language": "Language",
+    "biometric": {
+      "title": "Biometric lock",
+      "description": "Require fingerprint or face recognition to open the app",
+      "enable": "Enable biometric lock",
+      "disable": "Disable biometric lock",
+      "unavailable": "Biometric authentication is not available on this device",
+      "enabled": "Biometric lock enabled",
+      "disabled": "Biometric lock disabled"
+    }
   },
   "dashboard": {
     "heading": "My Fakras",

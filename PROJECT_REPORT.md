@@ -588,7 +588,7 @@ remaining gap):
 
 | Area | Status |
 |---|---|
-| Auth (register/login/JWT, password reset via OTP) | Done — no biometrics |
+| Auth (register/login/JWT, password reset via OTP, biometric app lock) | Done |
 | Groups/Household (CRUD, roles, invites, members) | Done |
 | Fakras (CRUD, personal/shared, archive, search/filter) | Done |
 | Items (CRUD, Done/Undo with 10-min window, search/filter) | Done |

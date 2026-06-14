@@ -18,6 +18,7 @@ import {
   extractError,
 } from "../../src/components/ui";
 import { colors } from "../../src/constants/colors";
+import { useUserSocket } from "../../src/hooks/useUserSocket";
 import { getDueStatus } from "../../src/utils/dueStatus";
 
 const STATUS_COLORS = {
@@ -85,6 +86,12 @@ export default function Dashboard() {
   useEffect(() => {
     loadFakras();
   }, [loadFakras]);
+
+  useUserSocket((message) => {
+    if (["fakra.created", "fakra.shared"].includes(message.event)) {
+      loadFakras();
+    }
+  });
 
   async function handleCreate() {
     setCreateError("");
