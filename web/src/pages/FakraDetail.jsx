@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import * as fakrasApi from "../api/fakras";
-import { useHouseholdSocket } from "../hooks/useHouseholdSocket";
+import { useFakraSocket } from "../hooks/useFakraSocket";
 import { Badge, Button, Card, ErrorText, IconButton, Input, Label, Select, Textarea, extractError } from "../components/ui";
 import { getDueStatus } from "../utils/dueStatus";
 
@@ -85,10 +85,10 @@ export default function FakraDetail() {
     load();
   }, [load]);
 
-  useHouseholdSocket(fakra?.household, (message) => {
+  useFakraSocket(id, (message) => {
     if (
       message.payload?.fakra_id === Number(id) &&
-      ["item.created", "item.done", "item.undo"].includes(message.event)
+      ["item.created", "item.done", "item.undo", "attachment.created", "attachment.deleted"].includes(message.event)
     ) {
       load();
     }

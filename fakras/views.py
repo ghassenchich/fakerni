@@ -23,6 +23,7 @@ from .serializers import (
     ShareFakraSerializer,
 )
 from .permissions import require_fakra_access
+from .realtime import broadcast_to_fakra
 from .services import log_activity, mark_item_done, undo_item
 
 from household.notifications import notify_household
@@ -123,6 +124,11 @@ class ItemListCreateView(APIView):
             f"{request.user.email} added '{item.name}'"
         )
 
+        broadcast_to_fakra(fakra.id, "item.created", {
+            "item": ItemSerializer(item).data,
+            "fakra_id": fakra.id,
+        })
+
         if fakra.household_id:
             broadcast_to_household(fakra.household_id, "item.created", {
                 "item": ItemSerializer(item).data,
@@ -201,6 +207,13 @@ class ItemDoneView(APIView):
             f"{request.user.email} marked '{item.name}' as done"
         )
 
+        broadcast_to_fakra(item.fakra_id, "item.done", {
+            "item_id": item.id,
+            "fakra_id": item.fakra_id,
+            "done_by_user": request.user.id,
+            "done_at": item.done_at.isoformat(),
+        })
+
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "item.done", {
                 "item_id": item.id,
@@ -249,6 +262,12 @@ class ItemUndoView(APIView):
             "item_undone",
             f"{request.user.email} reverted '{item.name}' to pending"
         )
+
+        broadcast_to_fakra(item.fakra_id, "item.undo", {
+            "item_id": item.id,
+            "fakra_id": item.fakra_id,
+            "reverted_by_user": request.user.id,
+        })
 
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "item.undo", {
@@ -324,6 +343,12 @@ class ItemAttachmentListCreateView(APIView):
 
         serializer = AttachmentSerializer(attachment, context={"request": request})
 
+        broadcast_to_fakra(item.fakra_id, "attachment.created", {
+            "attachment": serializer.data,
+            "item_id": item.id,
+            "fakra_id": item.fakra_id,
+        })
+
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "attachment.created", {
                 "attachment": serializer.data,
@@ -368,6 +393,12 @@ class ItemAttachmentDetailView(APIView):
             "attachment_removed",
             f"{request.user.email} removed a photo from '{item.name}'"
         )
+
+        broadcast_to_fakra(item.fakra_id, "attachment.deleted", {
+            "attachment_id": attachment_id,
+            "item_id": item.id,
+            "fakra_id": item.fakra_id,
+        })
 
         if item.fakra.household_id:
             broadcast_to_household(item.fakra.household_id, "attachment.deleted", {

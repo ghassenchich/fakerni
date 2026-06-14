@@ -18,7 +18,7 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import * as fakrasApi from "../../src/api/fakras";
-import { useHouseholdSocket } from "../../src/hooks/useHouseholdSocket";
+import { useFakraSocket } from "../../src/hooks/useFakraSocket";
 import {
   Badge,
   Button,
@@ -98,10 +98,10 @@ export default function FakraDetail() {
     load();
   }, [load]);
 
-  useHouseholdSocket(fakra?.household, (message) => {
+  useFakraSocket(id, (message) => {
     if (
       message.payload?.fakra_id === Number(id) &&
-      ["item.created", "item.done", "item.undo"].includes(message.event)
+      ["item.created", "item.done", "item.undo", "attachment.created", "attachment.deleted"].includes(message.event)
     ) {
       load();
     }
