@@ -60,6 +60,7 @@ class ItemSerializer(serializers.ModelSerializer):
             "unit",
             "category",
             "notes",
+            "estimated_price",
             "status",
             "created_by",
             "created_by_email",
@@ -88,6 +89,14 @@ class ItemSerializer(serializers.ModelSerializer):
         if len(value) < 1:
             raise serializers.ValidationError(
                 "Name is required"
+            )
+
+        return value
+
+    def validate_estimated_price(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError(
+                "Estimated price cannot be negative"
             )
 
         return value
@@ -122,6 +131,9 @@ class FakraSerializer(serializers.ModelSerializer):
 
     items = ItemSerializer(many=True, read_only=True)
 
+    estimated_total = serializers.SerializerMethodField()
+    estimated_remaining = serializers.SerializerMethodField()
+
     class Meta:
         model = Fakra
 
@@ -139,6 +151,8 @@ class FakraSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "items",
+            "estimated_total",
+            "estimated_remaining",
         ]
 
         read_only_fields = [
@@ -149,6 +163,18 @@ class FakraSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def get_estimated_total(self, obj):
+        return sum(
+            (item.estimated_price or 0) * item.quantity for item in obj.items.all()
+        )
+
+    def get_estimated_remaining(self, obj):
+        return sum(
+            (item.estimated_price or 0) * item.quantity
+            for item in obj.items.all()
+            if item.status != "done"
+        )
 
     def validate_title(self, value):
         value = value.strip()

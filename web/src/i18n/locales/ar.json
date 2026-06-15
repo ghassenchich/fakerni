@@ -133,6 +133,8 @@
     "items": "العناصر",
     "qty": "الكمية",
     "unit": "الوحدة",
+    "price": "السعر",
+    "remainingOfTotal": "{{remaining}} متبقي من {{total}}",
     "add": "إضافة",
     "adding": "جارٍ الإضافة…",
     "noItems": "لا توجد عناصر حتى الآن.",

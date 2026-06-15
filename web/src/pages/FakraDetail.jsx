@@ -52,6 +52,7 @@ export default function FakraDetail() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState(1);
   const [newItemUnit, setNewItemUnit] = useState("");
+  const [newItemPrice, setNewItemPrice] = useState("");
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
 
@@ -181,10 +182,12 @@ export default function FakraDetail() {
         name: newItemName,
         quantity: Number(newItemQuantity) || 1,
         unit: newItemUnit || null,
+        estimated_price: newItemPrice === "" ? null : Number(newItemPrice),
       });
       setNewItemName("");
       setNewItemQuantity(1);
       setNewItemUnit("");
+      setNewItemPrice("");
       load();
     } catch (err) {
       setItemError(extractError(err));
@@ -502,7 +505,17 @@ export default function FakraDetail() {
       )}
 
       <Card>
-        <h2 className="font-medium mb-2 text-blue-950">{t("fakraDetail.items")}</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-medium text-blue-950">{t("fakraDetail.items")}</h2>
+          {Number(fakra.estimated_total) > 0 && (
+            <span className="text-sm text-slate-500">
+              {t("fakraDetail.remainingOfTotal", {
+                remaining: Number(fakra.estimated_remaining).toFixed(2),
+                total: Number(fakra.estimated_total).toFixed(2),
+              })}
+            </span>
+          )}
+        </div>
 
         <form onSubmit={handleSmartAdd} className="flex flex-wrap gap-2 items-end mb-3">
           <div className="flex-1 min-w-[220px]">
@@ -593,6 +606,10 @@ export default function FakraDetail() {
             <Label>{t("fakraDetail.unit")}</Label>
             <Input value={newItemUnit} onChange={(e) => setNewItemUnit(e.target.value)} />
           </div>
+          <div className="w-24">
+            <Label>{t("fakraDetail.price")}</Label>
+            <Input type="number" min={0} step="0.01" value={newItemPrice} onChange={(e) => setNewItemPrice(e.target.value)} />
+          </div>
           <Button type="submit" disabled={itemLoading}>
             <Plus className="h-4 w-4" />
             {itemLoading ? t("fakraDetail.adding") : t("fakraDetail.add")}
@@ -631,6 +648,11 @@ export default function FakraDetail() {
                       {item.quantity > 1 && ` ×${item.quantity}`}
                       {item.unit && ` ${item.unit}`}
                     </span>
+                    {item.estimated_price != null && (
+                      <span className="text-xs text-slate-400">
+                        {(item.estimated_price * item.quantity).toFixed(2)}
+                      </span>
+                    )}
                   </button>
                   <div className="flex items-center gap-1">
                     <IconButton

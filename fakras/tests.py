@@ -1,4 +1,5 @@
 import io
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -122,6 +123,46 @@ class FakraTests(APITestCase):
 
         log = ActivityLog.objects.filter(fakra=fakra, action_type="item_added")
         self.assertTrue(log.exists())
+
+    def test_fakra_estimated_totals(self):
+        fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)
+        Item.objects.create(fakra=fakra, name="Milk", created_by=self.member, quantity=2, estimated_price=Decimal("1.50"))
+        Item.objects.create(
+            fakra=fakra, name="Bread", created_by=self.member, quantity=1, estimated_price=Decimal("2.00"),
+            status="done", done_by=self.member, done_at=timezone.now(),
+        )
+        Item.objects.create(fakra=fakra, name="Eggs", created_by=self.member, quantity=1)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.get(f"/api/fakras/{fakra.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["estimated_total"], Decimal("5.00"))
+        self.assertEqual(response.data["estimated_remaining"], Decimal("3.00"))
+
+    def test_create_item_with_estimated_price(self):
+        fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/", {
+            "name": "Bread",
+            "quantity": 1,
+            "estimated_price": "3.25",
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["estimated_price"], "3.25")
+
+    def test_negative_estimated_price_is_rejected(self):
+        fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/", {
+            "name": "Bread",
+            "estimated_price": "-1",
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_outsider_cannot_add_items(self):
         fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)

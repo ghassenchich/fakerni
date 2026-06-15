@@ -151,6 +151,8 @@
     "items": "Articles",
     "qty": "Qté",
     "unit": "Unité",
+    "price": "Prix",
+    "remainingOfTotal": "{{remaining}} restant sur {{total}}",
     "add": "Ajouter",
     "adding": "Ajout…",
     "noItems": "Aucun article pour le moment.",

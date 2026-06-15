@@ -67,6 +67,7 @@ export default function FakraDetail() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("1");
   const [newItemUnit, setNewItemUnit] = useState("");
+  const [newItemPrice, setNewItemPrice] = useState("");
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
 
@@ -191,10 +192,12 @@ export default function FakraDetail() {
         name: newItemName,
         quantity: Number(newItemQuantity) || 1,
         unit: newItemUnit || null,
+        estimated_price: newItemPrice === "" ? null : Number(newItemPrice),
       });
       setNewItemName("");
       setNewItemQuantity("1");
       setNewItemUnit("");
+      setNewItemPrice("");
       load();
     } catch (err) {
       setItemError(extractError(err));
@@ -530,7 +533,17 @@ export default function FakraDetail() {
       )}
 
       <Card style={styles.card}>
-        <Text style={styles.cardTitle}>{t("fakraDetail.items")}</Text>
+        <View style={styles.itemsHeaderRow}>
+          <Text style={styles.cardTitle}>{t("fakraDetail.items")}</Text>
+          {Number(fakra.estimated_total) > 0 ? (
+            <Text style={styles.muted}>
+              {t("fakraDetail.remainingOfTotal", {
+                remaining: Number(fakra.estimated_remaining).toFixed(2),
+                total: Number(fakra.estimated_total).toFixed(2),
+              })}
+            </Text>
+          ) : null}
+        </View>
 
         <Label>{t("fakraDetail.smartAdd.label")}</Label>
         <Input
@@ -617,6 +630,10 @@ export default function FakraDetail() {
             <Label>{t("fakraDetail.unit")}</Label>
             <Input value={newItemUnit} onChangeText={setNewItemUnit} />
           </View>
+          <View style={styles.itemUnitField}>
+            <Label>{t("fakraDetail.price")}</Label>
+            <Input value={newItemPrice} onChangeText={setNewItemPrice} keyboardType="numeric" />
+          </View>
         </View>
         <Button disabled={itemLoading} onPress={handleAddItem}>
           <Plus size={16} color={colors.white} />
@@ -642,6 +659,9 @@ export default function FakraDetail() {
                     {item.quantity > 1 ? ` ×${item.quantity}` : ""}
                     {item.unit ? ` ${item.unit}` : ""}
                   </Text>
+                  {item.estimated_price != null ? (
+                    <Text style={styles.itemPrice}>{(item.estimated_price * item.quantity).toFixed(2)}</Text>
+                  ) : null}
                 </Pressable>
                 <View style={styles.itemActions}>
                   <IconButton
@@ -700,6 +720,7 @@ const styles = StyleSheet.create({
   card: { gap: 8 },
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   cardTitle: { fontWeight: "500", color: colors.blue950 },
+  itemsHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
   field: { marginBottom: 0 },
   activityEntry: { fontSize: 14, color: colors.slate700 },
   successText: { fontSize: 14, color: colors.emerald600 },
@@ -722,6 +743,7 @@ const styles = StyleSheet.create({
   itemActions: { flexDirection: "row", alignItems: "center", gap: 4 },
   itemName: { fontSize: 14, color: colors.slate700 },
   itemNameDone: { fontSize: 14, color: colors.slate300, textDecorationLine: "line-through" },
+  itemPrice: { fontSize: 12, color: colors.slate400 },
   attachmentsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8, marginLeft: 28 },
   attachmentThumb: { position: "relative" },
   attachmentImage: {
