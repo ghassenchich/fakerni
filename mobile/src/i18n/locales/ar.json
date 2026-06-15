@@ -160,6 +160,27 @@
     "removeAttachment": "إزالة الصورة",
     "photoPermissionDenied": "يلزم إذن الوصول إلى الصور",
     "repeats": "يتكرر {{frequency}}",
-    "continuesSeries": "هذه فكرة تابعة لسلسلة متكررة"
+    "continuesSeries": "هذه فكرة تابعة لسلسلة متكررة",
+    "smartAdd": {
+      "label": "إضافة ذكية",
+      "placeholder": "مثال: حليب، بيض، خبز و2 كغ أرز",
+      "button": "إضافة ذكية",
+      "adding": "جارٍ الإضافة…"
+    },
+    "smartScan": {
+      "button": "مسح صورة",
+      "scanning": "جارٍ المسح…"
+    },
+    "suggestions": {
+      "button": "اقترح عناصر",
+      "loading": "جارٍ التفكير…"
+    },
+    "smartCommand": {
+      "label": "أمر ذكي",
+      "placeholder": "مثال: ضع الحليب كمنتهي، أحذف الخبز",
+      "button": "تنفيذ",
+      "running": "جارٍ التنفيذ…",
+      "skipped": "تعذّر تنفيذ {{count}} أمر/أوامر"
+    }
   }
 }

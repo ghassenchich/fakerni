@@ -6,15 +6,19 @@ import * as ImagePicker from "expo-image-picker";
 import {
   Archive,
   CalendarDays,
+  Camera,
   CheckCircle2,
   Circle,
   History,
+  Lightbulb,
   Paperclip,
   Pencil,
   Plus,
   Repeat,
   Share2,
+  Sparkles,
   Trash2,
+  Wand2,
 } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import * as fakrasApi from "../../src/api/fakras";
@@ -65,6 +69,23 @@ export default function FakraDetail() {
   const [newItemUnit, setNewItemUnit] = useState("");
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
+
+  const [smartAddText, setSmartAddText] = useState("");
+  const [smartAddError, setSmartAddError] = useState("");
+  const [smartAddLoading, setSmartAddLoading] = useState(false);
+
+  const [scanError, setScanError] = useState("");
+  const [scanLoading, setScanLoading] = useState(false);
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsError, setSuggestionsError] = useState("");
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [addingSuggestion, setAddingSuggestion] = useState(null);
+
+  const [commandText, setCommandText] = useState("");
+  const [commandError, setCommandError] = useState("");
+  const [commandLoading, setCommandLoading] = useState(false);
+  const [commandSkipped, setCommandSkipped] = useState([]);
 
   const [shareUserIds, setShareUserIds] = useState("");
   const [shareError, setShareError] = useState("");
@@ -179,6 +200,100 @@ export default function FakraDetail() {
       setItemError(extractError(err));
     } finally {
       setItemLoading(false);
+    }
+  }
+
+  async function handleSmartAdd() {
+    setSmartAddError("");
+    setSmartAddLoading(true);
+
+    try {
+      await fakrasApi.smartAddItems(id, smartAddText);
+      setSmartAddText("");
+      load();
+    } catch (err) {
+      setSmartAddError(extractError(err));
+    } finally {
+      setSmartAddLoading(false);
+    }
+  }
+
+  async function handleSmartScan() {
+    setScanError("");
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setScanError(t("fakraDetail.photoPermissionDenied"));
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets?.length) return;
+
+    setScanLoading(true);
+    try {
+      await fakrasApi.smartScanItems(id, result.assets[0]);
+      load();
+    } catch (err) {
+      setScanError(extractError(err));
+    } finally {
+      setScanLoading(false);
+    }
+  }
+
+  async function handleGetSuggestions() {
+    setSuggestionsError("");
+    setSuggestionsLoading(true);
+
+    try {
+      const res = await fakrasApi.getSuggestions(id);
+      setSuggestions(res.data);
+    } catch (err) {
+      setSuggestionsError(extractError(err));
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }
+
+  async function handleAddSuggestion(suggestion, index) {
+    setSuggestionsError("");
+    setAddingSuggestion(index);
+
+    try {
+      await fakrasApi.createItem(id, {
+        name: suggestion.name,
+        quantity: suggestion.quantity || 1,
+        unit: suggestion.unit || null,
+        category: suggestion.category || null,
+        notes: suggestion.notes || null,
+      });
+      setSuggestions((prev) => prev.filter((_, i) => i !== index));
+      load();
+    } catch (err) {
+      setSuggestionsError(extractError(err));
+    } finally {
+      setAddingSuggestion(null);
+    }
+  }
+
+  async function handleSmartCommand() {
+    setCommandError("");
+    setCommandSkipped([]);
+    setCommandLoading(true);
+
+    try {
+      const res = await fakrasApi.smartCommand(id, commandText);
+      setCommandText("");
+      setCommandSkipped(res.data.results.filter((r) => !r.applied));
+      load();
+    } catch (err) {
+      setCommandError(extractError(err));
+    } finally {
+      setCommandLoading(false);
     }
   }
 
@@ -417,6 +532,78 @@ export default function FakraDetail() {
       <Card style={styles.card}>
         <Text style={styles.cardTitle}>{t("fakraDetail.items")}</Text>
 
+        <Label>{t("fakraDetail.smartAdd.label")}</Label>
+        <Input
+          value={smartAddText}
+          onChangeText={setSmartAddText}
+          placeholder={t("fakraDetail.smartAdd.placeholder")}
+        />
+        <View style={styles.actionsRow}>
+          <Button
+            disabled={smartAddLoading || !smartAddText.trim()}
+            variant="secondary"
+            onPress={handleSmartAdd}
+          >
+            <Sparkles size={16} color={colors.slate700} />
+            <Text style={[styles.buttonLabel, { color: colors.slate700 }]}>
+              {smartAddLoading ? t("fakraDetail.smartAdd.adding") : t("fakraDetail.smartAdd.button")}
+            </Text>
+          </Button>
+          <Button disabled={scanLoading} variant="secondary" onPress={handleSmartScan}>
+            <Camera size={16} color={colors.slate700} />
+            <Text style={[styles.buttonLabel, { color: colors.slate700 }]}>
+              {scanLoading ? t("fakraDetail.smartScan.scanning") : t("fakraDetail.smartScan.button")}
+            </Text>
+          </Button>
+        </View>
+        <ErrorText>{smartAddError}</ErrorText>
+        <ErrorText>{scanError}</ErrorText>
+
+        <Button disabled={suggestionsLoading} variant="secondary" onPress={handleGetSuggestions}>
+          <Lightbulb size={16} color={colors.slate700} />
+          <Text style={[styles.buttonLabel, { color: colors.slate700 }]}>
+            {suggestionsLoading ? t("fakraDetail.suggestions.loading") : t("fakraDetail.suggestions.button")}
+          </Text>
+        </Button>
+        <ErrorText>{suggestionsError}</ErrorText>
+
+        {suggestions.length > 0 && (
+          <View style={styles.actionsRow}>
+            {suggestions.map((suggestion, index) => (
+              <Button
+                key={`${suggestion.name}-${index}`}
+                disabled={addingSuggestion !== null}
+                variant="secondary"
+                onPress={() => handleAddSuggestion(suggestion, index)}
+              >
+                <Plus size={16} color={colors.slate700} />
+                <Text style={[styles.buttonLabel, { color: colors.slate700 }]}>
+                  {suggestion.name}
+                  {suggestion.quantity > 1 && ` ×${suggestion.quantity}`}
+                  {suggestion.unit && ` ${suggestion.unit}`}
+                </Text>
+              </Button>
+            ))}
+          </View>
+        )}
+
+        <Label>{t("fakraDetail.smartCommand.label")}</Label>
+        <Input
+          value={commandText}
+          onChangeText={setCommandText}
+          placeholder={t("fakraDetail.smartCommand.placeholder")}
+        />
+        <Button disabled={commandLoading || !commandText.trim()} variant="secondary" onPress={handleSmartCommand}>
+          <Wand2 size={16} color={colors.slate700} />
+          <Text style={[styles.buttonLabel, { color: colors.slate700 }]}>
+            {commandLoading ? t("fakraDetail.smartCommand.running") : t("fakraDetail.smartCommand.button")}
+          </Text>
+        </Button>
+        <ErrorText>{commandError}</ErrorText>
+        {commandSkipped.length > 0 ? (
+          <Text style={styles.skippedText}>{t("fakraDetail.smartCommand.skipped", { count: commandSkipped.length })}</Text>
+        ) : null}
+
         <View style={styles.itemFormRow}>
           <View style={styles.itemNameField}>
             <Label>{t("common.name")}</Label>
@@ -516,6 +703,7 @@ const styles = StyleSheet.create({
   field: { marginBottom: 0 },
   activityEntry: { fontSize: 14, color: colors.slate700 },
   successText: { fontSize: 14, color: colors.emerald600 },
+  skippedText: { fontSize: 12, color: colors.amber700 },
   itemFormRow: { flexDirection: "row", gap: 8 },
   itemNameField: { flex: 2 },
   itemQtyField: { flex: 1 },

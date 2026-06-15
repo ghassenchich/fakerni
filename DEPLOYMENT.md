@@ -38,6 +38,8 @@ Fill in `.env`:
   `SENTRY_TRACES_SAMPLE_RATE` (see [Monitoring](#3-monitoring) below)
 - Optional push notifications: `FIREBASE_CREDENTIALS_PATH` (see
   [Push notifications](#4-push-notifications-firebase) below)
+- Optional AI Smart Add: `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (see
+  [AI Smart Add](#8-ai-smart-add) below)
 
 ### 1.2 Build and run
 
@@ -159,3 +161,33 @@ docker compose exec web python manage.py migrate
 
 (This also runs automatically on container start via the `web` service's
 command.)
+
+## 8. AI Smart Add
+
+Four AI-powered features share the same Gemini configuration and are all
+no-ops until configured:
+
+- **Smart Add** — turns free text like "milk, eggs, bread and 2kg rice" into
+  structured items (`/api/fakras/<id>/items/smart-add/`).
+- **Smart Scan** — turns a photo of a receipt, shopping list, or sticky note
+  into structured items (`/api/fakras/<id>/items/smart-scan/`).
+- **Suggestions** — suggests extra items based on a Fakra's title,
+  description, and existing items (`/api/fakras/<id>/items/suggestions/`).
+- **Smart Command** — interprets free text like "mark milk as done, remove
+  the bread" as actions (done/undo/delete) on existing items
+  (`/api/fakras/<id>/items/smart-command/`).
+
+To enable them:
+
+1. Get a free API key from [Google AI Studio](https://aistudio.google.com/apikey).
+2. Set `GEMINI_API_KEY` in `.env`.
+3. Optionally set `GEMINI_MODEL` (defaults to `gemini-2.5-flash`, which has a
+   free tier well suited to these tasks).
+
+No other setup is required — `fakras/ai.py` reads these directly from the
+environment, and all four endpoints will start working immediately once
+`GEMINI_API_KEY` is set. Restart the `web` service after changing `.env`:
+
+```bash
+docker compose restart web
+```

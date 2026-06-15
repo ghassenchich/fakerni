@@ -40,6 +40,30 @@ export function createItem(fakraId, data) {
   return client.post(`/api/fakras/${fakraId}/items/`, data);
 }
 
+export function smartAddItems(fakraId, text) {
+  return client.post(`/api/fakras/${fakraId}/items/smart-add/`, { text });
+}
+
+export function smartScanItems(fakraId, asset) {
+  const formData = new FormData();
+  formData.append("image", {
+    uri: asset.uri,
+    name: asset.fileName || "photo.jpg",
+    type: asset.mimeType || "image/jpeg",
+  });
+  return client.post(`/api/fakras/${fakraId}/items/smart-scan/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
+export function getSuggestions(fakraId) {
+  return client.get(`/api/fakras/${fakraId}/items/suggestions/`);
+}
+
+export function smartCommand(fakraId, text) {
+  return client.post(`/api/fakras/${fakraId}/items/smart-command/`, { text });
+}
+
 export function updateItem(fakraId, itemId, data) {
   return client.patch(`/api/fakras/${fakraId}/items/${itemId}/`, data);
 }

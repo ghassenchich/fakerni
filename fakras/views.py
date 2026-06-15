@@ -8,12 +8,19 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 
 from rest_framework import status, viewsets
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .ai import (
+    AIError,
+    interpret_item_commands,
+    parse_items_from_image,
+    parse_items_from_text,
+    suggest_items_for_fakra,
+)
 from .models import Fakra, Item, ItemAttachment, FakraAccess
 from .serializers import (
     FakraSerializer,
@@ -86,6 +93,176 @@ class FakraViewSet(viewsets.ModelViewSet):
                 })
 
 
+def _create_item_and_notify(fakra, user, data):
+    serializer = ItemSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    item = serializer.save(fakra=fakra, created_by=user)
+
+    log_activity(
+        fakra,
+        user,
+        "item_added",
+        f"{user.email} added '{item.name}'"
+    )
+
+    broadcast_to_fakra(fakra.id, "item.created", {
+        "item": ItemSerializer(item).data,
+        "fakra_id": fakra.id,
+    })
+
+    notify_fakra_access(
+        fakra,
+        "New item added",
+        f"{user.email} added '{item.name}' to '{fakra.title}'",
+        {"event": "item.created", "fakra_id": fakra.id, "item_id": item.id},
+        exclude_user_id=user.id,
+    )
+
+    if fakra.household_id:
+        broadcast_to_household(fakra.household_id, "item.created", {
+            "item": ItemSerializer(item).data,
+            "fakra_id": fakra.id,
+        })
+
+        notify_household(
+            fakra.household_id,
+            "New item added",
+            f"{user.email} added '{item.name}' to '{fakra.title}'",
+            {"event": "item.created", "fakra_id": fakra.id, "item_id": item.id},
+            exclude_user_id=user.id,
+        )
+
+    return item
+
+
+def _mark_item_done_and_notify(item, user):
+    mark_item_done(item, user)
+
+    log_activity(
+        item.fakra,
+        user,
+        "item_done",
+        f"{user.email} marked '{item.name}' as done"
+    )
+
+    broadcast_to_fakra(item.fakra_id, "item.done", {
+        "item_id": item.id,
+        "fakra_id": item.fakra_id,
+        "done_by_user": user.id,
+        "done_at": item.done_at.isoformat(),
+    })
+
+    notify_fakra_access(
+        item.fakra,
+        "Item done",
+        f"{user.email} marked '{item.name}' as done",
+        {"event": "item.done", "fakra_id": item.fakra_id, "item_id": item.id},
+        exclude_user_id=user.id,
+    )
+
+    if item.fakra.household_id:
+        broadcast_to_household(item.fakra.household_id, "item.done", {
+            "item_id": item.id,
+            "fakra_id": item.fakra_id,
+            "done_by_user": user.id,
+            "done_at": item.done_at.isoformat(),
+        })
+
+        notify_household(
+            item.fakra.household_id,
+            "Item done",
+            f"{user.email} marked '{item.name}' as done",
+            {"event": "item.done", "fakra_id": item.fakra_id, "item_id": item.id},
+            exclude_user_id=user.id,
+        )
+
+    return item
+
+
+def _undo_item_and_notify(item, user):
+    undo_item(item)
+
+    log_activity(
+        item.fakra,
+        user,
+        "item_undone",
+        f"{user.email} reverted '{item.name}' to pending"
+    )
+
+    broadcast_to_fakra(item.fakra_id, "item.undo", {
+        "item_id": item.id,
+        "fakra_id": item.fakra_id,
+        "reverted_by_user": user.id,
+    })
+
+    notify_fakra_access(
+        item.fakra,
+        "Item reverted",
+        f"{user.email} reverted '{item.name}' to pending",
+        {"event": "item.undo", "fakra_id": item.fakra_id, "item_id": item.id},
+        exclude_user_id=user.id,
+    )
+
+    if item.fakra.household_id:
+        broadcast_to_household(item.fakra.household_id, "item.undo", {
+            "item_id": item.id,
+            "fakra_id": item.fakra_id,
+            "reverted_by_user": user.id,
+        })
+
+        notify_household(
+            item.fakra.household_id,
+            "Item reverted",
+            f"{user.email} reverted '{item.name}' to pending",
+            {"event": "item.undo", "fakra_id": item.fakra_id, "item_id": item.id},
+            exclude_user_id=user.id,
+        )
+
+    return item
+
+
+def _delete_item_and_notify(item, user):
+    fakra = item.fakra
+    item_id = item.id
+    item_name = item.name
+
+    item.delete()
+
+    log_activity(
+        fakra,
+        user,
+        "item_deleted",
+        f"{user.email} removed '{item_name}'"
+    )
+
+    broadcast_to_fakra(fakra.id, "item.deleted", {
+        "item_id": item_id,
+        "fakra_id": fakra.id,
+    })
+
+    notify_fakra_access(
+        fakra,
+        "Item removed",
+        f"{user.email} removed '{item_name}'",
+        {"event": "item.deleted", "fakra_id": fakra.id, "item_id": item_id},
+        exclude_user_id=user.id,
+    )
+
+    if fakra.household_id:
+        broadcast_to_household(fakra.household_id, "item.deleted", {
+            "item_id": item_id,
+            "fakra_id": fakra.id,
+        })
+
+        notify_household(
+            fakra.household_id,
+            "Item removed",
+            f"{user.email} removed '{item_name}'",
+            {"event": "item.deleted", "fakra_id": fakra.id, "item_id": item_id},
+            exclude_user_id=user.id,
+        )
+
+
 class ItemListCreateView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ItemSerializer
@@ -121,48 +298,184 @@ class ItemListCreateView(APIView):
         fakra = get_object_or_404(Fakra, pk=fakra_id)
         require_fakra_access(request.user, fakra)
 
-        serializer = ItemSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        item = serializer.save(fakra=fakra, created_by=request.user)
-
-        log_activity(
-            fakra,
-            request.user,
-            "item_added",
-            f"{request.user.email} added '{item.name}'"
-        )
-
-        broadcast_to_fakra(fakra.id, "item.created", {
-            "item": ItemSerializer(item).data,
-            "fakra_id": fakra.id,
-        })
-
-        notify_fakra_access(
-            fakra,
-            "New item added",
-            f"{request.user.email} added '{item.name}' to '{fakra.title}'",
-            {"event": "item.created", "fakra_id": fakra.id, "item_id": item.id},
-            exclude_user_id=request.user.id,
-        )
-
-        if fakra.household_id:
-            broadcast_to_household(fakra.household_id, "item.created", {
-                "item": ItemSerializer(item).data,
-                "fakra_id": fakra.id,
-            })
-
-            notify_household(
-                fakra.household_id,
-                "New item added",
-                f"{request.user.email} added '{item.name}' to '{fakra.title}'",
-                {"event": "item.created", "fakra_id": fakra.id, "item_id": item.id},
-                exclude_user_id=request.user.id,
-            )
+        item = _create_item_and_notify(fakra, request.user, request.data)
 
         return Response(
             ItemSerializer(item).data,
             status=status.HTTP_201_CREATED
         )
+
+
+class ItemSmartAddView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, fakra_id):
+        fakra = get_object_or_404(Fakra, pk=fakra_id)
+        require_fakra_access(request.user, fakra)
+
+        text = request.data.get("text", "").strip()
+        if not text:
+            raise ValidationError({"text": "This field is required."})
+
+        try:
+            parsed_items = parse_items_from_text(text)
+        except AIError as exc:
+            raise ValidationError({"text": str(exc)})
+
+        items = [
+            _create_item_and_notify(fakra, request.user, parsed_item.model_dump())
+            for parsed_item in parsed_items
+        ]
+
+        return Response(
+            ItemSerializer(items, many=True).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+class ItemSmartScanView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, fakra_id):
+        fakra = get_object_or_404(Fakra, pk=fakra_id)
+        require_fakra_access(request.user, fakra)
+
+        image = request.data.get("image")
+        if not image:
+            raise ValidationError({"image": "This field is required."})
+
+        if not image.content_type.startswith("image/"):
+            raise ValidationError({"image": "Only image files are allowed."})
+
+        if image.size > MAX_ATTACHMENT_SIZE:
+            raise ValidationError({"image": "File too large (max 5MB)."})
+
+        try:
+            parsed_items = parse_items_from_image(image.read(), image.content_type)
+        except AIError as exc:
+            raise ValidationError({"image": str(exc)})
+
+        items = [
+            _create_item_and_notify(fakra, request.user, parsed_item.model_dump())
+            for parsed_item in parsed_items
+        ]
+
+        return Response(
+            ItemSerializer(items, many=True).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+class ItemSuggestionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, fakra_id):
+        fakra = get_object_or_404(Fakra, pk=fakra_id)
+        require_fakra_access(request.user, fakra)
+
+        existing_item_names = list(fakra.items.values_list("name", flat=True))
+
+        try:
+            suggestions = suggest_items_for_fakra(
+                fakra.title, fakra.description, existing_item_names
+            )
+        except AIError as exc:
+            raise ValidationError({"detail": str(exc)})
+
+        return Response([s.model_dump() for s in suggestions])
+
+
+class ItemSmartCommandView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, fakra_id):
+        fakra = get_object_or_404(Fakra, pk=fakra_id)
+        require_fakra_access(request.user, fakra)
+
+        text = request.data.get("text", "").strip()
+        if not text:
+            raise ValidationError({"text": "This field is required."})
+
+        items = list(fakra.items.all())
+        items_by_id = {item.id: item for item in items}
+
+        try:
+            commands = interpret_item_commands(text, items)
+        except AIError as exc:
+            raise ValidationError({"text": str(exc)})
+
+        results = []
+
+        for command in commands:
+            item = items_by_id.get(command.item_id)
+            item_id = command.item_id
+
+            if item is None:
+                results.append({
+                    "item_id": command.item_id,
+                    "action": command.action,
+                    "applied": False,
+                    "reason": "Item not found",
+                })
+                continue
+
+            if command.action == "done":
+                if item.status == "done":
+                    results.append({
+                        "item_id": item_id,
+                        "action": command.action,
+                        "applied": False,
+                        "reason": "Item is already done",
+                    })
+                    continue
+
+                _mark_item_done_and_notify(item, request.user)
+                item_data = ItemSerializer(item).data
+
+            elif command.action == "undo":
+                if item.status != "done" or item.done_at is None:
+                    results.append({
+                        "item_id": item_id,
+                        "action": command.action,
+                        "applied": False,
+                        "reason": "Item is not marked as done",
+                    })
+                    continue
+
+                if timezone.now() - item.done_at > timedelta(minutes=10):
+                    results.append({
+                        "item_id": item_id,
+                        "action": command.action,
+                        "applied": False,
+                        "reason": "Undo window has expired",
+                    })
+                    continue
+
+                _undo_item_and_notify(item, request.user)
+                item_data = ItemSerializer(item).data
+
+            elif command.action == "delete":
+                if item.created_by != request.user and fakra.created_by != request.user:
+                    results.append({
+                        "item_id": item_id,
+                        "action": command.action,
+                        "applied": False,
+                        "reason": "Not allowed to delete this item",
+                    })
+                    continue
+
+                _delete_item_and_notify(item, request.user)
+                item_data = None
+
+            results.append({
+                "item_id": item_id,
+                "action": command.action,
+                "applied": True,
+                "item": item_data,
+            })
+
+        return Response({"results": results})
 
 
 class ItemDetailView(APIView):
@@ -195,7 +508,7 @@ class ItemDetailView(APIView):
         item = self.get_item(fakra_id, item_id)
         self.check_edit_permission(request, item)
 
-        item.delete()
+        _delete_item_and_notify(item, request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -214,45 +527,7 @@ class ItemDoneView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        mark_item_done(item, request.user)
-
-        log_activity(
-            item.fakra,
-            request.user,
-            "item_done",
-            f"{request.user.email} marked '{item.name}' as done"
-        )
-
-        broadcast_to_fakra(item.fakra_id, "item.done", {
-            "item_id": item.id,
-            "fakra_id": item.fakra_id,
-            "done_by_user": request.user.id,
-            "done_at": item.done_at.isoformat(),
-        })
-
-        notify_fakra_access(
-            item.fakra,
-            "Item done",
-            f"{request.user.email} marked '{item.name}' as done",
-            {"event": "item.done", "fakra_id": item.fakra_id, "item_id": item.id},
-            exclude_user_id=request.user.id,
-        )
-
-        if item.fakra.household_id:
-            broadcast_to_household(item.fakra.household_id, "item.done", {
-                "item_id": item.id,
-                "fakra_id": item.fakra_id,
-                "done_by_user": request.user.id,
-                "done_at": item.done_at.isoformat(),
-            })
-
-            notify_household(
-                item.fakra.household_id,
-                "Item done",
-                f"{request.user.email} marked '{item.name}' as done",
-                {"event": "item.done", "fakra_id": item.fakra_id, "item_id": item.id},
-                exclude_user_id=request.user.id,
-            )
+        _mark_item_done_and_notify(item, request.user)
 
         return Response(ItemSerializer(item).data)
 
@@ -278,43 +553,7 @@ class ItemUndoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        undo_item(item)
-
-        log_activity(
-            item.fakra,
-            request.user,
-            "item_undone",
-            f"{request.user.email} reverted '{item.name}' to pending"
-        )
-
-        broadcast_to_fakra(item.fakra_id, "item.undo", {
-            "item_id": item.id,
-            "fakra_id": item.fakra_id,
-            "reverted_by_user": request.user.id,
-        })
-
-        notify_fakra_access(
-            item.fakra,
-            "Item reverted",
-            f"{request.user.email} reverted '{item.name}' to pending",
-            {"event": "item.undo", "fakra_id": item.fakra_id, "item_id": item.id},
-            exclude_user_id=request.user.id,
-        )
-
-        if item.fakra.household_id:
-            broadcast_to_household(item.fakra.household_id, "item.undo", {
-                "item_id": item.id,
-                "fakra_id": item.fakra_id,
-                "reverted_by_user": request.user.id,
-            })
-
-            notify_household(
-                item.fakra.household_id,
-                "Item reverted",
-                f"{request.user.email} reverted '{item.name}' to pending",
-                {"event": "item.undo", "fakra_id": item.fakra_id, "item_id": item.id},
-                exclude_user_id=request.user.id,
-            )
+        _undo_item_and_notify(item, request.user)
 
         return Response(ItemSerializer(item).data)
 

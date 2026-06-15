@@ -4,15 +4,19 @@ import { useTranslation } from "react-i18next";
 import {
   Archive,
   CalendarDays,
+  Camera,
   CheckCircle2,
   Circle,
   History,
+  Lightbulb,
   Paperclip,
   Pencil,
   Plus,
   Repeat,
   Share2,
+  Sparkles,
   Trash2,
+  Wand2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import * as fakrasApi from "../api/fakras";
@@ -51,6 +55,23 @@ export default function FakraDetail() {
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
 
+  const [smartAddText, setSmartAddText] = useState("");
+  const [smartAddError, setSmartAddError] = useState("");
+  const [smartAddLoading, setSmartAddLoading] = useState(false);
+
+  const [scanError, setScanError] = useState("");
+  const [scanLoading, setScanLoading] = useState(false);
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsError, setSuggestionsError] = useState("");
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [addingSuggestion, setAddingSuggestion] = useState(null);
+
+  const [commandText, setCommandText] = useState("");
+  const [commandError, setCommandError] = useState("");
+  const [commandLoading, setCommandLoading] = useState(false);
+  const [commandSkipped, setCommandSkipped] = useState([]);
+
   const [shareUserIds, setShareUserIds] = useState("");
   const [shareError, setShareError] = useState("");
   const [shareSuccess, setShareSuccess] = useState("");
@@ -59,6 +80,7 @@ export default function FakraDetail() {
   const [showActivity, setShowActivity] = useState(false);
 
   const fileInputRef = useRef(null);
+  const scanFileInputRef = useRef(null);
   const [pendingItemId, setPendingItemId] = useState(null);
   const [uploadingItemId, setUploadingItemId] = useState(null);
   const [attachmentError, setAttachmentError] = useState("");
@@ -168,6 +190,97 @@ export default function FakraDetail() {
       setItemError(extractError(err));
     } finally {
       setItemLoading(false);
+    }
+  }
+
+  async function handleSmartAdd(e) {
+    e.preventDefault();
+    setSmartAddError("");
+    setSmartAddLoading(true);
+
+    try {
+      await fakrasApi.smartAddItems(id, smartAddText);
+      setSmartAddText("");
+      load();
+    } catch (err) {
+      setSmartAddError(extractError(err));
+    } finally {
+      setSmartAddLoading(false);
+    }
+  }
+
+  function handleScanClick() {
+    scanFileInputRef.current?.click();
+  }
+
+  async function handleScanFileSelected(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setScanError("");
+    setScanLoading(true);
+
+    try {
+      await fakrasApi.smartScanItems(id, file);
+      load();
+    } catch (err) {
+      setScanError(extractError(err));
+    } finally {
+      setScanLoading(false);
+    }
+  }
+
+  async function handleGetSuggestions() {
+    setSuggestionsError("");
+    setSuggestionsLoading(true);
+
+    try {
+      const res = await fakrasApi.getSuggestions(id);
+      setSuggestions(res.data);
+    } catch (err) {
+      setSuggestionsError(extractError(err));
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }
+
+  async function handleAddSuggestion(suggestion, index) {
+    setSuggestionsError("");
+    setAddingSuggestion(index);
+
+    try {
+      await fakrasApi.createItem(id, {
+        name: suggestion.name,
+        quantity: suggestion.quantity || 1,
+        unit: suggestion.unit || null,
+        category: suggestion.category || null,
+        notes: suggestion.notes || null,
+      });
+      setSuggestions((prev) => prev.filter((_, i) => i !== index));
+      load();
+    } catch (err) {
+      setSuggestionsError(extractError(err));
+    } finally {
+      setAddingSuggestion(null);
+    }
+  }
+
+  async function handleSmartCommand(e) {
+    e.preventDefault();
+    setCommandError("");
+    setCommandSkipped([]);
+    setCommandLoading(true);
+
+    try {
+      const res = await fakrasApi.smartCommand(id, commandText);
+      setCommandText("");
+      setCommandSkipped(res.data.results.filter((r) => !r.applied));
+      load();
+    } catch (err) {
+      setCommandError(extractError(err));
+    } finally {
+      setCommandLoading(false);
     }
   }
 
@@ -390,6 +503,82 @@ export default function FakraDetail() {
 
       <Card>
         <h2 className="font-medium mb-2 text-blue-950">{t("fakraDetail.items")}</h2>
+
+        <form onSubmit={handleSmartAdd} className="flex flex-wrap gap-2 items-end mb-3">
+          <div className="flex-1 min-w-[220px]">
+            <Label>{t("fakraDetail.smartAdd.label")}</Label>
+            <Input
+              value={smartAddText}
+              onChange={(e) => setSmartAddText(e.target.value)}
+              placeholder={t("fakraDetail.smartAdd.placeholder")}
+            />
+          </div>
+          <Button type="submit" variant="secondary" disabled={smartAddLoading || !smartAddText.trim()}>
+            <Sparkles className="h-4 w-4" />
+            {smartAddLoading ? t("fakraDetail.smartAdd.adding") : t("fakraDetail.smartAdd.button")}
+          </Button>
+          <Button type="button" variant="secondary" disabled={scanLoading} onClick={handleScanClick}>
+            <Camera className="h-4 w-4" />
+            {scanLoading ? t("fakraDetail.smartScan.scanning") : t("fakraDetail.smartScan.button")}
+          </Button>
+        </form>
+        <ErrorText>{smartAddError}</ErrorText>
+        <ErrorText>{scanError}</ErrorText>
+
+        <input
+          ref={scanFileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleScanFileSelected}
+        />
+
+        <div className="mb-3">
+          <Button type="button" variant="secondary" disabled={suggestionsLoading} onClick={handleGetSuggestions}>
+            <Lightbulb className="h-4 w-4" />
+            {suggestionsLoading ? t("fakraDetail.suggestions.loading") : t("fakraDetail.suggestions.button")}
+          </Button>
+          <ErrorText>{suggestionsError}</ErrorText>
+
+          {suggestions.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {suggestions.map((suggestion, index) => (
+                <li key={`${suggestion.name}-${index}`}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={addingSuggestion !== null}
+                    onClick={() => handleAddSuggestion(suggestion, index)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {suggestion.name}
+                    {suggestion.quantity > 1 && ` ×${suggestion.quantity}`}
+                    {suggestion.unit && ` ${suggestion.unit}`}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <form onSubmit={handleSmartCommand} className="flex flex-wrap gap-2 items-end mb-3">
+          <div className="flex-1 min-w-[220px]">
+            <Label>{t("fakraDetail.smartCommand.label")}</Label>
+            <Input
+              value={commandText}
+              onChange={(e) => setCommandText(e.target.value)}
+              placeholder={t("fakraDetail.smartCommand.placeholder")}
+            />
+          </div>
+          <Button type="submit" variant="secondary" disabled={commandLoading || !commandText.trim()}>
+            <Wand2 className="h-4 w-4" />
+            {commandLoading ? t("fakraDetail.smartCommand.running") : t("fakraDetail.smartCommand.button")}
+          </Button>
+        </form>
+        <ErrorText>{commandError}</ErrorText>
+        {commandSkipped.length > 0 && (
+          <p className="text-xs text-amber-600 mb-3">{t("fakraDetail.smartCommand.skipped", { count: commandSkipped.length })}</p>
+        )}
 
         <form onSubmit={handleAddItem} className="flex flex-wrap gap-2 items-end mb-3">
           <div className="flex-1 min-w-[140px]">

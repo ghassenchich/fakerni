@@ -141,6 +141,27 @@
     "uploadingPhoto": "Envoi de la photo…",
     "removeAttachment": "Supprimer la photo",
     "repeats": "Se répète {{frequency}}",
-    "continuesSeries": "Ceci fait partie d'une série récurrente"
+    "continuesSeries": "Ceci fait partie d'une série récurrente",
+    "smartAdd": {
+      "label": "Ajout intelligent",
+      "placeholder": "ex. lait, œufs, pain et 2kg de riz",
+      "button": "Ajout intelligent",
+      "adding": "Ajout…"
+    },
+    "smartScan": {
+      "button": "Scanner une photo",
+      "scanning": "Analyse…"
+    },
+    "suggestions": {
+      "button": "Suggérer des articles",
+      "loading": "Réflexion…"
+    },
+    "smartCommand": {
+      "label": "Commande intelligente",
+      "placeholder": "ex. marque le lait comme fait, supprime le pain",
+      "button": "Exécuter",
+      "running": "En cours…",
+      "skipped": "{{count}} commande(s) n'ont pas pu être appliquées"
+    }
   }
 }

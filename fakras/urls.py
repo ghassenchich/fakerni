@@ -4,6 +4,10 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     FakraViewSet,
     ItemListCreateView,
+    ItemSmartAddView,
+    ItemSmartScanView,
+    ItemSmartCommandView,
+    ItemSuggestionsView,
     ItemDetailView,
     ItemDoneView,
     ItemUndoView,
@@ -36,6 +40,26 @@ urlpatterns = [
     path(
         "<int:fakra_id>/items/",
         ItemListCreateView.as_view(),
+    ),
+
+    path(
+        "<int:fakra_id>/items/smart-add/",
+        ItemSmartAddView.as_view(),
+    ),
+
+    path(
+        "<int:fakra_id>/items/smart-scan/",
+        ItemSmartScanView.as_view(),
+    ),
+
+    path(
+        "<int:fakra_id>/items/smart-command/",
+        ItemSmartCommandView.as_view(),
+    ),
+
+    path(
+        "<int:fakra_id>/items/suggestions/",
+        ItemSuggestionsView.as_view(),
     ),
 
     path(

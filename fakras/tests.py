@@ -13,6 +13,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from household.models import Household, Membership
+from .ai import AIError, ItemCommand, ParsedItem
 from .models import Fakra, Item, ItemAttachment, FakraAccess, ActivityLog
 from .reminders import send_due_date_reminders
 from .recurrence import create_recurring_instances, _add_months, _next_due_date
@@ -329,6 +330,296 @@ class FakraTests(APITestCase):
         mock_send_push.assert_called_once()
         notified_users = list(mock_send_push.call_args[0][0])
         self.assertEqual(notified_users, [self.member])
+
+    # --- AI Smart Add ---
+
+    @patch("fakras.views.parse_items_from_text")
+    def test_smart_add_creates_parsed_items(self, mock_parse):
+        mock_parse.return_value = [
+            ParsedItem(name="Milk", quantity=2, unit="L", category="Dairy", notes=""),
+            ParsedItem(name="Eggs", quantity=12, unit="", category="", notes=""),
+        ]
+
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-add/", {"text": "milk and eggs"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data), 2)
+        mock_parse.assert_called_once_with("milk and eggs")
+
+        names = sorted(item.name for item in fakra.items.all())
+        self.assertEqual(names, ["Eggs", "Milk"])
+
+    def test_smart_add_requires_text(self):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/smart-add/", {"text": "  "})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("fakras.views.parse_items_from_text")
+    def test_smart_add_not_configured(self, mock_parse):
+        mock_parse.side_effect = AIError("AI Smart Add is not configured")
+
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-add/", {"text": "milk and eggs"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("fakras.views.parse_items_from_text")
+    def test_outsider_cannot_smart_add(self, mock_parse):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.outsider)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-add/", {"text": "milk and eggs"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_parse.assert_not_called()
+
+    # --- AI Smart Scan ---
+
+    @patch("fakras.views.parse_items_from_image")
+    def test_smart_scan_creates_parsed_items(self, mock_parse):
+        mock_parse.return_value = [
+            ParsedItem(name="Milk", quantity=2, unit="L", category="Dairy", notes=""),
+            ParsedItem(name="Eggs", quantity=12, unit="", category="", notes=""),
+        ]
+
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-scan/",
+            {"image": make_image_file()},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data), 2)
+        mock_parse.assert_called_once()
+
+        names = sorted(item.name for item in fakra.items.all())
+        self.assertEqual(names, ["Eggs", "Milk"])
+
+    def test_smart_scan_requires_image(self):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/smart-scan/", {}, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("fakras.views.parse_items_from_image")
+    def test_smart_scan_not_configured(self, mock_parse):
+        mock_parse.side_effect = AIError("AI features are not configured")
+
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-scan/",
+            {"image": make_image_file()},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("fakras.views.parse_items_from_image")
+    def test_outsider_cannot_smart_scan(self, mock_parse):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.outsider)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-scan/",
+            {"image": make_image_file()},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_parse.assert_not_called()
+
+    # --- AI Suggestions ---
+
+    @patch("fakras.views.suggest_items_for_fakra")
+    def test_suggestions_returns_parsed_items(self, mock_suggest):
+        mock_suggest.return_value = [
+            ParsedItem(name="Butter", quantity=1, unit="", category="Dairy", notes=""),
+        ]
+
+        fakra = Fakra.objects.create(title="Weekly Groceries", description="", household=None, created_by=self.member)
+        Item.objects.create(fakra=fakra, name="Milk", created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.get(f"/api/fakras/{fakra.id}/items/suggestions/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [{
+            "name": "Butter", "quantity": 1, "unit": "", "category": "Dairy", "notes": "",
+        }])
+        mock_suggest.assert_called_once_with("Weekly Groceries", "", ["Milk"])
+
+    @patch("fakras.views.suggest_items_for_fakra")
+    def test_suggestions_not_configured(self, mock_suggest):
+        mock_suggest.side_effect = AIError("AI features are not configured")
+
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.get(f"/api/fakras/{fakra.id}/items/suggestions/")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("fakras.views.suggest_items_for_fakra")
+    def test_outsider_cannot_get_suggestions(self, mock_suggest):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.outsider)
+        response = self.client.get(f"/api/fakras/{fakra.id}/items/suggestions/")
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_suggest.assert_not_called()
+
+    # --- AI Smart Command ---
+
+    @patch("fakras.views.interpret_item_commands")
+    def test_smart_command_marks_item_done(self, mock_interpret):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+        item = Item.objects.create(fakra=fakra, name="Milk", created_by=self.member)
+
+        mock_interpret.return_value = [ItemCommand(item_id=item.id, action="done")]
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "i bought the milk"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["results"], [{
+            "item_id": item.id, "action": "done", "applied": True,
+            "item": response.data["results"][0]["item"],
+        }])
+        item.refresh_from_db()
+        self.assertEqual(item.status, "done")
+
+    @patch("fakras.views.interpret_item_commands")
+    def test_smart_command_undoes_item(self, mock_interpret):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+        item = Item.objects.create(
+            fakra=fakra, name="Milk", created_by=self.member,
+            status="done", done_by=self.member, done_at=timezone.now(),
+        )
+
+        mock_interpret.return_value = [ItemCommand(item_id=item.id, action="undo")]
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "milk isn't actually done"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["results"][0]["applied"])
+        item.refresh_from_db()
+        self.assertEqual(item.status, "pending")
+
+    @patch("fakras.views.interpret_item_commands")
+    def test_smart_command_undo_after_window_expires_is_skipped(self, mock_interpret):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+        item = Item.objects.create(
+            fakra=fakra, name="Milk", created_by=self.member,
+            status="done", done_by=self.member,
+            done_at=timezone.now() - timedelta(minutes=11),
+        )
+
+        mock_interpret.return_value = [ItemCommand(item_id=item.id, action="undo")]
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "milk isn't actually done"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = response.data["results"][0]
+        self.assertFalse(result["applied"])
+        item.refresh_from_db()
+        self.assertEqual(item.status, "done")
+
+    @patch("fakras.views.interpret_item_commands")
+    def test_smart_command_deletes_item(self, mock_interpret):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+        item = Item.objects.create(fakra=fakra, name="Milk", created_by=self.member)
+
+        mock_interpret.return_value = [ItemCommand(item_id=item.id, action="delete")]
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "remove the milk"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["results"][0]["applied"])
+        self.assertFalse(Item.objects.filter(pk=item.id).exists())
+
+    @patch("fakras.views.interpret_item_commands")
+    def test_smart_command_skips_delete_without_permission(self, mock_interpret):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.outsider)
+        FakraAccess.objects.create(fakra=fakra, user=self.member)
+        item = Item.objects.create(fakra=fakra, name="Milk", created_by=self.outsider)
+
+        mock_interpret.return_value = [ItemCommand(item_id=item.id, action="delete")]
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "remove the milk"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = response.data["results"][0]
+        self.assertFalse(result["applied"])
+        self.assertTrue(Item.objects.filter(pk=item.id).exists())
+
+    def test_smart_command_requires_text(self):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "  "})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("fakras.views.interpret_item_commands")
+    def test_smart_command_not_configured(self, mock_interpret):
+        mock_interpret.side_effect = AIError("AI features are not configured")
+
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "mark milk done"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("fakras.views.interpret_item_commands")
+    def test_outsider_cannot_use_smart_command(self, mock_interpret):
+        fakra = Fakra.objects.create(title="My personal list", household=None, created_by=self.member)
+
+        self.client.force_authenticate(self.outsider)
+        response = self.client.post(
+            f"/api/fakras/{fakra.id}/items/smart-command/", {"text": "mark milk done"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_interpret.assert_not_called()
 
 
 class DueDateReminderTests(APITestCase):

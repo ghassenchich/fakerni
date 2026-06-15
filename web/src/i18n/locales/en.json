@@ -141,6 +141,27 @@
     "uploadingPhoto": "Uploading photo…",
     "removeAttachment": "Remove photo",
     "repeats": "Repeats {{frequency}}",
-    "continuesSeries": "This continues a recurring series"
+    "continuesSeries": "This continues a recurring series",
+    "smartAdd": {
+      "label": "Smart Add",
+      "placeholder": "e.g. milk, eggs, bread and 2kg rice",
+      "button": "Smart Add",
+      "adding": "Adding…"
+    },
+    "smartScan": {
+      "button": "Scan photo",
+      "scanning": "Scanning…"
+    },
+    "suggestions": {
+      "button": "Suggest items",
+      "loading": "Thinking…"
+    },
+    "smartCommand": {
+      "label": "Smart Command",
+      "placeholder": "e.g. mark milk as done, remove the bread",
+      "button": "Run",
+      "running": "Working…",
+      "skipped": "{{count}} command(s) couldn't be applied"
+    }
   }
 }
