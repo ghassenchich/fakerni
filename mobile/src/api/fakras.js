@@ -28,6 +28,14 @@ export function getActivity(id) {
   return client.get(`/api/fakras/${id}/activity/`);
 }
 
+export function getSpendingAnalytics() {
+  return client.get("/api/fakras/analytics/spending/");
+}
+
+export function getCategorysuggestions() {
+  return client.get("/api/fakras/categories/");
+}
+
 export function shareFakra(id, user_ids) {
   return client.post(`/api/fakras/${id}/share/`, { user_ids });
 }

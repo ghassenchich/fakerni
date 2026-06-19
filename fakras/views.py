@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import CharField, F, Q, Sum, Value
+from django.db.models.functions import Coalesce, TruncMonth
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -40,6 +41,14 @@ from household.realtime import broadcast_to_household
 from users.realtime import broadcast_to_user
 
 
+def _visible_fakras(user):
+    return Fakra.objects.filter(
+        Q(household__memberships__user=user) |
+        Q(created_by=user, household__isnull=True) |
+        Q(access__user=user)
+    ).distinct()
+
+
 class FakraViewSet(viewsets.ModelViewSet):
     serializer_class = FakraSerializer
     permission_classes = [IsAuthenticated]
@@ -52,13 +61,7 @@ class FakraViewSet(viewsets.ModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return Fakra.objects.none()
 
-        user = self.request.user
-
-        return Fakra.objects.filter(
-            Q(household__memberships__user=user) |
-            Q(created_by=user, household__isnull=True) |
-            Q(access__user=user)
-        ).distinct()
+        return _visible_fakras(self.request.user)
 
     def perform_create(self, serializer):
         household = serializer.validated_data.get("household")
@@ -135,6 +138,31 @@ def _create_item_and_notify(fakra, user, data):
     return item
 
 
+def _check_budget_alert(fakra):
+    items = list(fakra.items.all())
+    total = sum((i.estimated_price or 0) * i.quantity for i in items)
+    spent = sum(
+        (i.estimated_price or 0) * i.quantity for i in items if i.status == "done"
+    )
+
+    if total > 0 and spent >= total and not fakra.budget_alert_sent:
+        fakra.budget_alert_sent = True
+        fakra.save(update_fields=["budget_alert_sent"])
+
+        title = "Budget reached"
+        body = f"'{fakra.title}' has reached its estimated budget of {total}"
+        data = {"event": "fakra.budget_alert", "fakra_id": fakra.id}
+
+        notify_fakra_access(fakra, title, body, data)
+
+        if fakra.household_id:
+            notify_household(fakra.household_id, title, body, data)
+
+    elif total > 0 and spent < total and fakra.budget_alert_sent:
+        fakra.budget_alert_sent = False
+        fakra.save(update_fields=["budget_alert_sent"])
+
+
 def _mark_item_done_and_notify(item, user):
     mark_item_done(item, user)
 
@@ -175,6 +203,8 @@ def _mark_item_done_and_notify(item, user):
             {"event": "item.done", "fakra_id": item.fakra_id, "item_id": item.id},
             exclude_user_id=user.id,
         )
+
+    _check_budget_alert(item.fakra)
 
     return item
 
@@ -217,6 +247,8 @@ def _undo_item_and_notify(item, user):
             {"event": "item.undo", "fakra_id": item.fakra_id, "item_id": item.id},
             exclude_user_id=user.id,
         )
+
+    _check_budget_alert(item.fakra)
 
     return item
 
@@ -261,6 +293,8 @@ def _delete_item_and_notify(item, user):
             {"event": "item.deleted", "fakra_id": fakra.id, "item_id": item_id},
             exclude_user_id=user.id,
         )
+
+    _check_budget_alert(fakra)
 
 
 class ItemListCreateView(APIView):
@@ -771,3 +805,84 @@ class FakraShareView(APIView):
                 })
 
         return Response(FakraSerializer(fakra, context={"request": request}).data)
+
+
+class SpendingAnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        fakras = _visible_fakras(request.user)
+
+        done_items = Item.objects.filter(
+            fakra__in=fakras, status="done", estimated_price__isnull=False
+        ).annotate(cost=F("estimated_price") * F("quantity"))
+
+        total_spent = done_items.aggregate(total=Sum("cost"))["total"] or 0
+
+        month_start = timezone.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        spent_this_month = done_items.filter(
+            done_at__gte=month_start
+        ).aggregate(total=Sum("cost"))["total"] or 0
+
+        by_month = [
+            {"month": entry["month"].strftime("%Y-%m"), "total": entry["total"]}
+            for entry in (
+                done_items
+                .annotate(month=TruncMonth("done_at"))
+                .values("month")
+                .annotate(total=Sum("cost"))
+                .order_by("month")
+            )
+        ]
+
+        by_category = [
+            {"category": entry["category_label"], "total": entry["total"]}
+            for entry in (
+                done_items
+                .annotate(category_label=Coalesce(
+                    "category", Value("Uncategorized"), output_field=CharField()
+                ))
+                .values("category_label")
+                .annotate(total=Sum("cost"))
+                .order_by("-total")
+            )
+        ]
+
+        by_fakra = [
+            {"fakra_id": entry["fakra_id"], "title": entry["fakra__title"], "total": entry["total"]}
+            for entry in (
+                done_items
+                .values("fakra_id", "fakra__title")
+                .annotate(total=Sum("cost"))
+                .order_by("-total")[:5]
+            )
+        ]
+
+        pending_items = Item.objects.filter(
+            fakra__in=fakras, status="pending", estimated_price__isnull=False
+        ).annotate(cost=F("estimated_price") * F("quantity"))
+        budget_remaining = pending_items.aggregate(total=Sum("cost"))["total"] or 0
+
+        return Response({
+            "total_spent": total_spent,
+            "spent_this_month": spent_this_month,
+            "budget_remaining": budget_remaining,
+            "by_month": by_month,
+            "by_category": by_category,
+            "by_fakra": by_fakra,
+        })
+
+
+class CategorySuggestionsView(APIView):
+    def get(self, request):
+        categories = (
+            Item.objects.filter(fakra__in=_visible_fakras(request.user))
+            .exclude(category__isnull=True)
+            .exclude(category="")
+            .values_list("category", flat=True)
+            .distinct()
+            .order_by("category")
+        )
+        return Response(sorted(set(categories)))

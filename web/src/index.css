@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Teal (primary brand color), replaces Tailwind's default blue scale */
   --color-blue-950: #00363d;
@@ -40,6 +42,15 @@ body {
   font-family: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
   background-color: #f8f9fa;
   color: #191c1d;
+}
+
+.dark body {
+  background-color: #0a0f10;
+  color: #e1e3e4;
+}
+
+.dark h1, .dark h2, .dark h3 {
+  color: #bcebf3;
 }
 
 h1,

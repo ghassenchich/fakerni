@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import {
@@ -9,6 +9,7 @@ import {
   Camera,
   CheckCircle2,
   Circle,
+  Download,
   History,
   Lightbulb,
   Paperclip,
@@ -38,6 +39,7 @@ import {
 } from "../../src/components/ui";
 import { colors } from "../../src/constants/colors";
 import { getDueStatus } from "../../src/utils/dueStatus";
+import { itemsToCsv } from "../../src/utils/csv";
 
 const DUE_STATUS_COLORS = {
   dueSoon: "yellow",
@@ -67,9 +69,12 @@ export default function FakraDetail() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("1");
   const [newItemUnit, setNewItemUnit] = useState("");
+  const [newItemCategory, setNewItemCategory] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
 
   const [smartAddText, setSmartAddText] = useState("");
   const [smartAddError, setSmartAddError] = useState("");
@@ -118,6 +123,7 @@ export default function FakraDetail() {
 
   useEffect(() => {
     load();
+    fakrasApi.getCategorysuggestions().then((r) => setCategoryOptions(r.data)).catch(() => {});
   }, [load]);
 
   useFakraSocket(id, (message) => {
@@ -192,11 +198,13 @@ export default function FakraDetail() {
         name: newItemName,
         quantity: Number(newItemQuantity) || 1,
         unit: newItemUnit || null,
+        category: newItemCategory || null,
         estimated_price: newItemPrice === "" ? null : Number(newItemPrice),
       });
       setNewItemName("");
       setNewItemQuantity("1");
       setNewItemUnit("");
+      setNewItemCategory("");
       setNewItemPrice("");
       load();
     } catch (err) {
@@ -359,6 +367,20 @@ export default function FakraDetail() {
     } catch (err) {
       setAttachmentError(extractError(err));
     }
+  }
+
+  async function handleExportCsv() {
+    const headers = [
+      t("fakraDetail.csvHeaders.name"),
+      t("fakraDetail.csvHeaders.quantity"),
+      t("fakraDetail.csvHeaders.unit"),
+      t("fakraDetail.csvHeaders.category"),
+      t("fakraDetail.csvHeaders.price"),
+      t("fakraDetail.csvHeaders.status"),
+    ];
+
+    const csv = itemsToCsv(fakra.items, headers);
+    await Share.share({ message: csv, title: `${fakra.title}.csv` });
   }
 
   async function handleShare() {
@@ -535,14 +557,19 @@ export default function FakraDetail() {
       <Card style={styles.card}>
         <View style={styles.itemsHeaderRow}>
           <Text style={styles.cardTitle}>{t("fakraDetail.items")}</Text>
-          {Number(fakra.estimated_total) > 0 ? (
-            <Text style={styles.muted}>
-              {t("fakraDetail.remainingOfTotal", {
-                remaining: Number(fakra.estimated_remaining).toFixed(2),
-                total: Number(fakra.estimated_total).toFixed(2),
-              })}
-            </Text>
-          ) : null}
+          <View style={styles.itemsHeaderActions}>
+            {Number(fakra.estimated_total) > 0 ? (
+              <Text style={styles.muted}>
+                {t("fakraDetail.remainingOfTotal", {
+                  remaining: Number(fakra.estimated_remaining).toFixed(2),
+                  total: Number(fakra.estimated_total).toFixed(2),
+                })}
+              </Text>
+            ) : null}
+            {fakra.items.length > 0 ? (
+              <IconButton icon={Download} label={t("fakraDetail.exportCsv")} onPress={handleExportCsv} />
+            ) : null}
+          </View>
         </View>
 
         <Label>{t("fakraDetail.smartAdd.label")}</Label>
@@ -635,6 +662,28 @@ export default function FakraDetail() {
             <Input value={newItemPrice} onChangeText={setNewItemPrice} keyboardType="numeric" />
           </View>
         </View>
+        <View style={styles.field}>
+          <Label>{t("fakraDetail.category")}</Label>
+          <Input
+            value={newItemCategory}
+            onChangeText={(v) => { setNewItemCategory(v); setShowCategorySuggestions(true); }}
+            onBlur={() => setShowCategorySuggestions(false)}
+            placeholder={t("fakraDetail.categoryPlaceholder")}
+          />
+          {showCategorySuggestions && categoryOptions.filter((c) =>
+            c.toLowerCase().startsWith(newItemCategory.toLowerCase()) && newItemCategory
+          ).length > 0 ? (
+            <View style={styles.categorySuggestions}>
+              {categoryOptions
+                .filter((c) => c.toLowerCase().startsWith(newItemCategory.toLowerCase()) && newItemCategory)
+                .map((c) => (
+                  <Pressable key={c} onPress={() => { setNewItemCategory(c); setShowCategorySuggestions(false); }}>
+                    <Text style={styles.categorySuggestionItem}>{c}</Text>
+                  </Pressable>
+                ))}
+            </View>
+          ) : null}
+        </View>
         <Button disabled={itemLoading} onPress={handleAddItem}>
           <Plus size={16} color={colors.white} />
           <Text style={styles.buttonLabel}>{itemLoading ? t("fakraDetail.adding") : t("fakraDetail.add")}</Text>
@@ -721,7 +770,23 @@ const styles = StyleSheet.create({
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   cardTitle: { fontWeight: "500", color: colors.blue950 },
   itemsHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  itemsHeaderActions: { flexDirection: "row", alignItems: "center", gap: 8 },
   field: { marginBottom: 0 },
+  categorySuggestions: {
+    borderWidth: 1,
+    borderColor: colors.slate200,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    marginTop: 2,
+  },
+  categorySuggestionItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: colors.slate700,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.slate100,
+  },
   activityEntry: { fontSize: 14, color: colors.slate700 },
   successText: { fontSize: 14, color: colors.emerald600 },
   skippedText: { fontSize: 12, color: colors.amber700 },

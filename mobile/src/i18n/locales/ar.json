@@ -43,6 +43,7 @@
   "nav": {
     "fakras": "فكراتي",
     "households": "المنازل",
+    "analytics": "الإحصائيات",
     "profile": "الملف الشخصي"
   },
   "auth": {
@@ -151,8 +152,19 @@
     "items": "العناصر",
     "qty": "الكمية",
     "unit": "الوحدة",
+    "category": "الفئة",
+    "categoryPlaceholder": "مثال: بقالة",
     "price": "السعر",
     "remainingOfTotal": "{{remaining}} متبقي من {{total}}",
+    "exportCsv": "تصدير CSV",
+    "csvHeaders": {
+      "name": "الاسم",
+      "quantity": "الكمية",
+      "unit": "الوحدة",
+      "category": "الفئة",
+      "price": "السعر",
+      "status": "الحالة"
+    },
     "add": "إضافة",
     "adding": "جارٍ الإضافة…",
     "noItems": "لا توجد عناصر حتى الآن.",
@@ -184,5 +196,15 @@
       "running": "جارٍ التنفيذ…",
       "skipped": "تعذّر تنفيذ {{count}} أمر/أوامر"
     }
+  },
+  "analytics": {
+    "heading": "إحصائيات الإنفاق",
+    "totalSpent": "إجمالي المصروف",
+    "spentThisMonth": "المصروف هذا الشهر",
+    "budgetRemaining": "الميزانية المتبقية",
+    "spendingByMonth": "الإنفاق الشهري",
+    "spendingByCategory": "الإنفاق حسب الفئة",
+    "topFakras": "أكثر الفكرات إنفاقًا",
+    "noData": "لا توجد بيانات إنفاق حتى الآن."
   }
 }

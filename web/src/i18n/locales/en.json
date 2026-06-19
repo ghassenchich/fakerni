@@ -27,6 +27,8 @@
     "dueSoon": "Due soon",
     "overdue": "Overdue",
     "logOut": "Log out",
+    "darkMode": "Switch to dark mode",
+    "lightMode": "Switch to light mode",
     "backToLogin": "Back to login",
     "recurrence": {
       "none": "Doesn't repeat",
@@ -43,6 +45,7 @@
   "nav": {
     "fakras": "Fakras",
     "households": "Households",
+    "analytics": "Analytics",
     "profile": "Profile"
   },
   "auth": {
@@ -133,8 +136,19 @@
     "items": "Items",
     "qty": "Qty",
     "unit": "Unit",
+    "category": "Category",
+    "categoryPlaceholder": "e.g. Groceries",
     "price": "Price",
     "remainingOfTotal": "{{remaining}} left of {{total}}",
+    "exportCsv": "Export CSV",
+    "csvHeaders": {
+      "name": "Name",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "category": "Category",
+      "price": "Price",
+      "status": "Status"
+    },
     "add": "Add",
     "adding": "Adding…",
     "noItems": "No items yet.",
@@ -165,5 +179,15 @@
       "running": "Working…",
       "skipped": "{{count}} command(s) couldn't be applied"
     }
+  },
+  "analytics": {
+    "heading": "Spending analytics",
+    "totalSpent": "Total spent",
+    "spentThisMonth": "Spent this month",
+    "budgetRemaining": "Budget remaining",
+    "spendingByMonth": "Spending by month",
+    "spendingByCategory": "Spending by category",
+    "topFakras": "Top Fakras by spend",
+    "noData": "No spending data yet."
   }
 }

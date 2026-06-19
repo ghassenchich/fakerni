@@ -12,6 +12,7 @@ class ParsedItem(BaseModel):
     unit: str = Field(default="")
     category: str = Field(default="")
     notes: str = Field(default="")
+    estimated_price: float | None = Field(default=None)
 
 
 class ParsedItemList(BaseModel):
@@ -43,6 +44,8 @@ SYSTEM_PROMPT = (
     "can be inferred, otherwise an empty string\n"
     "- notes: any extra detail (e.g. a due date or brand), otherwise an "
     "empty string\n"
+    "- estimated_price: always null, unless the text explicitly states a "
+    "price for the item\n"
     "If the text doesn't describe any items, return an empty list."
 )
 
@@ -56,10 +59,12 @@ SCAN_SYSTEM_PROMPT = (
     "empty string\n"
     "- category: a short category like 'Groceries', 'Errands', 'Bills' if it "
     "can be inferred, otherwise an empty string\n"
-    "- notes: any extra detail (e.g. a price or brand), otherwise an empty "
-    "string\n"
-    "Ignore prices, totals, store names, and anything that isn't an "
-    "item/task. If the image doesn't contain a readable list of items, "
+    "- notes: any extra detail (e.g. a brand), otherwise an empty string\n"
+    "- estimated_price: if this looks like a receipt and a per-item price "
+    "or line total is visible, the price as a number (use the line total "
+    "for the quantity shown, not a unit price), otherwise null\n"
+    "Ignore totals, subtotals, taxes, store names, and anything that isn't "
+    "an item/task. If the image doesn't contain a readable list of items, "
     "return an empty list."
 )
 
@@ -93,6 +98,7 @@ SUGGEST_SYSTEM_PROMPT = (
     "- category: a short category like 'Groceries', 'Errands', 'Bills' if "
     "it can be inferred, otherwise an empty string\n"
     "- notes: leave this an empty string\n"
+    "- estimated_price: always null\n"
     "If you can't think of any good suggestions, return an empty list."
 )
 

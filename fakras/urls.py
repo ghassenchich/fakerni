@@ -16,12 +16,24 @@ from .views import (
     FakraArchiveView,
     FakraActivityView,
     FakraShareView,
+    SpendingAnalyticsView,
+    CategorySuggestionsView,
 )
 
 router = DefaultRouter()
 router.register(r"", FakraViewSet, basename="fakra")
 
 urlpatterns = [
+    path(
+        "analytics/spending/",
+        SpendingAnalyticsView.as_view(),
+    ),
+
+    path(
+        "categories/",
+        CategorySuggestionsView.as_view(),
+    ),
+
     path(
         "<int:pk>/archive/",
         FakraArchiveView.as_view(),

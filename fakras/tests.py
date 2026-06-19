@@ -164,6 +164,112 @@ class FakraTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @patch("fakras.views.notify_household")
+    def test_budget_alert_sent_when_spent_reaches_total(self, mock_notify_household):
+        fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)
+        item = Item.objects.create(
+            fakra=fakra, name="Milk", created_by=self.member, quantity=1, estimated_price=Decimal("5.00")
+        )
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/{item.id}/done/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        fakra.refresh_from_db()
+        self.assertTrue(fakra.budget_alert_sent)
+        # called twice: once for item.done notification, once for budget alert
+        self.assertEqual(mock_notify_household.call_count, 2)
+
+    @patch("fakras.views.notify_household")
+    def test_budget_alert_not_sent_twice(self, mock_notify_household):
+        fakra = Fakra.objects.create(
+            title="Weekly groceries", household=self.household, created_by=self.owner, budget_alert_sent=True
+        )
+        item = Item.objects.create(
+            fakra=fakra, name="Milk", created_by=self.member, quantity=1, estimated_price=Decimal("5.00")
+        )
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/{item.id}/done/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # called once for item.done notification, but NOT for budget alert (already sent)
+        self.assertEqual(mock_notify_household.call_count, 1)
+
+    @patch("fakras.views.notify_household")
+    def test_budget_alert_reset_when_spent_drops_below_total(self, mock_notify_household):
+        fakra = Fakra.objects.create(
+            title="Weekly groceries", household=self.household, created_by=self.owner, budget_alert_sent=True
+        )
+        Item.objects.create(
+            fakra=fakra, name="Milk", created_by=self.member, quantity=1, estimated_price=Decimal("5.00")
+        )
+        item = Item.objects.create(
+            fakra=fakra, name="Bread", created_by=self.member, quantity=1, estimated_price=Decimal("5.00"),
+            status="done", done_by=self.member, done_at=timezone.now(),
+        )
+
+        self.client.force_authenticate(self.member)
+        response = self.client.post(f"/api/fakras/{fakra.id}/items/{item.id}/undo/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        fakra.refresh_from_db()
+        self.assertFalse(fakra.budget_alert_sent)
+
+    def test_spending_analytics(self):
+        fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)
+        now = timezone.now()
+
+        Item.objects.create(
+            fakra=fakra, name="Milk", created_by=self.member, quantity=2, unit="L",
+            category="Dairy", estimated_price=Decimal("1.50"),
+            status="done", done_by=self.member, done_at=now,
+        )
+        Item.objects.create(
+            fakra=fakra, name="Bread", created_by=self.member, quantity=1,
+            category="Bakery", estimated_price=Decimal("2.00"),
+            status="done", done_by=self.member, done_at=now,
+        )
+        Item.objects.create(
+            fakra=fakra, name="Eggs", created_by=self.member, quantity=1,
+            estimated_price=Decimal("3.00"), status="pending",
+        )
+
+        self.client.force_authenticate(self.member)
+        response = self.client.get("/api/fakras/analytics/spending/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["total_spent"], Decimal("5.00"))
+        self.assertEqual(response.data["spent_this_month"], Decimal("5.00"))
+        self.assertEqual(response.data["budget_remaining"], Decimal("3.00"))
+
+        self.assertEqual(len(response.data["by_month"]), 1)
+        self.assertEqual(response.data["by_month"][0]["total"], Decimal("5.00"))
+
+        by_category = {entry["category"]: entry["total"] for entry in response.data["by_category"]}
+        self.assertEqual(by_category["Dairy"], Decimal("3.00"))
+        self.assertEqual(by_category["Bakery"], Decimal("2.00"))
+
+        self.assertEqual(len(response.data["by_fakra"]), 1)
+        self.assertEqual(response.data["by_fakra"][0]["fakra_id"], fakra.id)
+        self.assertEqual(response.data["by_fakra"][0]["total"], Decimal("5.00"))
+
+    def test_outsider_sees_no_spending_for_inaccessible_fakras(self):
+        fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)
+        Item.objects.create(
+            fakra=fakra, name="Milk", created_by=self.member, quantity=2,
+            estimated_price=Decimal("1.50"), status="done", done_by=self.member, done_at=timezone.now(),
+        )
+
+        self.client.force_authenticate(self.outsider)
+        response = self.client.get("/api/fakras/analytics/spending/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["total_spent"], 0)
+        self.assertEqual(response.data["by_month"], [])
+        self.assertEqual(response.data["by_category"], [])
+        self.assertEqual(response.data["by_fakra"], [])
+
     def test_outsider_cannot_add_items(self):
         fakra = Fakra.objects.create(title="Weekly groceries", household=self.household, created_by=self.owner)
 
@@ -507,6 +613,7 @@ class FakraTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [{
             "name": "Butter", "quantity": 1, "unit": "", "category": "Dairy", "notes": "",
+            "estimated_price": None,
         }])
         mock_suggest.assert_called_once_with("Weekly Groceries", "", ["Milk"])
 

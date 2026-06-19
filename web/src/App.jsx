@@ -11,6 +11,7 @@ import HouseholdsList from "./pages/HouseholdsList";
 import HouseholdDetail from "./pages/HouseholdDetail";
 import FakraDetail from "./pages/FakraDetail";
 import Profile from "./pages/Profile";
+import Analytics from "./pages/Analytics";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/households" element={<HouseholdsList />} />
             <Route path="/households/:id" element={<HouseholdDetail />} />
             <Route path="/fakras/:id" element={<FakraDetail />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>

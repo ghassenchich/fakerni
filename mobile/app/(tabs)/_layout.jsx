@@ -1,5 +1,5 @@
 import { Redirect, Tabs } from "expo-router";
-import { ListChecks, UserCircle, Users } from "lucide-react-native";
+import { BarChart3, ListChecks, UserCircle, Users } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../src/context/AuthContext";
 import LoadingScreen from "../../src/components/LoadingScreen";
@@ -39,6 +39,13 @@ export default function TabsLayout() {
         options={{
           title: t("nav.households"),
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="analytics"
+        options={{
+          title: t("nav.analytics"),
+          tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
         }}
       />
       <Tabs.Screen

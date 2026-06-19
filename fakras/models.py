@@ -48,6 +48,7 @@ class Fakra(models.Model):
 
     due_date = models.DateTimeField(blank=True, null=True)
     reminder_sent_at = models.DateTimeField(blank=True, null=True)
+    budget_alert_sent = models.BooleanField(default=False)
 
     RECURRENCE_CHOICES = [
         ("none", "None"),

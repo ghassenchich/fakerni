@@ -7,6 +7,7 @@ import {
   Camera,
   CheckCircle2,
   Circle,
+  Download,
   History,
   Lightbulb,
   Paperclip,
@@ -23,6 +24,7 @@ import * as fakrasApi from "../api/fakras";
 import { useFakraSocket } from "../hooks/useFakraSocket";
 import { Badge, Button, Card, ErrorText, IconButton, Input, Label, Select, Textarea, extractError } from "../components/ui";
 import { getDueStatus } from "../utils/dueStatus";
+import { downloadCsv, itemsToCsv } from "../utils/csv";
 
 const DUE_STATUS_COLORS = {
   dueSoon: "yellow",
@@ -52,9 +54,11 @@ export default function FakraDetail() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState(1);
   const [newItemUnit, setNewItemUnit] = useState("");
+  const [newItemCategory, setNewItemCategory] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState([]);
 
   const [smartAddText, setSmartAddText] = useState("");
   const [smartAddError, setSmartAddError] = useState("");
@@ -106,6 +110,7 @@ export default function FakraDetail() {
 
   useEffect(() => {
     load();
+    fakrasApi.getCategorysuggestions().then((r) => setCategoryOptions(r.data)).catch(() => {});
   }, [load]);
 
   useFakraSocket(id, (message) => {
@@ -172,6 +177,20 @@ export default function FakraDetail() {
     }
   }
 
+  function handleExportCsv() {
+    const headers = [
+      t("fakraDetail.csvHeaders.name"),
+      t("fakraDetail.csvHeaders.quantity"),
+      t("fakraDetail.csvHeaders.unit"),
+      t("fakraDetail.csvHeaders.category"),
+      t("fakraDetail.csvHeaders.price"),
+      t("fakraDetail.csvHeaders.status"),
+    ];
+
+    const csv = itemsToCsv(fakra.items, headers);
+    downloadCsv(`${fakra.title}.csv`, csv);
+  }
+
   async function handleAddItem(e) {
     e.preventDefault();
     setItemError("");
@@ -182,11 +201,13 @@ export default function FakraDetail() {
         name: newItemName,
         quantity: Number(newItemQuantity) || 1,
         unit: newItemUnit || null,
+        category: newItemCategory || null,
         estimated_price: newItemPrice === "" ? null : Number(newItemPrice),
       });
       setNewItemName("");
       setNewItemQuantity(1);
       setNewItemUnit("");
+      setNewItemCategory("");
       setNewItemPrice("");
       load();
     } catch (err) {
@@ -507,14 +528,26 @@ export default function FakraDetail() {
       <Card>
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-medium text-blue-950">{t("fakraDetail.items")}</h2>
-          {Number(fakra.estimated_total) > 0 && (
-            <span className="text-sm text-slate-500">
-              {t("fakraDetail.remainingOfTotal", {
-                remaining: Number(fakra.estimated_remaining).toFixed(2),
-                total: Number(fakra.estimated_total).toFixed(2),
-              })}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {Number(fakra.estimated_total) > 0 && (
+              <span className="text-sm text-slate-500">
+                {t("fakraDetail.remainingOfTotal", {
+                  remaining: Number(fakra.estimated_remaining).toFixed(2),
+                  total: Number(fakra.estimated_total).toFixed(2),
+                })}
+              </span>
+            )}
+            {fakra.items.length > 0 && (
+              <button
+                type="button"
+                onClick={handleExportCsv}
+                className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900"
+              >
+                <Download className="h-4 w-4" />
+                {t("fakraDetail.exportCsv")}
+              </button>
+            )}
+          </div>
         </div>
 
         <form onSubmit={handleSmartAdd} className="flex flex-wrap gap-2 items-end mb-3">
@@ -605,6 +638,18 @@ export default function FakraDetail() {
           <div className="w-28">
             <Label>{t("fakraDetail.unit")}</Label>
             <Input value={newItemUnit} onChange={(e) => setNewItemUnit(e.target.value)} />
+          </div>
+          <div className="w-32">
+            <Label>{t("fakraDetail.category")}</Label>
+            <Input
+              value={newItemCategory}
+              onChange={(e) => setNewItemCategory(e.target.value)}
+              list="category-options"
+              placeholder={t("fakraDetail.categoryPlaceholder")}
+            />
+            <datalist id="category-options">
+              {categoryOptions.map((c) => <option key={c} value={c} />)}
+            </datalist>
           </div>
           <div className="w-24">
             <Label>{t("fakraDetail.price")}</Label>

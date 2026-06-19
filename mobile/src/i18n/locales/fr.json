@@ -43,6 +43,7 @@
   "nav": {
     "fakras": "Fakras",
     "households": "Foyers",
+    "analytics": "Statistiques",
     "profile": "Profil"
   },
   "auth": {
@@ -151,8 +152,19 @@
     "items": "Articles",
     "qty": "Qté",
     "unit": "Unité",
+    "category": "Catégorie",
+    "categoryPlaceholder": "ex. Épicerie",
     "price": "Prix",
     "remainingOfTotal": "{{remaining}} restant sur {{total}}",
+    "exportCsv": "Exporter en CSV",
+    "csvHeaders": {
+      "name": "Nom",
+      "quantity": "Quantité",
+      "unit": "Unité",
+      "category": "Catégorie",
+      "price": "Prix",
+      "status": "Statut"
+    },
     "add": "Ajouter",
     "adding": "Ajout…",
     "noItems": "Aucun article pour le moment.",
@@ -184,5 +196,15 @@
       "running": "En cours…",
       "skipped": "{{count}} commande(s) n'ont pas pu être appliquées"
     }
+  },
+  "analytics": {
+    "heading": "Statistiques de dépenses",
+    "totalSpent": "Total dépensé",
+    "spentThisMonth": "Dépensé ce mois-ci",
+    "budgetRemaining": "Budget restant",
+    "spendingByMonth": "Dépenses par mois",
+    "spendingByCategory": "Dépenses par catégorie",
+    "topFakras": "Meilleurs Fakras par dépense",
+    "noData": "Aucune donnée de dépense pour le moment."
   }
 }
