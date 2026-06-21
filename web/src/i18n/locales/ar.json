@@ -141,6 +141,9 @@
     "price": "السعر",
     "remainingOfTotal": "{{remaining}} متبقي من {{total}}",
     "exportCsv": "تصدير CSV",
+    "exportPdf": "تصدير PDF",
+    "duplicate": "تكرار",
+    "editItem": "تعديل العنصر",
     "csvHeaders": {
       "name": "الاسم",
       "quantity": "الكمية",

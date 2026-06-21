@@ -14,6 +14,8 @@ from .views import (
     ItemAttachmentListCreateView,
     ItemAttachmentDetailView,
     FakraArchiveView,
+    FakraDuplicateView,
+    FakraExportPdfView,
     FakraActivityView,
     FakraShareView,
     SpendingAnalyticsView,
@@ -37,6 +39,16 @@ urlpatterns = [
     path(
         "<int:pk>/archive/",
         FakraArchiveView.as_view(),
+    ),
+
+    path(
+        "<int:pk>/duplicate/",
+        FakraDuplicateView.as_view(),
+    ),
+
+    path(
+        "<int:pk>/export/pdf/",
+        FakraExportPdfView.as_view(),
     ),
 
     path(

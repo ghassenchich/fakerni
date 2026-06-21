@@ -28,6 +28,10 @@ export function getActivity(id) {
   return client.get(`/api/fakras/${id}/activity/`);
 }
 
+export function duplicateFakra(id) {
+  return client.post(`/api/fakras/${id}/duplicate/`);
+}
+
 export function getSpendingAnalytics() {
   return client.get("/api/fakras/analytics/spending/");
 }

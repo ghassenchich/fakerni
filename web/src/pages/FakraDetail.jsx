@@ -7,7 +7,9 @@ import {
   Camera,
   CheckCircle2,
   Circle,
+  Copy,
   Download,
+  FileText,
   History,
   Lightbulb,
   Paperclip,
@@ -59,6 +61,15 @@ export default function FakraDetail() {
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
   const [categoryOptions, setCategoryOptions] = useState([]);
+
+  const [editingItem, setEditingItem] = useState(null);
+  const [editItemName, setEditItemName] = useState("");
+  const [editItemQty, setEditItemQty] = useState(1);
+  const [editItemUnit, setEditItemUnit] = useState("");
+  const [editItemCategory, setEditItemCategory] = useState("");
+  const [editItemPrice, setEditItemPrice] = useState("");
+  const [editItemError, setEditItemError] = useState("");
+  const [editItemLoading, setEditItemLoading] = useState(false);
 
   const [smartAddText, setSmartAddText] = useState("");
   const [smartAddError, setSmartAddError] = useState("");
@@ -172,6 +183,16 @@ export default function FakraDetail() {
     try {
       await fakrasApi.deleteFakra(id);
       navigate("/");
+    } catch (err) {
+      setActionError(extractError(err));
+    }
+  }
+
+  async function handleDuplicate() {
+    setActionError("");
+    try {
+      const response = await fakrasApi.duplicateFakra(id);
+      navigate(`/fakras/${response.data.id}`);
     } catch (err) {
       setActionError(extractError(err));
     }
@@ -332,6 +353,38 @@ export default function FakraDetail() {
     }
   }
 
+  function handleStartEditItem(item) {
+    setEditingItem(item);
+    setEditItemName(item.name);
+    setEditItemQty(item.quantity);
+    setEditItemUnit(item.unit || "");
+    setEditItemCategory(item.category || "");
+    setEditItemPrice(item.estimated_price != null ? String(item.estimated_price) : "");
+    setEditItemError("");
+  }
+
+  async function handleSaveEditItem(e) {
+    e.preventDefault();
+    setEditItemError("");
+    setEditItemLoading(true);
+
+    try {
+      await fakrasApi.updateItem(id, editingItem.id, {
+        name: editItemName,
+        quantity: Number(editItemQty) || 1,
+        unit: editItemUnit || null,
+        category: editItemCategory || null,
+        estimated_price: editItemPrice === "" ? null : Number(editItemPrice),
+      });
+      setEditingItem(null);
+      load();
+    } catch (err) {
+      setEditItemError(extractError(err));
+    } finally {
+      setEditItemLoading(false);
+    }
+  }
+
   function handleAddPhotoClick(itemId) {
     setPendingItemId(itemId);
     fileInputRef.current?.click();
@@ -445,6 +498,10 @@ export default function FakraDetail() {
             {t("common.delete")}
           </Button>
         )}
+        <Button variant="secondary" onClick={handleDuplicate}>
+          <Copy className="h-4 w-4" />
+          {t("fakraDetail.duplicate")}
+        </Button>
         <Button variant="secondary" onClick={toggleActivity}>
           <History className="h-4 w-4" />
           {showActivity ? t("fakraDetail.hideActivity") : t("fakraDetail.showActivity")}
@@ -538,14 +595,24 @@ export default function FakraDetail() {
               </span>
             )}
             {fakra.items.length > 0 && (
-              <button
-                type="button"
-                onClick={handleExportCsv}
-                className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900"
-              >
-                <Download className="h-4 w-4" />
-                {t("fakraDetail.exportCsv")}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  <Download className="h-4 w-4" />
+                  {t("fakraDetail.exportCsv")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fakrasApi.exportFakraPdf(id, `${fakra.title}.pdf`)}
+                  className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  <FileText className="h-4 w-4" />
+                  {t("fakraDetail.exportPdf")}
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -674,9 +741,41 @@ export default function FakraDetail() {
         {fakra.items.length === 0 ? (
           <p className="text-sm text-slate-500">{t("fakraDetail.noItems")}</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
             {fakra.items.map((item) => (
               <li key={item.id} className="group py-2 text-sm">
+                {editingItem?.id === item.id ? (
+                  <form onSubmit={handleSaveEditItem} className="flex flex-wrap gap-2 items-end py-1">
+                    <div className="flex-1 min-w-[120px]">
+                      <Label>{t("common.name")}</Label>
+                      <Input required value={editItemName} onChange={(e) => setEditItemName(e.target.value)} />
+                    </div>
+                    <div className="w-16">
+                      <Label>{t("fakraDetail.qty")}</Label>
+                      <Input type="number" min={1} value={editItemQty} onChange={(e) => setEditItemQty(e.target.value)} />
+                    </div>
+                    <div className="w-24">
+                      <Label>{t("fakraDetail.unit")}</Label>
+                      <Input value={editItemUnit} onChange={(e) => setEditItemUnit(e.target.value)} />
+                    </div>
+                    <div className="w-28">
+                      <Label>{t("fakraDetail.category")}</Label>
+                      <Input value={editItemCategory} onChange={(e) => setEditItemCategory(e.target.value)} list="edit-category-options" />
+                      <datalist id="edit-category-options">
+                        {categoryOptions.map((c) => <option key={c} value={c} />)}
+                      </datalist>
+                    </div>
+                    <div className="w-20">
+                      <Label>{t("fakraDetail.price")}</Label>
+                      <Input type="number" min={0} step="0.01" value={editItemPrice} onChange={(e) => setEditItemPrice(e.target.value)} />
+                    </div>
+                    <div className="flex gap-1">
+                      <Button type="submit" disabled={editItemLoading}>{editItemLoading ? t("common.saving") : t("common.save")}</Button>
+                      <Button type="button" variant="secondary" onClick={() => setEditingItem(null)}>{t("common.cancel")}</Button>
+                    </div>
+                    {editItemError && <ErrorText>{editItemError}</ErrorText>}
+                  </form>
+                ) : (
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
@@ -688,7 +787,7 @@ export default function FakraDetail() {
                     ) : (
                       <Circle className="h-5 w-5 text-slate-300 transition-transform duration-150 group-hover:scale-110 group-hover:text-blue-600" />
                     )}
-                    <span className={item.status === "done" ? "line-through text-slate-400" : "text-slate-700"}>
+                    <span className={item.status === "done" ? "line-through text-slate-400" : "text-slate-700 dark:text-slate-300"}>
                       {item.name}
                       {item.quantity > 1 && ` ×${item.quantity}`}
                       {item.unit && ` ${item.unit}`}
@@ -700,6 +799,11 @@ export default function FakraDetail() {
                     )}
                   </button>
                   <div className="flex items-center gap-1">
+                    <IconButton
+                      icon={Pencil}
+                      label={t("fakraDetail.editItem")}
+                      onClick={() => handleStartEditItem(item)}
+                    />
                     <IconButton
                       icon={Paperclip}
                       label={t("fakraDetail.addPhoto")}
@@ -714,6 +818,7 @@ export default function FakraDetail() {
                     />
                   </div>
                 </div>
+                )}
 
                 {uploadingItemId === item.id && (
                   <p className="text-xs text-slate-400 mt-1 ml-7">{t("fakraDetail.uploadingPhoto")}</p>

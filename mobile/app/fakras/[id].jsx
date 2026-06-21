@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Image, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import {
   Archive,
+  Barcode,
   CalendarDays,
   Camera,
   CheckCircle2,
   Circle,
+  Copy,
   Download,
   History,
   Lightbulb,
@@ -40,6 +42,7 @@ import {
 import { colors } from "../../src/constants/colors";
 import { getDueStatus } from "../../src/utils/dueStatus";
 import { itemsToCsv } from "../../src/utils/csv";
+import BarcodeScanner from "../../src/components/BarcodeScanner";
 
 const DUE_STATUS_COLORS = {
   dueSoon: "yellow",
@@ -75,6 +78,18 @@ export default function FakraDetail() {
   const [itemLoading, setItemLoading] = useState(false);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
+
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [barcodeLoading, setBarcodeLoading] = useState(false);
+
+  const [editingItem, setEditingItem] = useState(null);
+  const [editItemName, setEditItemName] = useState("");
+  const [editItemQty, setEditItemQty] = useState("1");
+  const [editItemUnit, setEditItemUnit] = useState("");
+  const [editItemCategory, setEditItemCategory] = useState("");
+  const [editItemPrice, setEditItemPrice] = useState("");
+  const [editItemError, setEditItemError] = useState("");
+  const [editItemLoading, setEditItemLoading] = useState(false);
 
   const [smartAddText, setSmartAddText] = useState("");
   const [smartAddError, setSmartAddError] = useState("");
@@ -184,6 +199,16 @@ export default function FakraDetail() {
     try {
       await fakrasApi.deleteFakra(id);
       router.replace("/");
+    } catch (err) {
+      setActionError(extractError(err));
+    }
+  }
+
+  async function handleDuplicate() {
+    setActionError("");
+    try {
+      const response = await fakrasApi.duplicateFakra(id);
+      router.replace(`/fakras/${response.data.id}`);
     } catch (err) {
       setActionError(extractError(err));
     }
@@ -319,6 +344,54 @@ export default function FakraDetail() {
       load();
     } catch (err) {
       setActionError(extractError(err));
+    }
+  }
+
+  async function handleBarcodeScanned(barcode) {
+    setShowBarcodeScanner(false);
+    setBarcodeLoading(true);
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+      const json = await res.json();
+      if (json.status === 1 && json.product?.product_name) {
+        setNewItemName(json.product.product_name);
+        if (json.product.quantity) setNewItemUnit(json.product.quantity);
+      }
+    } catch {
+      // silently ignore lookup failures
+    } finally {
+      setBarcodeLoading(false);
+    }
+  }
+
+  function handleStartEditItem(item) {
+    setEditingItem(item);
+    setEditItemName(item.name);
+    setEditItemQty(String(item.quantity));
+    setEditItemUnit(item.unit || "");
+    setEditItemCategory(item.category || "");
+    setEditItemPrice(item.estimated_price != null ? String(item.estimated_price) : "");
+    setEditItemError("");
+  }
+
+  async function handleSaveEditItem() {
+    setEditItemError("");
+    setEditItemLoading(true);
+
+    try {
+      await fakrasApi.updateItem(id, editingItem.id, {
+        name: editItemName,
+        quantity: Number(editItemQty) || 1,
+        unit: editItemUnit || null,
+        category: editItemCategory || null,
+        estimated_price: editItemPrice === "" ? null : Number(editItemPrice),
+      });
+      setEditingItem(null);
+      load();
+    } catch (err) {
+      setEditItemError(extractError(err));
+    } finally {
+      setEditItemLoading(false);
     }
   }
 
@@ -482,6 +555,10 @@ export default function FakraDetail() {
             <Text style={styles.dangerLabel}>{t("common.delete")}</Text>
           </Button>
         )}
+        <Button variant="secondary" onPress={handleDuplicate}>
+          <Copy size={16} color={colors.slate700} />
+          <Text style={styles.secondaryLabel}>{t("fakraDetail.duplicate")}</Text>
+        </Button>
         <Button variant="secondary" onPress={toggleActivity}>
           <History size={16} color={colors.slate700} />
           <Text style={styles.secondaryLabel}>{showActivity ? t("fakraDetail.hideActivity") : t("fakraDetail.showActivity")}</Text>
@@ -647,7 +724,12 @@ export default function FakraDetail() {
         <View style={styles.itemFormRow}>
           <View style={styles.itemNameField}>
             <Label>{t("common.name")}</Label>
-            <Input value={newItemName} onChangeText={setNewItemName} />
+            <View style={styles.nameWithBarcode}>
+              <Input style={styles.nameInput} value={newItemName} onChangeText={setNewItemName} />
+              <Pressable onPress={() => setShowBarcodeScanner(true)} style={styles.barcodeBtn}>
+                {barcodeLoading ? <ActivityIndicator size="small" color={colors.slate500} /> : <Barcode size={20} color={colors.slate500} />}
+              </Pressable>
+            </View>
           </View>
           <View style={styles.itemQtyField}>
             <Label>{t("fakraDetail.qty")}</Label>
@@ -696,6 +778,43 @@ export default function FakraDetail() {
         ) : (
           fakra.items.map((item) => (
             <View key={item.id} style={styles.itemContainer}>
+              {editingItem?.id === item.id ? (
+                <View style={styles.editItemForm}>
+                  <View style={styles.itemFormRow}>
+                    <View style={styles.itemNameField}>
+                      <Label>{t("common.name")}</Label>
+                      <Input value={editItemName} onChangeText={setEditItemName} />
+                    </View>
+                    <View style={styles.itemQtyField}>
+                      <Label>{t("fakraDetail.qty")}</Label>
+                      <Input value={editItemQty} onChangeText={setEditItemQty} keyboardType="numeric" />
+                    </View>
+                  </View>
+                  <View style={styles.itemFormRow}>
+                    <View style={styles.itemUnitField}>
+                      <Label>{t("fakraDetail.unit")}</Label>
+                      <Input value={editItemUnit} onChangeText={setEditItemUnit} />
+                    </View>
+                    <View style={styles.itemUnitField}>
+                      <Label>{t("fakraDetail.category")}</Label>
+                      <Input value={editItemCategory} onChangeText={setEditItemCategory} />
+                    </View>
+                    <View style={styles.itemUnitField}>
+                      <Label>{t("fakraDetail.price")}</Label>
+                      <Input value={editItemPrice} onChangeText={setEditItemPrice} keyboardType="numeric" />
+                    </View>
+                  </View>
+                  <ErrorText>{editItemError}</ErrorText>
+                  <View style={styles.actionsRow}>
+                    <Button disabled={editItemLoading} onPress={handleSaveEditItem}>
+                      <Text style={styles.buttonLabel}>{editItemLoading ? t("common.saving") : t("common.save")}</Text>
+                    </Button>
+                    <Button variant="secondary" onPress={() => setEditingItem(null)}>
+                      <Text style={styles.secondaryLabel}>{t("common.cancel")}</Text>
+                    </Button>
+                  </View>
+                </View>
+              ) : (
               <View style={styles.itemRow}>
                 <Pressable style={styles.itemToggle} onPress={() => handleToggleItem(item)}>
                   {item.status === "done" ? (
@@ -714,6 +833,11 @@ export default function FakraDetail() {
                 </Pressable>
                 <View style={styles.itemActions}>
                   <IconButton
+                    icon={Pencil}
+                    label={t("fakraDetail.editItem")}
+                    onPress={() => handleStartEditItem(item)}
+                  />
+                  <IconButton
                     icon={Paperclip}
                     label={t("fakraDetail.addPhoto")}
                     onPress={() => handleAddPhoto(item)}
@@ -722,6 +846,7 @@ export default function FakraDetail() {
                   <IconButton icon={Trash2} label={t("fakraDetail.deleteItem")} onPress={() => handleDeleteItem(item.id)} />
                 </View>
               </View>
+              )}
 
               {uploadingItemId === item.id ? (
                 <Text style={styles.muted}>{t("fakraDetail.uploadingPhoto")}</Text>
@@ -748,6 +873,12 @@ export default function FakraDetail() {
         )}
       </Card>
     </ScrollView>
+
+    <BarcodeScanner
+      visible={showBarcodeScanner}
+      onScanned={handleBarcodeScanned}
+      onClose={() => setShowBarcodeScanner(false)}
+    />
   );
 }
 
@@ -792,6 +923,9 @@ const styles = StyleSheet.create({
   skippedText: { fontSize: 12, color: colors.amber700 },
   itemFormRow: { flexDirection: "row", gap: 8 },
   itemNameField: { flex: 2 },
+  nameWithBarcode: { flexDirection: "row", alignItems: "center", gap: 6 },
+  nameInput: { flex: 1 },
+  barcodeBtn: { padding: 8, borderRadius: 8, backgroundColor: colors.slate100 },
   itemQtyField: { flex: 1 },
   itemUnitField: { flex: 1 },
   itemContainer: {
@@ -799,6 +933,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.slate100,
   },
+  editItemForm: { gap: 8, paddingVertical: 4 },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",

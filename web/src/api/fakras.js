@@ -24,6 +24,22 @@ export function archiveFakra(id) {
   return client.post(`/api/fakras/${id}/archive/`);
 }
 
+export function duplicateFakra(id) {
+  return client.post(`/api/fakras/${id}/duplicate/`);
+}
+
+export async function exportFakraPdf(id, filename) {
+  const response = await client.get(`/api/fakras/${id}/export/pdf/`, { responseType: "blob" });
+  const url = URL.createObjectURL(response.data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export function getActivity(id) {
   return client.get(`/api/fakras/${id}/activity/`);
 }

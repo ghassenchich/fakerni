@@ -763,6 +763,47 @@ class FakraArchiveView(APIView):
         return Response(FakraSerializer(fakra, context={"request": request}).data)
 
 
+class FakraDuplicateView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FakraSerializer
+
+    @extend_schema(request=None, responses=FakraSerializer)
+    def post(self, request, pk):
+        original = get_object_or_404(Fakra, pk=pk)
+        require_fakra_access(request.user, original)
+
+        new_fakra = Fakra.objects.create(
+            title=f"Copy of {original.title}",
+            description=original.description,
+            household=original.household,
+            created_by=request.user,
+        )
+
+        for item in original.items.all():
+            Item.objects.create(
+                fakra=new_fakra,
+                name=item.name,
+                quantity=item.quantity,
+                unit=item.unit,
+                category=item.category,
+                notes=item.notes,
+                estimated_price=item.estimated_price,
+                created_by=request.user,
+            )
+
+        log_activity(
+            new_fakra,
+            request.user,
+            "fakra_duplicated",
+            f"{request.user.email} duplicated '{original.title}'"
+        )
+
+        return Response(
+            FakraSerializer(new_fakra, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class FakraActivityView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ActivityLogSerializer
@@ -873,6 +914,65 @@ class SpendingAnalyticsView(APIView):
             "by_category": by_category,
             "by_fakra": by_fakra,
         })
+
+
+class FakraExportPdfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        from io import BytesIO
+        from django.http import HttpResponse
+        from reportlab.lib import colors as rl_colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.units import cm
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+
+        fakra = get_object_or_404(Fakra, pk=pk)
+        require_fakra_access(request.user, fakra)
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=2*cm, rightMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph(fakra.title, styles["Title"]))
+        if fakra.description:
+            elements.append(Paragraph(fakra.description, styles["Normal"]))
+        elements.append(Spacer(1, 0.4*cm))
+
+        headers = ["Name", "Qty", "Unit", "Category", "Price", "Status"]
+        rows = [headers]
+        for item in fakra.items.all():
+            rows.append([
+                item.name,
+                str(item.quantity),
+                item.unit or "",
+                item.category or "",
+                f"{item.estimated_price:.2f}" if item.estimated_price is not None else "",
+                item.status,
+            ])
+
+        table = Table(rows, hAlign="LEFT", colWidths=[6*cm, 1.5*cm, 2*cm, 3*cm, 2*cm, 2*cm])
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), rl_colors.HexColor("#00363d")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), rl_colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [rl_colors.white, rl_colors.HexColor("#eef9fb")]),
+            ("GRID", (0, 0), (-1, -1), 0.5, rl_colors.HexColor("#c0c8c9")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(table)
+
+        doc.build(elements)
+        buffer.seek(0)
+
+        filename = f"{fakra.title}.pdf".replace("/", "-")
+        response = HttpResponse(buffer.read(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
 
 
 class CategorySuggestionsView(APIView):

@@ -141,6 +141,9 @@
     "price": "Prix",
     "remainingOfTotal": "{{remaining}} restant sur {{total}}",
     "exportCsv": "Exporter en CSV",
+    "exportPdf": "Exporter en PDF",
+    "duplicate": "Dupliquer",
+    "editItem": "Modifier l'article",
     "csvHeaders": {
       "name": "Nom",
       "quantity": "Quantité",
