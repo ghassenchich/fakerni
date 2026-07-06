@@ -1094,3 +1094,81 @@ class ItemAttachmentTests(APITestCase):
         response = self.client.delete(self._url(attachment=attachment))
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class RestockSuggestionTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email="shopper@test.com", password="pass1234")
+        self.household = Household.objects.create(name="Family", owner=self.user)
+        Membership.objects.create(user=self.user, household=self.household, role="owner")
+
+    def _done_item(self, fakra, name, price=None, unit="", category=""):
+        item = Item.objects.create(
+            fakra=fakra, name=name, unit=unit, category=category,
+            estimated_price=price, created_by=self.user,
+        )
+        item.status = "done"
+        item.done_by = self.user
+        item.done_at = timezone.now()
+        item.save()
+        return item
+
+    def test_recurring_item_is_suggested_with_price_stats(self):
+        # Milk bought in three separate (archived) shopping trips.
+        for i, price in enumerate([Decimal("2.50"), Decimal("2.70"), Decimal("2.60")]):
+            f = Fakra.objects.create(title=f"Trip {i}", household=self.household, created_by=self.user)
+            self._done_item(f, "Milk", price=price, unit="L", category="Dairy")
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get("/api/fakras/restock-suggestions/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        names = [s["name"] for s in response.data["suggestions"]]
+        self.assertIn("Milk", names)
+        milk = next(s for s in response.data["suggestions"] if s["name"] == "Milk")
+        self.assertEqual(milk["times_bought"], 3)
+        self.assertEqual(milk["unit"], "L")
+        self.assertAlmostEqual(milk["avg_price"], 2.6, places=2)
+
+    def test_one_off_item_is_not_suggested(self):
+        f = Fakra.objects.create(title="Trip", household=self.household, created_by=self.user)
+        self._done_item(f, "Birthday candles")
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get("/api/fakras/restock-suggestions/")
+
+        names = [s["name"] for s in response.data["suggestions"]]
+        self.assertNotIn("Birthday candles", names)
+
+    def test_item_already_pending_is_not_resuggested(self):
+        # Bought twice before...
+        for i in range(2):
+            f = Fakra.objects.create(title=f"Old {i}", household=self.household, created_by=self.user)
+            self._done_item(f, "Eggs")
+        # ...but it's already on a current list, so don't suggest it again.
+        current = Fakra.objects.create(title="This week", household=self.household, created_by=self.user)
+        Item.objects.create(fakra=current, name="eggs", created_by=self.user)
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get("/api/fakras/restock-suggestions/")
+
+        names = [s["name"] for s in response.data["suggestions"]]
+        self.assertNotIn("Eggs", names)
+
+    def test_price_anomaly_detects_high_price(self):
+        from .insights import price_anomaly
+        from .views import _visible_fakras
+
+        for price in [Decimal("2.50"), Decimal("2.60"), Decimal("2.55")]:
+            f = Fakra.objects.create(title="t", household=self.household, created_by=self.user)
+            self._done_item(f, "Milk", price=price)
+
+        fakras = _visible_fakras(self.user)
+        result = price_anomaly(fakras, "milk", Decimal("3.50"))
+        self.assertIsNotNone(result)
+        self.assertTrue(result["is_high"])
+        self.assertGreater(result["pct_above_avg"], 20)
+
+    def test_suggestions_require_authentication(self):
+        response = self.client.get("/api/fakras/restock-suggestions/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

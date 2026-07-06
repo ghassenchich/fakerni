@@ -19,6 +19,7 @@ from .views import (
     FakraActivityView,
     FakraShareView,
     SpendingAnalyticsView,
+    RestockSuggestionsView,
     CategorySuggestionsView,
 )
 
@@ -29,6 +30,11 @@ urlpatterns = [
     path(
         "analytics/spending/",
         SpendingAnalyticsView.as_view(),
+    ),
+
+    path(
+        "restock-suggestions/",
+        RestockSuggestionsView.as_view(),
     ),
 
     path(

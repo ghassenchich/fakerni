@@ -113,7 +113,13 @@
     "titleOrDescription": "العنوان أو الوصف",
     "noFakras": "لا توجد فكرات.",
     "statusActive": "نشط",
-    "statusArchived": "مؤرشف"
+    "statusArchived": "مؤرشف",
+    "restock": {
+      "title": "حان وقت إعادة التخزين؟",
+      "subtitle": "بناءً على ما تشتريه عادةً لكنه غير موجود في أي قائمة حالية.",
+      "cta": "إنشاء قائمة بهذه العناصر",
+      "listTitle": "إعادة تخزين"
+    }
   },
   "households": {
     "heading": "المنازل",

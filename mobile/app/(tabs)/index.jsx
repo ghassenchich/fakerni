@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { CalendarDays, ChevronRight, Plus, X } from "lucide-react-native";
+import { CalendarDays, ChevronRight, Plus, Sparkles, X } from "lucide-react-native";
 import * as fakrasApi from "../../src/api/fakras";
 import * as householdsApi from "../../src/api/households";
 import {
@@ -52,6 +52,10 @@ export default function Dashboard() {
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
+  const [restock, setRestock] = useState([]);
+  const [restockDismissed, setRestockDismissed] = useState(false);
+  const [creatingRestock, setCreatingRestock] = useState(false);
+
   const loadFakras = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -81,7 +85,34 @@ export default function Dashboard() {
     householdsApi.listHouseholds().then((response) => {
       setHouseholds(response.data.results ?? response.data);
     });
+    fakrasApi
+      .getRestockSuggestions()
+      .then((response) => setRestock(response.data.suggestions ?? []))
+      .catch(() => {});
   }, []);
+
+  async function handleCreateRestockList() {
+    setCreatingRestock(true);
+    setError("");
+    try {
+      const res = await fakrasApi.createFakra({ title: t("dashboard.restock.listTitle") });
+      const id = res.data.id;
+      for (const s of restock) {
+        await fakrasApi.createItem(id, {
+          name: s.name,
+          quantity: 1,
+          unit: s.unit || "",
+          category: s.category || "",
+          estimated_price: s.avg_price ?? null,
+        });
+      }
+      router.push(`/fakras/${id}`);
+    } catch (err) {
+      setError(extractError(err));
+    } finally {
+      setCreatingRestock(false);
+    }
+  }
 
   useEffect(() => {
     loadFakras();
@@ -128,6 +159,39 @@ export default function Dashboard() {
           <Text style={styles.buttonLabel}>{showCreate ? t("common.cancel") : t("dashboard.newFakra")}</Text>
         </Button>
       </View>
+
+      {restock.length > 0 && !restockDismissed && (
+        <Card style={styles.restockCard}>
+          <View style={styles.restockHeader}>
+            <View style={styles.restockTitleRow}>
+              <Sparkles size={16} color={colors.blue700} />
+              <Text style={styles.restockTitle}>{t("dashboard.restock.title")}</Text>
+            </View>
+            <Pressable onPress={() => setRestockDismissed(true)} hitSlop={8}>
+              <X size={16} color={colors.blue500} />
+            </Pressable>
+          </View>
+          <Text style={styles.restockSubtitle}>{t("dashboard.restock.subtitle")}</Text>
+          <View style={styles.restockChips}>
+            {restock.map((s) => (
+              <View key={s.name} style={styles.restockChip}>
+                <Text style={styles.restockChipText}>
+                  {s.name}
+                  {s.avg_price != null ? ` ~${s.avg_price}` : ""}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.restockCta}>
+            <Button onPress={handleCreateRestockList} disabled={creatingRestock}>
+              <Plus size={16} color={colors.white} />
+              <Text style={styles.buttonLabel}>
+                {creatingRestock ? t("common.creating") : t("dashboard.restock.cta")}
+              </Text>
+            </Button>
+          </View>
+        </Card>
+      )}
 
       {showCreate && (
         <Card style={styles.card}>
@@ -257,4 +321,13 @@ const styles = StyleSheet.create({
   fakraMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
   dueDate: { flexDirection: "row", alignItems: "center", gap: 4 },
   dueDateText: { fontSize: 12, color: colors.slate500 },
+  restockCard: { gap: 8, backgroundColor: colors.blue50, borderColor: colors.blue200, borderWidth: 1 },
+  restockHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  restockTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  restockTitle: { fontSize: 15, fontWeight: "600", color: colors.blue900 },
+  restockSubtitle: { fontSize: 13, color: colors.blue700 },
+  restockChips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  restockChip: { backgroundColor: colors.white, borderColor: colors.blue200, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  restockChipText: { fontSize: 12, color: colors.blue800 },
+  restockCta: { marginTop: 4, alignItems: "flex-start" },
 });

@@ -209,7 +209,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # CORS
 # =====================================================
 
-CORS_ALLOW_ALL_ORIGINS = True
+# In development (DEBUG) allow any origin for convenience. In production,
+# restrict to an explicit allowlist from CORS_ALLOWED_ORIGINS (comma-separated),
+# so arbitrary websites can't call the API on a logged-in user's behalf.
+_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+if DEBUG and not _cors_origins:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
 
 # =====================================================
 # REST FRAMEWORK
@@ -243,6 +251,9 @@ REST_FRAMEWORK = {
         "register": "20/minute",
         "login": "20/minute",
         "password_reset": "20/minute",
+        # AI endpoints call the paid Gemini API, so throttle them per-user to
+        # cap cost and prevent abuse (Smart Add / Scan / Suggestions / Command).
+        "ai": "30/minute",
     },
 }
 

@@ -13,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .ai import (
@@ -31,6 +32,7 @@ from .serializers import (
     ShareFakraSerializer,
 )
 from .notifications import notify_fakra_access
+from .insights import predict_restock
 from .permissions import require_fakra_access
 from .realtime import broadcast_to_fakra
 from .services import log_activity, mark_item_done, undo_item
@@ -42,10 +44,16 @@ from users.realtime import broadcast_to_user
 
 
 def _visible_fakras(user):
+    # select_related/prefetch_related avoid N+1 queries when the serializer
+    # nests each Fakra's items and each item's created_by / done_by / attachments.
     return Fakra.objects.filter(
         Q(household__memberships__user=user) |
         Q(created_by=user, household__isnull=True) |
         Q(access__user=user)
+    ).select_related("household", "created_by").prefetch_related(
+        "items__created_by",
+        "items__done_by",
+        "items__attachments__uploaded_by",
     ).distinct()
 
 
@@ -342,6 +350,8 @@ class ItemListCreateView(APIView):
 
 class ItemSmartAddView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "ai"
 
     def post(self, request, fakra_id):
         fakra = get_object_or_404(Fakra, pk=fakra_id)
@@ -370,6 +380,8 @@ class ItemSmartAddView(APIView):
 class ItemSmartScanView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "ai"
 
     def post(self, request, fakra_id):
         fakra = get_object_or_404(Fakra, pk=fakra_id)
@@ -403,6 +415,8 @@ class ItemSmartScanView(APIView):
 
 class ItemSuggestionsView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "ai"
 
     def get(self, request, fakra_id):
         fakra = get_object_or_404(Fakra, pk=fakra_id)
@@ -422,6 +436,8 @@ class ItemSuggestionsView(APIView):
 
 class ItemSmartCommandView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "ai"
 
     def post(self, request, fakra_id):
         fakra = get_object_or_404(Fakra, pk=fakra_id)
@@ -914,6 +930,15 @@ class SpendingAnalyticsView(APIView):
             "by_category": by_category,
             "by_fakra": by_fakra,
         })
+
+
+class RestockSuggestionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        fakras = _visible_fakras(request.user)
+        suggestions = predict_restock(fakras)
+        return Response({"suggestions": suggestions})
 
 
 class FakraExportPdfView(APIView):

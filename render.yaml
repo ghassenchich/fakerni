@@ -1,0 +1,65 @@
+# Render.com Blueprint — one-click deploy of the Fakerni backend.
+#
+# This deploys the Django/Daphne API (which serves REST + WebSockets) plus a
+# managed PostgreSQL database, all on Render's free tier. A single web instance
+# uses Django Channels' in-memory channel layer, so no Redis is required; add a
+# Redis instance and set REDIS_URL only when you scale to multiple instances.
+#
+# Usage: push this repo to GitHub, then in Render → "New +" → "Blueprint",
+# point it at the repo. Render reads this file and provisions everything.
+# After the first deploy, set the two secret values (GEMINI_API_KEY,
+# ENCRYPTION_KEY) in the service's Environment tab (they are sync:false below).
+
+databases:
+  - name: fakerni-db
+    databaseName: fakerni
+    user: fakerni_user
+    plan: free
+
+services:
+  - type: web
+    name: fakerni-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /healthz/
+    # Apply DB migrations and gather static files before each release goes live.
+    preDeployCommand: "python manage.py migrate && python manage.py collectstatic --noinput"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: fakerni-api.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://fakerni-api.onrender.com
+      # Lock CORS to your deployed web app's origin(s) — comma-separated.
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://fakerni-api.onrender.com
+      - key: DB_NAME
+        fromDatabase:
+          name: fakerni-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: fakerni-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: fakerni-db
+          property: password
+      - key: DB_HOST
+        fromDatabase:
+          name: fakerni-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: fakerni-db
+          property: port
+      # Secrets — set these in the Render dashboard after the first deploy.
+      # ENCRYPTION_KEY: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

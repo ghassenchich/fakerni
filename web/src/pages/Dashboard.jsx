@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CalendarDays, ChevronRight, Plus, X } from "lucide-react";
+import { CalendarDays, ChevronRight, Plus, Sparkles, X } from "lucide-react";
 import * as fakrasApi from "../api/fakras";
 import * as householdsApi from "../api/households";
 import { Badge, Button, Card, ErrorText, Input, Label, Select, Textarea, extractError } from "../components/ui";
@@ -20,10 +20,15 @@ const DUE_STATUS_COLORS = {
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [fakras, setFakras] = useState([]);
   const [households, setHouseholds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [restock, setRestock] = useState([]);
+  const [restockDismissed, setRestockDismissed] = useState(false);
+  const [creatingRestock, setCreatingRestock] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState("active");
   const [householdFilter, setHouseholdFilter] = useState("");
@@ -67,7 +72,34 @@ export default function Dashboard() {
     householdsApi.listHouseholds().then((response) => {
       setHouseholds(response.data.results ?? response.data);
     });
+    fakrasApi
+      .getRestockSuggestions()
+      .then((response) => setRestock(response.data.suggestions ?? []))
+      .catch(() => {});
   }, []);
+
+  async function handleCreateRestockList() {
+    setCreatingRestock(true);
+    setError("");
+    try {
+      const res = await fakrasApi.createFakra({ title: t("dashboard.restock.listTitle") });
+      const id = res.data.id;
+      for (const s of restock) {
+        await fakrasApi.createItem(id, {
+          name: s.name,
+          quantity: 1,
+          unit: s.unit || "",
+          category: s.category || "",
+          estimated_price: s.avg_price ?? null,
+        });
+      }
+      navigate(`/fakras/${id}`);
+    } catch (err) {
+      setError(extractError(err));
+    } finally {
+      setCreatingRestock(false);
+    }
+  }
 
   useEffect(() => {
     loadFakras();
@@ -116,6 +148,45 @@ export default function Dashboard() {
           {showCreate ? t("common.cancel") : t("dashboard.newFakra")}
         </Button>
       </div>
+
+      {restock.length > 0 && !restockDismissed && (
+        <Card className="border-teal-200 bg-teal-50 dark:border-teal-800 dark:bg-teal-950/40">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <p className="font-medium text-teal-900 dark:text-teal-200">{t("dashboard.restock.title")}</p>
+              </div>
+              <p className="text-sm text-teal-700 dark:text-teal-300 mb-2">{t("dashboard.restock.subtitle")}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {restock.map((s) => (
+                  <span
+                    key={s.name}
+                    className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs text-teal-800 border border-teal-200 dark:bg-slate-800 dark:text-teal-200 dark:border-teal-800"
+                  >
+                    {s.name}
+                    {s.avg_price != null && <span className="text-teal-500">~{s.avg_price}</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRestockDismissed(true)}
+              className="text-teal-400 hover:text-teal-600"
+              aria-label={t("common.cancel")}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mt-3">
+            <Button onClick={handleCreateRestockList} disabled={creatingRestock}>
+              <Plus className="h-4 w-4" />
+              {creatingRestock ? t("common.creating") : t("dashboard.restock.cta")}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {showCreate && (
         <Card>

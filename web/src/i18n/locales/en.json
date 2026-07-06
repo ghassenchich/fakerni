@@ -97,7 +97,13 @@
     "heading": "My Fakras",
     "newFakra": "New Fakra",
     "titleOrDescription": "Title or description",
-    "noFakras": "No Fakras found."
+    "noFakras": "No Fakras found.",
+    "restock": {
+      "title": "Time to restock?",
+      "subtitle": "Based on what you usually buy but isn't on any current list.",
+      "cta": "Create a list with these",
+      "listTitle": "Restock"
+    }
   },
   "households": {
     "heading": "Households",

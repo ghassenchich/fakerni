@@ -97,7 +97,13 @@
     "heading": "Mes Fakras",
     "newFakra": "Nouveau Fakra",
     "titleOrDescription": "Titre ou description",
-    "noFakras": "Aucun Fakra trouvé."
+    "noFakras": "Aucun Fakra trouvé.",
+    "restock": {
+      "title": "Temps de réapprovisionner ?",
+      "subtitle": "D'après ce que vous achetez souvent mais qui n'est sur aucune liste actuelle.",
+      "cta": "Créer une liste avec ces articles",
+      "listTitle": "Réappro"
+    }
   },
   "households": {
     "heading": "Foyers",
