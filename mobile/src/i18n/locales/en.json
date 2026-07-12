@@ -17,7 +17,7 @@
     "description": "Description",
     "dueDate": "Due date",
     "recurrenceLabel": "Recurrence",
-    "household": "Household",
+    "household": "Group",
     "status": "Status",
     "search": "Search",
     "all": "All",
@@ -28,6 +28,7 @@
     "overdue": "Overdue",
     "logOut": "Log out",
     "backToLogin": "Back to login",
+    "loadMore": "Load more",
     "recurrence": {
       "none": "Doesn't repeat",
       "daily": "Daily",
@@ -42,7 +43,7 @@
   },
   "nav": {
     "fakras": "Fakras",
-    "households": "Households",
+    "households": "Groups",
     "analytics": "Analytics",
     "profile": "Profile"
   },
@@ -122,16 +123,24 @@
     }
   },
   "households": {
-    "heading": "Households",
-    "createHousehold": "Create a household",
+    "heading": "Groups",
+    "createHousehold": "Create a group",
     "joinWithCode": "Join with invite code",
     "inviteCode": "Invite code",
     "join": "Join",
     "joining": "Joining…",
     "joinedSuccess": "Joined successfully",
-    "noHouseholds": "You're not part of any household yet.",
+    "noHouseholds": "You're not part of any group yet.",
     "member": "member",
-    "members": "members"
+    "members": "members",
+    "groupType": "Group type",
+    "types": {
+      "family": "Family",
+      "community": "Community",
+      "organization": "Organization",
+      "society": "Society",
+      "other": "Other"
+    }
   },
   "householdDetail": {
     "leave": "Leave",
@@ -142,7 +151,7 @@
     "you": " (you)",
     "removeMember": "Remove member",
     "fakras": "Fakras",
-    "noFakras": "No Fakras for this household yet.",
+    "noFakras": "No Fakras for this group yet.",
     "newFakraLink": "+ New Fakra from dashboard"
   },
   "fakraDetail": {
@@ -161,6 +170,7 @@
     "category": "Category",
     "categoryPlaceholder": "e.g. Groceries",
     "price": "Price",
+    "priceHigh": "{{name}} usually costs ~{{avg}} — this is {{pct}}% higher than your average.",
     "remainingOfTotal": "{{remaining}} left of {{total}}",
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",

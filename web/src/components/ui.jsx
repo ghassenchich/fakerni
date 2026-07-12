@@ -83,6 +83,7 @@ export function Badge({ children, color = "gray" }) {
     gray: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
     green: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
     blue: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+    teal: "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300",
     yellow: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
     red: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
   };
@@ -95,6 +96,11 @@ export function Badge({ children, color = "gray" }) {
 }
 
 export function extractError(err) {
+  // Rate limited (throttling on auth / AI endpoints) — show a friendly message.
+  if (err?.response?.status === 429) {
+    return "Too many requests — please wait a moment and try again.";
+  }
+
   const data = err?.response?.data;
   if (!data) return err?.message || "Something went wrong";
   if (typeof data === "string") return data;

@@ -7,7 +7,24 @@ import secrets
 
 
 class Household(models.Model):
+    # A "Household" is the generic group entity: it can represent a family, a
+    # community, an organization/association, a society, or any other group of
+    # people coordinating shared lists and tasks. The `type` classifies it.
+    TYPE_CHOICES = [
+        ("family", "Family"),
+        ("community", "Community"),
+        ("organization", "Organization"),
+        ("society", "Society"),
+        ("other", "Other"),
+    ]
+
     name = models.CharField(max_length=100)
+
+    type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default="family",
+    )
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,

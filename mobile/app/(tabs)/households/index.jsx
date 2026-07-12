@@ -5,8 +5,10 @@ import { useTranslation } from "react-i18next";
 import { ChevronRight, KeyRound, Plus, Users } from "lucide-react-native";
 import { useAuth } from "../../../src/context/AuthContext";
 import * as householdsApi from "../../../src/api/households";
-import { Badge, Button, Card, ErrorText, Input, Label, extractError } from "../../../src/components/ui";
+import { Badge, Button, Card, ErrorText, Input, Label, Select, SelectItem, extractError } from "../../../src/components/ui";
 import { colors } from "../../../src/constants/colors";
+
+const GROUP_TYPES = ["family", "community", "organization", "society", "other"];
 
 export default function HouseholdsList() {
   const { user } = useAuth();
@@ -17,6 +19,7 @@ export default function HouseholdsList() {
   const [error, setError] = useState("");
 
   const [name, setName] = useState("");
+  const [type, setType] = useState("family");
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -48,8 +51,9 @@ export default function HouseholdsList() {
     setCreateLoading(true);
 
     try {
-      await householdsApi.createHousehold(name);
+      await householdsApi.createHousehold(name, type);
       setName("");
+      setType("family");
       load();
     } catch (err) {
       setCreateError(extractError(err));
@@ -93,6 +97,14 @@ export default function HouseholdsList() {
           <Label>{t("common.name")}</Label>
           <Input value={name} onChangeText={setName} />
         </View>
+        <View style={styles.field}>
+          <Label>{t("households.groupType")}</Label>
+          <Select selectedValue={type} onValueChange={setType}>
+            {GROUP_TYPES.map((gt) => (
+              <SelectItem key={gt} label={t(`households.types.${gt}`)} value={gt} />
+            ))}
+          </Select>
+        </View>
         <ErrorText>{createError}</ErrorText>
         <Button disabled={createLoading} onPress={handleCreate}>
           <Plus size={16} color={colors.white} />
@@ -128,7 +140,12 @@ export default function HouseholdsList() {
             <Card style={styles.card}>
               <View style={styles.householdRow}>
                 <View>
-                  <Text style={styles.householdName}>{household.name}</Text>
+                  <View style={styles.householdNameRow}>
+                    <Text style={styles.householdName}>{household.name}</Text>
+                    {household.type ? (
+                      <Badge color="teal">{t(`households.types.${household.type}`, household.type)}</Badge>
+                    ) : null}
+                  </View>
                   <Text style={styles.muted}>
                     {household.memberships?.length ?? 0}{" "}
                     {household.memberships?.length === 1 ? t("households.member") : t("households.members")}
@@ -159,6 +176,7 @@ const styles = StyleSheet.create({
   successText: { fontSize: 14, color: colors.emerald600 },
   muted: { fontSize: 14, color: colors.slate500 },
   householdRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  householdNameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   householdName: { fontWeight: "500", color: colors.blue950 },
   householdMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
 });

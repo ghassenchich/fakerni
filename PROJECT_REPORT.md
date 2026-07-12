@@ -7,6 +7,13 @@ for a project report ("rapport").
 
 Reference document: `FAKERNI — Family Smart Shopping & Task Coordination App, SRS v1.0`.
 
+> **Positioning note.** Although the SRS frames Fakerni around the family, the
+> product is built as a **general group-coordination platform**. The core group
+> entity (internally `Household`) can represent a **family, community,
+> organization/association, or society** — classified by a `type` field — so the
+> same features (shared lists, roles, invites, real-time, budgets, AI) serve any
+> group of people coordinating shared tasks and purchases, not only households.
+
 ---
 
 ## 1. Initial State of the Project
@@ -581,6 +588,272 @@ A new `mobile/` directory at the repo root contains an Expo (plain JS,
 
 ---
 
+## 4.13 Phase G — Recurring Fakras, Due-Date Reminders, Photo Attachments, New Theme
+
+Goal: close out the remaining SRS scheduling/reminder features and give the
+product a distinct visual identity.
+
+- **Recurring Fakras** (`fakras/recurrence.py`, `fakras/models.py`): `Fakra`
+  gained `recurrence` (`none`/`daily`/`weekly`/`monthly`) and a self-referential
+  `recurrence_parent` FK. A management command,
+  `process_recurring_fakras`, finds Fakras whose `due_date` has passed and
+  spawns the next occurrence (copying items as pending, advancing `due_date`
+  by the recurrence interval) — intended to run on a schedule (cron/Celery
+  beat in production; `fakras/apps.py` also registers it with an in-process
+  scheduler for environments without an external cron).
+- **Due-date reminders** (`fakras/reminders.py`): a second management
+  command, `send_due_date_reminders`, finds Fakras due within 24 hours that
+  haven't already been reminded (`reminder_sent_at`) and pushes a
+  notification to household members, marking `reminder_sent_at` so it only
+  fires once.
+- **Photo attachments** (`ItemAttachment` model, migration `0006`): items can
+  now have photos uploaded by any user with Fakra access
+  (`ItemAttachmentListCreateView`/`ItemAttachmentDetailView`), surfaced in
+  both web and mobile item rows (camera-roll picker on mobile via
+  `expo-image-picker`).
+- **New visual theme**: `mobile/src/constants/colors.js` and the web
+  Tailwind setup moved from the original navy palette to a teal/coral/amber
+  scheme, applied across `ui.jsx` components on both platforms.
+
+**Result: 78 tests total, all passing** (test count jumped from 65 as this
+phase added substantial coverage for recurrence, reminders, and attachments).
+
+---
+
+## 4.14 Phase H — Realtime for Personal & Shared Fakras, Biometric Lock, Dashboard Realtime
+
+The original real-time layer (§3) only broadcast events for household-linked
+Fakras. This phase closes that gap and adds two more product-level features.
+
+### 4.14.1 Per-Fakra WebSocket channel
+
+- `fakras/consumers.py` (`FakraConsumer`) + `fakras/realtime.py`
+  (`broadcast_to_fakra`): a new `ws/fakras/<fakra_id>/` channel, independent
+  of household membership — authorizes via the existing
+  `require_fakra_access` check, so it works for personal Fakras and
+  `FakraAccess`-shared Fakras, not just household ones.
+- `fakras/views.py` — item create/done/undo and attachment create/delete now
+  also call `broadcast_to_fakra`, in addition to the pre-existing
+  household-scoped broadcasts.
+- `web/src/hooks/useFakraSocket.js` / `mobile/src/hooks/useFakraSocket.js`
+  (new) — per-Fakra counterpart to the existing `useHouseholdSocket`; wired
+  into `FakraDetail` on both platforms so a shared/personal Fakra now updates
+  live too.
+
+### 4.14.2 Push notifications for `FakraAccess`-shared users
+
+`household`-scoped `notify_household` only ever reached household members —
+a user who only has access via `FakraAccess` (a personal Fakra shared with
+them) never got push notifications. `fakras/notifications.py`
+(`notify_fakra_access`) fixes this: resolves the set of `FakraAccess` grantees
+(plus the creator, for personal Fakras) and sends to them via the existing
+`send_push_to_users`, called alongside `notify_household` from the same
+item/attachment event handlers in `fakras/views.py`.
+
+### 4.14.3 Biometric app lock (mobile)
+
+- `mobile/src/api/biometric.js` — AsyncStorage-backed
+  `getBiometricEnabled()`/`setBiometricEnabled()`.
+- `mobile/src/context/AuthContext.jsx` — after restoring a session, if
+  biometric lock is enabled the app enters a `locked` state; `unlock()` calls
+  `expo-local-authentication`'s `authenticateAsync()`.
+- `mobile/src/components/LockScreen.jsx` (new) — shown by `app/_layout.jsx`
+  in place of the normal app stack while locked.
+- Toggle exposed on the Profile screen (hardware/enrollment checked via
+  `hasHardwareAsync()`/`isEnrolledAsync()` before allowing it to be turned on).
+
+### 4.14.4 Dashboard realtime (per-user channel)
+
+Sharing a Fakra with someone, or creating a new household Fakra, previously
+left other users' Dashboards stale until manual refresh.
+
+- `users/consumers.py` (`UserConsumer`) + `users/realtime.py`
+  (`broadcast_to_user`) — a new `ws/notifications/` channel, joined per
+  **authenticated user** (from the JWT in scope, not a URL param, so it can't
+  be spoofed to listen on someone else's channel).
+- `fakras/views.py` — `FakraShareView.post` broadcasts `fakra.shared` to each
+  newly-granted user; `FakraViewSet.perform_create` broadcasts
+  `fakra.created` to every other member of the target household.
+- `web/src/hooks/useUserSocket.js` / `mobile/src/hooks/useUserSocket.js`
+  (new) — connect once per session; `Dashboard.jsx` / `(tabs)/index.jsx`
+  reload the Fakra list on `fakra.created`/`fakra.shared`.
+
+**Result: tests extended in `fakras/tests.py`, `fakras/tests_realtime.py`** to
+cover `FakraAccess`-grantee push notifications and both new WebSocket
+channels (fakra-scoped and per-user).
+
+---
+
+## 4.15 Phase I — AI Features (Google Gemini)
+
+Goal: the headline feature of this round — use an LLM to remove manual data
+entry from the core "add items to a Fakra" workflow.
+
+`fakras/ai.py` (new) wraps the Google Gemini API (`google-genai` SDK) behind
+four functions, each with its own system prompt and a Pydantic
+(`ParsedItem`/`ParsedItemList`) structured-output schema so responses are
+always valid JSON, never free text to parse:
+
+| Function | System prompt | Endpoint |
+|---|---|---|
+| `parse_items_from_text` | Turns free text like "milk, eggs, bread and 2kg rice" into structured items (name/quantity/unit/category) | `POST /api/fakras/<id>/items/smart-add/` |
+| `parse_items_from_image` | Reads a receipt/list photo and extracts items, including price per item where visible | `POST /api/fakras/<id>/items/smart-scan/` |
+| `suggest_items_for_fakra` | Given a Fakra's title/description and current items, suggests up to 5 relevant additions not already present | `GET /api/fakras/<id>/items/suggestions/` |
+| `interpret_item_commands` | Free-text commands like "mark milk as done, remove the bread" mapped onto the Fakra's actual item list and executed | `POST /api/fakras/<id>/items/smart-command/` |
+
+- `ItemSmartAddView`/`ItemSmartScanView`/`ItemSmartCommandView`/
+  `ItemSuggestionsView` (`fakras/views.py`) wire these into the API,
+  each logging an `ActivityLog` entry and broadcasting the resulting
+  item changes over the existing WebSocket channels.
+- `AIError` is raised (and surfaced as a `400`) when the Gemini API key is
+  unset or the model call fails, so the rest of the app degrades gracefully
+  without an AI key configured.
+- Web (`FakraDetail.jsx`) and mobile (`app/fakras/[id].jsx`) both gained:
+  a "Smart Add" text box, a "Scan photo" button (file input on web,
+  `expo-image-picker` on mobile), a "Suggest items" button, and a "Smart
+  Command" text box — all four backed by the endpoints above.
+- i18n keys added across all 6 locale files (web/mobile × en/fr/ar).
+
+**Result: tests added in `fakras/tests.py`** mocking the Gemini client to
+verify each endpoint's parsing/error-handling behavior without a live API
+key.
+
+---
+
+## 4.16 Phase J — Budgets, Pricing, Exports, Personalization & Analytics
+
+A cluster of related product features, shipped across two commits.
+
+### 4.16.1 Per-item price & Fakra budget
+
+- `Item.estimated_price` (nullable decimal, migration `0007`) — settable on
+  create/edit, also returned by Smart Scan when a receipt shows a price.
+- `FakraSerializer` gained computed fields `estimated_total` (sum of all
+  items' `estimated_price`), `estimated_spent` (sum for `done` items only),
+  and `estimated_remaining` — surfaced as a running budget total on both
+  clients' Fakra detail screens.
+
+### 4.16.2 Budget alerts
+
+- `Fakra.budget_alert_sent` (migration `0008`) — a one-shot flag.
+  `_check_budget_alert(fakra)` (`fakras/views.py`), called whenever an item is
+  marked done, fires a push notification the moment `estimated_spent` first
+  reaches or exceeds `estimated_total` (only if a total > 0 is set), then sets
+  the flag so it doesn't repeat. If items are later undone and spend drops
+  back below the total, the flag resets so a future overage can alert again.
+
+### 4.16.3 CSV export
+
+- `web/src/utils/csv.js` / `mobile/src/utils/csv.js` (new) — `itemsToCsv()`
+  builds a CSV string client-side from a Fakra's items (no new backend
+  endpoint needed, since the item list is already in memory). Web downloads
+  via a `Blob` + anchor click; mobile uses the built-in `Share.share()` API
+  (deliberately avoiding new Expo file-system dependencies per
+  `mobile/AGENTS.md`).
+
+### 4.16.4 Category autocomplete
+
+- `GET /api/fakras/categories/` (`CategorySuggestionsView`) returns the
+  distinct, non-null `category` values across every Fakra visible to the
+  requesting user. Web wires this into a `<datalist>` on the item-category
+  input; mobile shows a filtered inline suggestion list as the user types.
+
+### 4.16.5 Dark mode (web)
+
+- Tailwind v4's `@custom-variant dark (&:where(.dark, .dark *))` (no
+  `tailwind.config.js` exists in this project — v4 is configured purely via
+  CSS) plus a `useDarkMode()` hook in `Layout.jsx` that toggles a `.dark`
+  class on `document.documentElement` and persists the choice to
+  `localStorage`. Every shared UI primitive (`Card`, `Button`, `Input`,
+  `Select`, `Badge`, etc. in `web/src/components/ui.jsx`) gained `dark:`
+  variant classes.
+
+### 4.16.6 Spending analytics dashboard
+
+- `GET /api/fakras/analytics/spending/` (`SpendingAnalyticsView`) aggregates
+  estimated spend across all Fakras visible to the user (by category, by
+  month, totals).
+- `web/src/pages/Analytics.jsx` (new page, `/analytics` route) and
+  `mobile/app/(tabs)/analytics.jsx` (new tab) render this as charts/summary
+  cards on each platform.
+
+**Result: 107 tests added across both commits** (budget alert
+fire/no-repeat/reset, CSV-adjacent serializer fields, category suggestions,
+analytics aggregation), all passing.
+
+---
+
+## 4.17 Phase K — Item Editing, Fakra Duplication, PDF Export, Barcode Scanning
+
+The most recent round of feature work, rounding out the item/Fakra management
+toolkit.
+
+- **Item editing**: no backend change needed — `ItemSerializer` already
+  allowed `PATCH` on `name`/`quantity`/`unit`/`category`/`notes`/
+  `estimated_price`. Both clients gained an inline edit form (pencil icon on
+  each item row) replacing the previous "delete and re-add" workaround.
+- **Fakra duplication**: `POST /api/fakras/<id>/duplicate/`
+  (`FakraDuplicateView`, `fakras/views.py`) copies a Fakra (title prefixed
+  "Copy of …") plus all of its items, re-created as `pending` regardless of
+  the originals' status — useful for recurring shopping lists that aren't
+  set up as formal SRS "recurrence". Both clients gained a "Duplicate"
+  button that navigates straight to the new copy.
+- **PDF export**: `GET /api/fakras/<id>/export/pdf/` (`FakraExportPdfView`)
+  uses `reportlab` to render a styled PDF (title, description, items table)
+  server-side. The web client downloads it via an authenticated `axios`
+  request with `responseType: "blob"`, since the endpoint requires a Bearer
+  token that a plain `<a href>` can't supply.
+- **Barcode scanning** (mobile only): `expo-camera`'s `CameraView` plus a new
+  `mobile/src/components/BarcodeScanner.jsx` modal scan EAN/UPC/Code128/
+  Code39 barcodes; on a successful scan, the Open Food Facts public API
+  (`world.openfoodfacts.org`) is queried by barcode to pre-fill the new
+  item's name and unit before the user finishes adding it.
+
+**Result: 120 tests total, all passing.** Web `npm run build` remains clean.
+
+---
+
+## 4.18 Phase L — Hardening, Query Optimization, Spend Intelligence & Tooling
+
+A consolidation pass focused on security, performance, a data-driven feature,
+and engineering tooling.
+
+- **Security hardening.** A production-grade `SECRET_KEY` (the dev key was too
+  short for the JWT HMAC); **CORS** is now env-driven (`CORS_ALLOWED_ORIGINS`),
+  open only under `DEBUG`; the AI endpoints (Smart Add/Scan/Suggest/Command)
+  are throttled (`ScopedRateThrottle`, scope `ai`, 30/min) to cap Gemini cost.
+  Both clients surface `429` responses with a friendly message.
+- **Query optimization.** `_visible_fakras` now uses
+  `select_related`/`prefetch_related` (household, created_by, items and their
+  created_by/done_by/attachments) to eliminate the N+1 on the Fakra list.
+- **Spend intelligence** (`fakras/insights.py`): `predict_restock()` surfaces
+  items a group buys repeatedly but hasn't listed yet, and `price_anomaly()`
+  flags a price that is unusually high versus the group's own history. Exposed
+  as `GET /api/fakras/restock-suggestions/` (dashboard "Time to restock?"
+  banner with one-tap list creation) and `POST /api/fakras/price-check/` (an
+  inline "usually costs ~X" warning on the add-item form). Both web and mobile.
+- **Pagination.** The dashboards now honour DRF pagination with a "Load more"
+  control instead of silently showing only the first page.
+- **Frontend tests & CI.** Vitest with unit tests for the CSV and due-status
+  utilities; CI now also runs the web unit tests and build on every push.
+- **Live-deploy config.** `render.yaml` blueprint + `DEPLOY_RENDER.md` for a
+  one-click Render deployment (single free instance uses the in-memory channel
+  layer; Redis only needed to scale out).
+
+### 4.18.1 Generalization to any group
+
+- `Household.type` (migration `0008`) classifies a group as **family /
+  community / organization / society / other**, shown as a badge and chosen at
+  creation on both clients. The user-facing wording moved from "Household" to
+  **"Group"** across all locales (EN/FR/AR, web + mobile), reflecting that the
+  platform serves any group, not only families. The model name stays
+  `Household` internally to avoid a destabilizing rename.
+
+**Result: 127 tests total, all passing** (backend 125 + web 8 Vitest). Web
+build clean.
+
+---
+
 ## 5. Current Project Status (vs. SRS)
 
 Rough coverage against the full SRS scope (production infra is the main
@@ -590,20 +863,27 @@ remaining gap):
 |---|---|
 | Auth (register/login/JWT, password reset via OTP, biometric app lock) | Done |
 | Groups/Household (CRUD, roles, invites, members) | Done |
-| Fakras (CRUD, personal/shared, archive, search/filter) | Done |
-| Items (CRUD, Done/Undo with 10-min window, search/filter) | Done |
+| Fakras (CRUD, personal/shared, archive, search/filter, duplicate, recurrence) | Done |
+| Items (CRUD + inline edit, Done/Undo with 10-min window, search/filter, estimated price, photo attachments) | Done |
 | Activity log | Done |
-| Real-time (WebSockets via Channels) | Done for household-scoped events; Redis channel layer wired up (docker-compose `redis` service, `REDIS_URL`), falls back to in-memory if unset |
-| Push notifications (FCM) | Done (via `firebase-admin`; no-op until a Firebase project is configured) |
+| Real-time (WebSockets via Channels) | Done — household-scoped, per-Fakra (personal/shared), and per-user (Dashboard) channels; Redis channel layer wired up (docker-compose `redis` service, `REDIS_URL`), falls back to in-memory if unset |
+| Push notifications (FCM) | Done — household members, `FakraAccess`-shared users, due-date reminders, budget alerts (via `firebase-admin`; no-op until a Firebase project is configured) |
 | Profile management | Done (view/update name, change password, device token registration) |
 | Archive browsing (dedicated view of archived Fakras) | Done (`/api/fakras/?status=archived`, combinable with search/ordering) |
 | Security hardening (rate limiting, encryption at rest) | Done — rate limiting on auth/OTP endpoints; OTP codes and push tokens encrypted at rest (Fernet) |
 | API docs (OpenAPI/Swagger via drf-spectacular) | Done |
 | CI/CD, Docker | Done (Dockerfile, docker-compose, GitHub Actions CI) |
-| Web app (React + Vite + Tailwind) | Done — auth, households, Fakras/items, real-time |
-| Mobile app (Expo / React Native) | Done — auth + core flows, real-time updates, push token registration (see 4.10) |
+| Web app (React + Vite + Tailwind) | Done — auth, households, Fakras/items, real-time, dark mode, analytics |
+| Mobile app (Expo / React Native) | Done — auth + core flows, real-time updates, push token registration, biometric lock, barcode scanning |
 | Monitoring (healthz, logging, optional Sentry) & production security hardening | Done (see 4.12) |
 | i18n (English/French/Arabic, web + mobile) | Done (see 4.12) |
+| AI features (Smart Add/Scan/Suggest/Command via Google Gemini) | Done (see 4.15) |
+| Budgets & spend tracking (per-item price, Fakra totals, budget alerts, spending analytics) | Done (see 4.16) |
+| Exports (CSV, PDF) | Done (see 4.16, 4.17) |
+| Recurring Fakras & due-date reminders | Done (see 4.13) |
+
+Not yet built: predictive/history-aware restock suggestions and price-anomaly
+detection (discussed as a proposed next phase, not yet implemented).
 
 ---
 

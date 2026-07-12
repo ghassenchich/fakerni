@@ -58,6 +58,7 @@ export default function FakraDetail() {
   const [newItemUnit, setNewItemUnit] = useState("");
   const [newItemCategory, setNewItemCategory] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
+  const [priceHint, setPriceHint] = useState(null);
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -230,11 +231,26 @@ export default function FakraDetail() {
       setNewItemUnit("");
       setNewItemCategory("");
       setNewItemPrice("");
+      setPriceHint(null);
       load();
     } catch (err) {
       setItemError(extractError(err));
     } finally {
       setItemLoading(false);
+    }
+  }
+
+  async function handlePriceBlur() {
+    if (!newItemName.trim() || newItemPrice === "") {
+      setPriceHint(null);
+      return;
+    }
+    try {
+      const res = await fakrasApi.checkPrice(newItemName.trim(), Number(newItemPrice));
+      const a = res.data.anomaly;
+      setPriceHint(a && a.is_high ? a : null);
+    } catch {
+      setPriceHint(null);
     }
   }
 
@@ -720,13 +736,22 @@ export default function FakraDetail() {
           </div>
           <div className="w-24">
             <Label>{t("fakraDetail.price")}</Label>
-            <Input type="number" min={0} step="0.01" value={newItemPrice} onChange={(e) => setNewItemPrice(e.target.value)} />
+            <Input type="number" min={0} step="0.01" value={newItemPrice} onChange={(e) => setNewItemPrice(e.target.value)} onBlur={handlePriceBlur} />
           </div>
           <Button type="submit" disabled={itemLoading}>
             <Plus className="h-4 w-4" />
             {itemLoading ? t("fakraDetail.adding") : t("fakraDetail.add")}
           </Button>
         </form>
+        {priceHint && (
+          <p className="text-sm text-amber-600 dark:text-amber-400 mb-2">
+            {t("fakraDetail.priceHigh", {
+              name: priceHint.name,
+              avg: priceHint.avg_price,
+              pct: priceHint.pct_above_avg,
+            })}
+          </p>
+        )}
         <ErrorText>{itemError}</ErrorText>
         <ErrorText>{attachmentError}</ErrorText>
 

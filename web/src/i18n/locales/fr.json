@@ -17,7 +17,7 @@
     "description": "Description",
     "dueDate": "Date d'échéance",
     "recurrenceLabel": "Récurrence",
-    "household": "Foyer",
+    "household": "Groupe",
     "status": "Statut",
     "search": "Rechercher",
     "all": "Tous",
@@ -30,6 +30,7 @@
     "darkMode": "Passer en mode sombre",
     "lightMode": "Passer en mode clair",
     "backToLogin": "Retour à la connexion",
+    "loadMore": "Charger plus",
     "recurrence": {
       "none": "Ne se répète pas",
       "daily": "Quotidien",
@@ -44,7 +45,7 @@
   },
   "nav": {
     "fakras": "Fakras",
-    "households": "Foyers",
+    "households": "Groupes",
     "analytics": "Statistiques",
     "profile": "Profil"
   },
@@ -106,19 +107,27 @@
     }
   },
   "households": {
-    "heading": "Foyers",
-    "createHousehold": "Créer un foyer",
+    "heading": "Groupes",
+    "createHousehold": "Créer un groupe",
     "joinWithCode": "Rejoindre avec un code d'invitation",
     "inviteCode": "Code d'invitation",
     "join": "Rejoindre",
     "joining": "Adhésion…",
     "joinedSuccess": "Adhésion réussie",
-    "noHouseholds": "Vous ne faites partie d'aucun foyer pour le moment.",
+    "noHouseholds": "Vous ne faites partie d'aucun groupe pour le moment.",
     "member": "membre",
-    "members": "membres"
+    "members": "membres",
+    "groupType": "Type de groupe",
+    "types": {
+      "family": "Famille",
+      "community": "Communauté",
+      "organization": "Organisation",
+      "society": "Société",
+      "other": "Autre"
+    }
   },
   "householdDetail": {
-    "leave": "Quitter le foyer",
+    "leave": "Quitter le groupe",
     "inviteCode": "Code d'invitation",
     "expires": "Expire le {{date}}",
     "regenerateInvite": "Régénérer le code d'invitation",
@@ -126,7 +135,7 @@
     "you": " (vous)",
     "removeMember": "Retirer le membre",
     "fakras": "Fakras",
-    "noFakras": "Aucun Fakra pour ce foyer pour le moment.",
+    "noFakras": "Aucun Fakra pour ce groupe pour le moment.",
     "newFakraLink": "+ Nouveau Fakra depuis le tableau de bord"
   },
   "fakraDetail": {
@@ -145,6 +154,7 @@
     "category": "Catégorie",
     "categoryPlaceholder": "ex. Épicerie",
     "price": "Prix",
+    "priceHigh": "{{name}} coûte généralement ~{{avg}} — c'est {{pct}}% de plus que votre moyenne.",
     "remainingOfTotal": "{{remaining}} restant sur {{total}}",
     "exportCsv": "Exporter en CSV",
     "exportPdf": "Exporter en PDF",

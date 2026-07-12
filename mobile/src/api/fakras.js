@@ -40,6 +40,10 @@ export function getRestockSuggestions() {
   return client.get("/api/fakras/restock-suggestions/");
 }
 
+export function checkPrice(name, price) {
+  return client.post("/api/fakras/price-check/", { name, price });
+}
+
 export function getCategorysuggestions() {
   return client.get("/api/fakras/categories/");
 }

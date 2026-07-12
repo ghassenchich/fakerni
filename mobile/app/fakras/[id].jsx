@@ -74,6 +74,7 @@ export default function FakraDetail() {
   const [newItemUnit, setNewItemUnit] = useState("");
   const [newItemCategory, setNewItemCategory] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
+  const [priceHint, setPriceHint] = useState(null);
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -231,11 +232,26 @@ export default function FakraDetail() {
       setNewItemUnit("");
       setNewItemCategory("");
       setNewItemPrice("");
+      setPriceHint(null);
       load();
     } catch (err) {
       setItemError(extractError(err));
     } finally {
       setItemLoading(false);
+    }
+  }
+
+  async function handlePriceBlur() {
+    if (!newItemName.trim() || newItemPrice === "") {
+      setPriceHint(null);
+      return;
+    }
+    try {
+      const res = await fakrasApi.checkPrice(newItemName.trim(), Number(newItemPrice));
+      const a = res.data.anomaly;
+      setPriceHint(a && a.is_high ? a : null);
+    } catch {
+      setPriceHint(null);
     }
   }
 
@@ -741,9 +757,14 @@ export default function FakraDetail() {
           </View>
           <View style={styles.itemUnitField}>
             <Label>{t("fakraDetail.price")}</Label>
-            <Input value={newItemPrice} onChangeText={setNewItemPrice} keyboardType="numeric" />
+            <Input value={newItemPrice} onChangeText={setNewItemPrice} onBlur={handlePriceBlur} keyboardType="numeric" />
           </View>
         </View>
+        {priceHint ? (
+          <Text style={styles.priceHint}>
+            {t("fakraDetail.priceHigh", { name: priceHint.name, avg: priceHint.avg_price, pct: priceHint.pct_above_avg })}
+          </Text>
+        ) : null}
         <View style={styles.field}>
           <Label>{t("fakraDetail.category")}</Label>
           <Input
@@ -921,6 +942,7 @@ const styles = StyleSheet.create({
   activityEntry: { fontSize: 14, color: colors.slate700 },
   successText: { fontSize: 14, color: colors.emerald600 },
   skippedText: { fontSize: 12, color: colors.amber700 },
+  priceHint: { fontSize: 13, color: "#b45309", marginTop: 4 },
   itemFormRow: { flexDirection: "row", gap: 8 },
   itemNameField: { flex: 2 },
   nameWithBarcode: { flexDirection: "row", alignItems: "center", gap: 6 },

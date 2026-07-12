@@ -17,7 +17,7 @@
     "description": "الوصف",
     "dueDate": "تاريخ الاستحقاق",
     "recurrenceLabel": "التكرار",
-    "household": "المنزل",
+    "household": "المجموعة",
     "status": "الحالة",
     "search": "بحث",
     "all": "الكل",
@@ -28,6 +28,7 @@
     "overdue": "متأخر",
     "logOut": "تسجيل الخروج",
     "backToLogin": "العودة لتسجيل الدخول",
+    "loadMore": "تحميل المزيد",
     "recurrence": {
       "none": "لا يتكرر",
       "daily": "يوميًا",
@@ -42,7 +43,7 @@
   },
   "nav": {
     "fakras": "فكراتي",
-    "households": "المنازل",
+    "households": "المجموعات",
     "analytics": "الإحصائيات",
     "profile": "الملف الشخصي"
   },
@@ -122,16 +123,24 @@
     }
   },
   "households": {
-    "heading": "المنازل",
-    "createHousehold": "إنشاء منزل",
+    "heading": "المجموعات",
+    "createHousehold": "إنشاء مجموعة",
     "joinWithCode": "الانضمام برمز الدعوة",
     "inviteCode": "رمز الدعوة",
     "join": "انضمام",
     "joining": "جارٍ الانضمام…",
     "joinedSuccess": "تم الانضمام بنجاح",
-    "noHouseholds": "أنت لست عضوًا في أي منزل حتى الآن.",
+    "noHouseholds": "أنت لست عضوًا في أي مجموعة حتى الآن.",
     "member": "عضو",
-    "members": "أعضاء"
+    "members": "أعضاء",
+    "groupType": "نوع المجموعة",
+    "types": {
+      "family": "عائلة",
+      "community": "مجتمع",
+      "organization": "منظمة",
+      "society": "جمعية",
+      "other": "أخرى"
+    }
   },
   "householdDetail": {
     "leave": "ترك",
@@ -142,7 +151,7 @@
     "you": " (أنت)",
     "removeMember": "إزالة العضو",
     "fakras": "الفكرات",
-    "noFakras": "لا توجد فكرات لهذا المنزل حتى الآن.",
+    "noFakras": "لا توجد فكرات لهذه المجموعة حتى الآن.",
     "newFakraLink": "+ فكرة جديدة من لوحة التحكم"
   },
   "fakraDetail": {
@@ -161,6 +170,7 @@
     "category": "الفئة",
     "categoryPlaceholder": "مثال: بقالة",
     "price": "السعر",
+    "priceHigh": "عادةً ما يكلّف {{name}} حوالي ~{{avg}} — هذا أعلى بنسبة {{pct}}٪ من متوسطك.",
     "remainingOfTotal": "{{remaining}} متبقي من {{total}}",
     "exportCsv": "تصدير CSV",
     "exportPdf": "تصدير PDF",

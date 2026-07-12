@@ -1172,3 +1172,21 @@ class RestockSuggestionTests(APITestCase):
     def test_suggestions_require_authentication(self):
         response = self.client.get("/api/fakras/restock-suggestions/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_price_check_endpoint_flags_high_price(self):
+        for price in [Decimal("2.50"), Decimal("2.60"), Decimal("2.55")]:
+            f = Fakra.objects.create(title="t", household=self.household, created_by=self.user)
+            self._done_item(f, "Milk", price=price)
+
+        self.client.force_authenticate(self.user)
+        response = self.client.post("/api/fakras/price-check/", {"name": "milk", "price": "3.50"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(response.data["anomaly"])
+        self.assertTrue(response.data["anomaly"]["is_high"])
+
+    def test_price_check_no_history_returns_null(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.post("/api/fakras/price-check/", {"name": "Saffron", "price": "99"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(response.data["anomaly"])

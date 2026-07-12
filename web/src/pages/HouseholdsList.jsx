@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { ChevronRight, KeyRound, Plus, Users } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import * as householdsApi from "../api/households";
-import { Badge, Button, Card, ErrorText, Input, Label, extractError } from "../components/ui";
+import { Badge, Button, Card, ErrorText, Input, Label, Select, extractError } from "../components/ui";
+
+const GROUP_TYPES = ["family", "community", "organization", "society", "other"];
 
 export default function HouseholdsList() {
   const { user } = useAuth();
@@ -14,6 +16,7 @@ export default function HouseholdsList() {
   const [error, setError] = useState("");
 
   const [name, setName] = useState("");
+  const [type, setType] = useState("family");
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -46,8 +49,9 @@ export default function HouseholdsList() {
     setCreateLoading(true);
 
     try {
-      await householdsApi.createHousehold(name);
+      await householdsApi.createHousehold(name, type);
       setName("");
+      setType("family");
       load();
     } catch (err) {
       setCreateError(extractError(err));
@@ -94,6 +98,16 @@ export default function HouseholdsList() {
               <Label>{t("common.name")}</Label>
               <Input required value={name} onChange={(e) => setName(e.target.value)} />
             </div>
+            <div>
+              <Label>{t("households.groupType")}</Label>
+              <Select value={type} onChange={(e) => setType(e.target.value)}>
+                {GROUP_TYPES.map((gt) => (
+                  <option key={gt} value={gt}>
+                    {t(`households.types.${gt}`)}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <ErrorText>{createError}</ErrorText>
             <Button type="submit" disabled={createLoading}>
               <Plus className="h-4 w-4" />
@@ -134,7 +148,12 @@ export default function HouseholdsList() {
               <Card className="group hover:border-blue-300 hover:shadow-md transition-all">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-blue-950">{household.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-blue-950">{household.name}</p>
+                      {household.type && (
+                        <Badge color="teal">{t(`households.types.${household.type}`, household.type)}</Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-slate-500">
                       {household.memberships?.length ?? 0}{" "}
                       {household.memberships?.length === 1 ? t("households.member") : t("households.members")}

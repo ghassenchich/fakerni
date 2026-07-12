@@ -8,8 +8,8 @@ export function getHousehold(id) {
   return client.get(`/api/household/households/${id}/`);
 }
 
-export function createHousehold(name) {
-  return client.post("/api/household/households/", { name });
+export function createHousehold(name, type = "family") {
+  return client.post("/api/household/households/", { name, type });
 }
 
 export function updateHousehold(id, data) {

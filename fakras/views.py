@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth import get_user_model
 from django.db.models import CharField, F, Q, Sum, Value
@@ -32,7 +33,7 @@ from .serializers import (
     ShareFakraSerializer,
 )
 from .notifications import notify_fakra_access
-from .insights import predict_restock
+from .insights import predict_restock, price_anomaly
 from .permissions import require_fakra_access
 from .realtime import broadcast_to_fakra
 from .services import log_activity, mark_item_done, undo_item
@@ -939,6 +940,25 @@ class RestockSuggestionsView(APIView):
         fakras = _visible_fakras(request.user)
         suggestions = predict_restock(fakras)
         return Response({"suggestions": suggestions})
+
+
+class PriceCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        name = (request.data.get("name") or "").strip()
+        price = request.data.get("price")
+        if not name or price in (None, ""):
+            return Response({"anomaly": None})
+
+        try:
+            price = Decimal(str(price))
+        except (InvalidOperation, TypeError):
+            return Response({"anomaly": None})
+
+        fakras = _visible_fakras(request.user)
+        result = price_anomaly(fakras, name, price)
+        return Response({"anomaly": result})
 
 
 class FakraExportPdfView(APIView):

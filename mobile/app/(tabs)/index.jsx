@@ -52,16 +52,20 @@ export default function Dashboard() {
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
+  const [nextPage, setNextPage] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const [restock, setRestock] = useState([]);
   const [restockDismissed, setRestockDismissed] = useState(false);
   const [creatingRestock, setCreatingRestock] = useState(false);
 
-  const loadFakras = useCallback(async () => {
-    setLoading(true);
+  const loadFakras = useCallback(async (pageNum = 1, append = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     setError("");
 
     try {
-      const params = {};
+      const params = { page: pageNum };
       if (statusFilter) params.status = statusFilter;
       if (householdFilter && householdFilter !== "personal") params.household = householdFilter;
       if (search) params.search = search;
@@ -73,11 +77,13 @@ export default function Dashboard() {
         results = results.filter((f) => !f.household);
       }
 
-      setFakras(results);
+      setFakras((prev) => (append ? [...prev, ...results] : results));
+      setNextPage(response.data?.next ? pageNum + 1 : null);
     } catch (err) {
       setError(extractError(err));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, [statusFilter, householdFilter, search]);
 
@@ -300,6 +306,12 @@ export default function Dashboard() {
           </Pressable>
         ))
       )}
+
+      {nextPage ? (
+        <Button variant="secondary" onPress={() => loadFakras(nextPage, true)} disabled={loadingMore}>
+          {loadingMore ? t("common.loading") : t("common.loadMore")}
+        </Button>
+      ) : null}
     </ScrollView>
   );
 }

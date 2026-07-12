@@ -26,6 +26,7 @@ class HouseholdSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "type",
             "owner",
             "invite_code",
             "invite_expires_at",

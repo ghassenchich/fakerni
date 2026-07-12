@@ -104,6 +104,7 @@ const badgeColors = StyleSheet.create({
   gray: { backgroundColor: colors.slate100 },
   green: { backgroundColor: colors.emerald100 },
   blue: { backgroundColor: colors.blue100 },
+  teal: { backgroundColor: colors.blue100 },
   yellow: { backgroundColor: colors.amber100 },
   red: { backgroundColor: colors.red100 },
 });
@@ -112,6 +113,7 @@ const badgeTextColors = StyleSheet.create({
   gray: { color: colors.slate700 },
   green: { color: colors.emerald700 },
   blue: { color: colors.blue800 },
+  teal: { color: colors.blue700 },
   yellow: { color: colors.amber700 },
   red: { color: colors.red700 },
 });
@@ -125,6 +127,10 @@ export function Badge({ children, color = "gray" }) {
 }
 
 export function extractError(err) {
+  if (err?.response?.status === 429) {
+    return "Too many requests — please wait a moment and try again.";
+  }
+
   const data = err?.response?.data;
   if (!data) return err?.message || "Something went wrong";
   if (typeof data === "string") return data;
