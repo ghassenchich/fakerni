@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import * as fakrasApi from "../../src/api/fakras";
-import { Card, ErrorText, extractError } from "../../src/components/ui";
+import { Card, ErrorText, Select, SelectItem, extractError } from "../../src/components/ui";
 import LoadingScreen from "../../src/components/LoadingScreen";
 import { colors } from "../../src/constants/colors";
 
@@ -11,11 +11,14 @@ function formatAmount(value) {
   return Number(value || 0).toFixed(2);
 }
 
+const RANGES = ["all", "week", "month", "year"];
+
 export default function Analytics() {
   const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [range, setRange] = useState("all");
 
   useEffect(() => {
     async function load() {
@@ -23,7 +26,7 @@ export default function Analytics() {
       setError("");
 
       try {
-        const response = await fakrasApi.getSpendingAnalytics();
+        const response = await fakrasApi.getSpendingAnalytics(range === "all" ? {} : { range });
         setData(response.data);
       } catch (err) {
         setError(extractError(err));
@@ -33,9 +36,9 @@ export default function Analytics() {
     }
 
     load();
-  }, []);
+  }, [range]);
 
-  if (loading) {
+  if (loading && !data) {
     return <LoadingScreen />;
   }
 
@@ -50,24 +53,34 @@ export default function Analytics() {
   const byMonth = data.by_month;
   const byCategory = data.by_category;
   const byFakra = data.by_fakra;
+  const byMember = data.by_member || [];
 
   const maxMonthTotal = Math.max(1, ...byMonth.map((entry) => Number(entry.total)));
   const maxCategoryTotal = Math.max(1, ...byCategory.map((entry) => Number(entry.total)));
+  const maxMemberTotal = Math.max(1, ...byMember.map((entry) => Number(entry.total)));
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Select selectedValue={range} onValueChange={setRange}>
+        {RANGES.map((r) => (
+          <SelectItem key={r} label={t(`analytics.range.${r}`)} value={r} />
+        ))}
+      </Select>
+
       <View style={styles.summaryRow}>
         <Card style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>{t("analytics.totalSpent")}</Text>
           <Text style={styles.summaryValue}>{formatAmount(data.total_spent)}</Text>
         </Card>
         <Card style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>{t("analytics.spentThisMonth")}</Text>
-          <Text style={styles.summaryValue}>{formatAmount(data.spent_this_month)}</Text>
-        </Card>
-        <Card style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>{t("analytics.budgetRemaining")}</Text>
           <Text style={styles.summaryValue}>{formatAmount(data.budget_remaining)}</Text>
+        </Card>
+        <Card style={styles.summaryCard}>
+          <Text style={styles.summaryLabel}>{t("analytics.overBudget")}</Text>
+          <Text style={[styles.summaryValue, (data.over_budget_count > 0) && styles.overBudgetValue]}>
+            {data.over_budget_count ?? 0}
+          </Text>
         </Card>
       </View>
 
@@ -116,6 +129,28 @@ export default function Analytics() {
       </Card>
 
       <Card style={styles.card}>
+        <Text style={styles.cardTitle}>{t("analytics.byMember")}</Text>
+        {byMember.length === 0 ? (
+          <Text style={styles.noData}>{t("analytics.noData")}</Text>
+        ) : (
+          byMember.map((entry) => (
+            <View key={entry.member} style={styles.barRow}>
+              <Text style={styles.barLabel} numberOfLines={1}>{entry.member}</Text>
+              <View style={styles.barTrack}>
+                <View
+                  style={[
+                    styles.barFill,
+                    { width: `${(Number(entry.total) / maxMemberTotal) * 100}%`, backgroundColor: colors.blue500 },
+                  ]}
+                />
+              </View>
+              <Text style={styles.barValue}>{formatAmount(entry.total)}</Text>
+            </View>
+          ))
+        )}
+      </Card>
+
+      <Card style={styles.card}>
         <Text style={styles.cardTitle}>{t("analytics.topFakras")}</Text>
         {byFakra.length === 0 ? (
           <Text style={styles.noData}>{t("analytics.noData")}</Text>
@@ -143,6 +178,7 @@ const styles = StyleSheet.create({
   summaryCard: { flex: 1, gap: 4 },
   summaryLabel: { fontSize: 12, color: colors.slate500 },
   summaryValue: { fontSize: 18, fontWeight: "600", color: colors.blue950 },
+  overBudgetValue: { color: colors.red600 },
   card: { gap: 8 },
   cardTitle: { fontWeight: "600", color: colors.blue950, marginBottom: 4 },
   noData: { fontSize: 14, color: colors.slate500 },

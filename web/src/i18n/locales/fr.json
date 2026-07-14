@@ -197,7 +197,12 @@
       "button": "Exécuter",
       "running": "En cours…",
       "skipped": "{{count}} commande(s) n'ont pas pu être appliquées"
-    }
+    },
+    "budget": "Budget",
+    "budgetPlaceholder": "Plafond de dépenses (optionnel)",
+    "budgetSpentOf": "{{spent}} sur {{budget}} dépensés",
+    "budgetRemaining": "{{amount}} restant dans le budget",
+    "overBudgetBy": "Dépassement de {{amount}}"
   },
   "analytics": {
     "heading": "Statistiques de dépenses",
@@ -207,6 +212,14 @@
     "spendingByMonth": "Dépenses par mois",
     "spendingByCategory": "Dépenses par catégorie",
     "topFakras": "Meilleurs Fakras par dépense",
-    "noData": "Aucune donnée de dépense pour le moment."
+    "noData": "Aucune donnée de dépense pour le moment.",
+    "overBudget": "Hors budget",
+    "byMember": "Dépenses par membre",
+    "range": {
+      "all": "Tout",
+      "week": "7 derniers jours",
+      "month": "30 derniers jours",
+      "year": "Dernière année"
+    }
   }
 }

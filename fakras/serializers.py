@@ -133,6 +133,10 @@ class FakraSerializer(serializers.ModelSerializer):
 
     estimated_total = serializers.SerializerMethodField()
     estimated_remaining = serializers.SerializerMethodField()
+    estimated_spent = serializers.SerializerMethodField()
+    budget_remaining = serializers.SerializerMethodField()
+    over_budget = serializers.SerializerMethodField()
+    budget_progress = serializers.SerializerMethodField()
     my_permissions = serializers.SerializerMethodField()
 
     class Meta:
@@ -147,6 +151,7 @@ class FakraSerializer(serializers.ModelSerializer):
             "recurrence",
             "recurrence_parent",
             "household",
+            "budget",
             "created_by",
             "created_by_email",
             "created_at",
@@ -154,6 +159,10 @@ class FakraSerializer(serializers.ModelSerializer):
             "items",
             "estimated_total",
             "estimated_remaining",
+            "estimated_spent",
+            "budget_remaining",
+            "over_budget",
+            "budget_progress",
             "my_permissions",
         ]
 
@@ -177,6 +186,32 @@ class FakraSerializer(serializers.ModelSerializer):
             for item in obj.items.all()
             if item.status != "done"
         )
+
+    def get_estimated_spent(self, obj):
+        return sum(
+            (item.estimated_price or 0) * item.quantity
+            for item in obj.items.all()
+            if item.status == "done"
+        )
+
+    def _budget_cap(self, obj):
+        # Explicit budget when set, otherwise the sum of item prices.
+        if obj.budget is not None:
+            return obj.budget
+        return self.get_estimated_total(obj)
+
+    def get_budget_remaining(self, obj):
+        return self._budget_cap(obj) - self.get_estimated_spent(obj)
+
+    def get_over_budget(self, obj):
+        cap = self._budget_cap(obj)
+        return cap > 0 and self.get_estimated_spent(obj) > cap
+
+    def get_budget_progress(self, obj):
+        cap = self._budget_cap(obj)
+        if not cap or cap <= 0:
+            return 0
+        return round(float(self.get_estimated_spent(obj)) / float(cap), 4)
 
     def get_my_permissions(self, obj):
         request = self.context.get("request")

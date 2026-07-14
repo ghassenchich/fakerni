@@ -214,7 +214,12 @@
       "button": "Run",
       "running": "Working…",
       "skipped": "{{count}} command(s) couldn't be applied"
-    }
+    },
+    "budget": "Budget",
+    "budgetPlaceholder": "Optional spending cap",
+    "budgetSpentOf": "{{spent}} of {{budget}} spent",
+    "budgetRemaining": "{{amount}} left in budget",
+    "overBudgetBy": "Over budget by {{amount}}"
   },
   "analytics": {
     "heading": "Spending analytics",
@@ -224,6 +229,14 @@
     "spendingByMonth": "Spending by month",
     "spendingByCategory": "Spending by category",
     "topFakras": "Top Fakras by spend",
-    "noData": "No spending data yet."
+    "noData": "No spending data yet.",
+    "overBudget": "Over budget",
+    "byMember": "Spending by member",
+    "range": {
+      "all": "All time",
+      "week": "Last 7 days",
+      "month": "Last 30 days",
+      "year": "Last year"
+    }
   }
 }

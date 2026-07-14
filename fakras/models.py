@@ -48,6 +48,13 @@ class Fakra(models.Model):
 
     due_date = models.DateTimeField(blank=True, null=True)
     reminder_sent_at = models.DateTimeField(blank=True, null=True)
+
+    # An explicit spending cap for the Fakra. When set, budget tracking and the
+    # over-budget alert use this value; when null, the app falls back to the
+    # sum of item prices (estimated_total).
+    budget = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
     budget_alert_sent = models.BooleanField(default=False)
 
     RECURRENCE_CHOICES = [

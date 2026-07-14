@@ -66,6 +66,7 @@ export default function FakraDetail() {
   const [editDescription, setEditDescription] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
   const [editRecurrence, setEditRecurrence] = useState("none");
+  const [editBudget, setEditBudget] = useState("");
   const [editError, setEditError] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
@@ -130,6 +131,7 @@ export default function FakraDetail() {
       setEditDescription(response.data.description || "");
       setEditDueDate(response.data.due_date ? response.data.due_date.slice(0, 10) : "");
       setEditRecurrence(response.data.recurrence || "none");
+      setEditBudget(response.data.budget != null ? String(response.data.budget) : "");
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -175,6 +177,7 @@ export default function FakraDetail() {
         description: editDescription || null,
         due_date: editDueDate || null,
         recurrence: editRecurrence,
+        budget: editBudget === "" ? null : Number(editBudget),
       });
       setEditing(false);
       load();
@@ -604,6 +607,10 @@ export default function FakraDetail() {
               <SelectItem label={t("common.recurrence.monthly")} value="monthly" />
             </Select>
           </View>
+          <View style={styles.field}>
+            <Label>{t("fakraDetail.budget")}</Label>
+            <Input value={editBudget} onChangeText={setEditBudget} keyboardType="numeric" placeholder={t("fakraDetail.budgetPlaceholder")} />
+          </View>
           <ErrorText>{editError}</ErrorText>
           <Button disabled={editLoading} onPress={handleEditSubmit}>
             {editLoading ? t("common.saving") : t("common.save")}
@@ -646,6 +653,34 @@ export default function FakraDetail() {
           </Button>
         </Card>
       )}
+
+      {fakra.budget != null ? (
+        <Card style={styles.card}>
+          <View style={styles.budgetHeader}>
+            <Text style={styles.cardTitle}>{t("fakraDetail.budget")}</Text>
+            <Text style={fakra.over_budget ? styles.budgetOver : styles.muted}>
+              {t("fakraDetail.budgetSpentOf", {
+                spent: Number(fakra.estimated_spent).toFixed(2),
+                budget: Number(fakra.budget).toFixed(2),
+              })}
+            </Text>
+          </View>
+          <View style={styles.budgetTrack}>
+            <View
+              style={[
+                styles.budgetFill,
+                fakra.over_budget ? styles.budgetFillOver : styles.budgetFillOk,
+                { width: `${Math.min(100, Math.round((fakra.budget_progress || 0) * 100))}%` },
+              ]}
+            />
+          </View>
+          <Text style={fakra.over_budget ? styles.budgetOver : styles.muted}>
+            {fakra.over_budget
+              ? t("fakraDetail.overBudgetBy", { amount: Math.abs(Number(fakra.budget_remaining)).toFixed(2) })
+              : t("fakraDetail.budgetRemaining", { amount: Number(fakra.budget_remaining).toFixed(2) })}
+          </Text>
+        </Card>
+      ) : null}
 
       <Card style={styles.card}>
         <View style={styles.itemsHeaderRow}>
@@ -943,6 +978,12 @@ const styles = StyleSheet.create({
   successText: { fontSize: 14, color: colors.emerald600 },
   skippedText: { fontSize: 12, color: colors.amber700 },
   priceHint: { fontSize: 13, color: "#b45309", marginTop: 4 },
+  budgetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  budgetOver: { fontSize: 13, color: colors.red600, fontWeight: "600" },
+  budgetTrack: { height: 10, borderRadius: 999, backgroundColor: colors.slate100, overflow: "hidden" },
+  budgetFill: { height: "100%", borderRadius: 999 },
+  budgetFillOk: { backgroundColor: colors.blue500 },
+  budgetFillOver: { backgroundColor: colors.red600 },
   itemFormRow: { flexDirection: "row", gap: 8 },
   itemNameField: { flex: 2 },
   nameWithBarcode: { flexDirection: "row", alignItems: "center", gap: 6 },

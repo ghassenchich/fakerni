@@ -197,7 +197,12 @@
       "button": "تنفيذ",
       "running": "جارٍ التنفيذ…",
       "skipped": "تعذّر تنفيذ {{count}} أمر/أوامر"
-    }
+    },
+    "budget": "الميزانية",
+    "budgetPlaceholder": "حد إنفاق اختياري",
+    "budgetSpentOf": "{{spent}} من {{budget}} مصروف",
+    "budgetRemaining": "{{amount}} متبقٍ في الميزانية",
+    "overBudgetBy": "تجاوز الميزانية بمقدار {{amount}}"
   },
   "analytics": {
     "heading": "إحصائيات الإنفاق",
@@ -207,6 +212,14 @@
     "spendingByMonth": "الإنفاق الشهري",
     "spendingByCategory": "الإنفاق حسب الفئة",
     "topFakras": "أكثر الفكرات إنفاقًا",
-    "noData": "لا توجد بيانات إنفاق حتى الآن."
+    "noData": "لا توجد بيانات إنفاق حتى الآن.",
+    "overBudget": "تجاوز الميزانية",
+    "byMember": "الإنفاق حسب العضو",
+    "range": {
+      "all": "كل الوقت",
+      "week": "آخر 7 أيام",
+      "month": "آخر 30 يومًا",
+      "year": "آخر سنة"
+    }
   }
 }

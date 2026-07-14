@@ -163,17 +163,21 @@ def _create_item_and_notify(fakra, user, data):
 
 def _check_budget_alert(fakra):
     items = list(fakra.items.all())
-    total = sum((i.estimated_price or 0) * i.quantity for i in items)
     spent = sum(
         (i.estimated_price or 0) * i.quantity for i in items if i.status == "done"
     )
+    # Alert against the explicit budget when set, otherwise the sum of prices.
+    if fakra.budget is not None:
+        cap = fakra.budget
+    else:
+        cap = sum((i.estimated_price or 0) * i.quantity for i in items)
 
-    if total > 0 and spent >= total and not fakra.budget_alert_sent:
+    if cap > 0 and spent >= cap and not fakra.budget_alert_sent:
         fakra.budget_alert_sent = True
         fakra.save(update_fields=["budget_alert_sent"])
 
         title = "Budget reached"
-        body = f"'{fakra.title}' has reached its estimated budget of {total}"
+        body = f"'{fakra.title}' has reached its budget of {cap}"
         data = {"event": "fakra.budget_alert", "fakra_id": fakra.id}
 
         notify_fakra_access(fakra, title, body, data)
@@ -181,7 +185,7 @@ def _check_budget_alert(fakra):
         if fakra.household_id:
             notify_household(fakra.household_id, title, body, data)
 
-    elif total > 0 and spent < total and fakra.budget_alert_sent:
+    elif cap > 0 and spent < cap and fakra.budget_alert_sent:
         fakra.budget_alert_sent = False
         fakra.save(update_fields=["budget_alert_sent"])
 
@@ -856,14 +860,28 @@ class FakraShareView(APIView):
 class SpendingAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    RANGE_DAYS = {"week": 7, "month": 30, "year": 365}
+
     def get(self, request):
         fakras = _visible_fakras(request.user)
+
+        # Optional scope to a single group.
+        household_id = request.query_params.get("household")
+        if household_id:
+            fakras = fakras.filter(household_id=household_id)
 
         done_items = Item.objects.filter(
             fakra__in=fakras, status="done", estimated_price__isnull=False
         ).annotate(cost=F("estimated_price") * F("quantity"))
 
-        total_spent = done_items.aggregate(total=Sum("cost"))["total"] or 0
+        # Optional time window (week / month / year); default all-time.
+        time_range = request.query_params.get("range", "all")
+        ranged = done_items
+        if time_range in self.RANGE_DAYS:
+            cutoff = timezone.now() - timedelta(days=self.RANGE_DAYS[time_range])
+            ranged = done_items.filter(done_at__gte=cutoff)
+
+        total_spent = ranged.aggregate(total=Sum("cost"))["total"] or 0
 
         month_start = timezone.now().replace(
             day=1, hour=0, minute=0, second=0, microsecond=0
@@ -875,7 +893,7 @@ class SpendingAnalyticsView(APIView):
         by_month = [
             {"month": entry["month"].strftime("%Y-%m"), "total": entry["total"]}
             for entry in (
-                done_items
+                ranged
                 .annotate(month=TruncMonth("done_at"))
                 .values("month")
                 .annotate(total=Sum("cost"))
@@ -886,7 +904,7 @@ class SpendingAnalyticsView(APIView):
         by_category = [
             {"category": entry["category_label"], "total": entry["total"]}
             for entry in (
-                done_items
+                ranged
                 .annotate(category_label=Coalesce(
                     "category", Value("Uncategorized"), output_field=CharField()
                 ))
@@ -899,10 +917,24 @@ class SpendingAnalyticsView(APIView):
         by_fakra = [
             {"fakra_id": entry["fakra_id"], "title": entry["fakra__title"], "total": entry["total"]}
             for entry in (
-                done_items
+                ranged
                 .values("fakra_id", "fakra__title")
                 .annotate(total=Sum("cost"))
                 .order_by("-total")[:5]
+            )
+        ]
+
+        # Who spent what — meaningful for groups (spend per member).
+        by_member = [
+            {
+                "member": entry["done_by__email"] or "Unknown",
+                "total": entry["total"],
+            }
+            for entry in (
+                ranged
+                .values("done_by__email")
+                .annotate(total=Sum("cost"))
+                .order_by("-total")[:10]
             )
         ]
 
@@ -911,13 +943,30 @@ class SpendingAnalyticsView(APIView):
         ).annotate(cost=F("estimated_price") * F("quantity"))
         budget_remaining = pending_items.aggregate(total=Sum("cost"))["total"] or 0
 
+        # How many visible Fakras are over their budget cap.
+        over_budget_count = 0
+        for fakra in fakras:
+            items = list(fakra.items.all())
+            spent = sum(
+                (i.estimated_price or 0) * i.quantity for i in items if i.status == "done"
+            )
+            if fakra.budget is not None:
+                cap = fakra.budget
+            else:
+                cap = sum((i.estimated_price or 0) * i.quantity for i in items)
+            if cap and cap > 0 and spent > cap:
+                over_budget_count += 1
+
         return Response({
             "total_spent": total_spent,
             "spent_this_month": spent_this_month,
             "budget_remaining": budget_remaining,
+            "range": time_range,
+            "over_budget_count": over_budget_count,
             "by_month": by_month,
             "by_category": by_category,
             "by_fakra": by_fakra,
+            "by_member": by_member,
         })
 
 

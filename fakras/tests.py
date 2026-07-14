@@ -1288,3 +1288,93 @@ class FakraPermissionMatrixTests(APITestCase):
         r = self.client.get(f"/api/fakras/{self.fakra.id}/")
         self.assertTrue(r.data["my_permissions"]["can_edit"])
         self.assertEqual(r.data["my_permissions"]["role"], "admin")
+
+
+class BudgetAndAnalyticsTests(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(email="owner@test.com", password="pass1234")
+        self.member = User.objects.create_user(email="member@test.com", password="pass1234")
+        self.household = Household.objects.create(name="Community", owner=self.owner)
+        Membership.objects.create(user=self.owner, household=self.household, role="owner")
+        Membership.objects.create(user=self.member, household=self.household, role="member")
+
+    def _done(self, fakra, name, price, who, when=None, qty=1):
+        return Item.objects.create(
+            fakra=fakra, name=name, quantity=qty, estimated_price=Decimal(str(price)),
+            created_by=who, status="done", done_by=who, done_at=when or timezone.now(),
+        )
+
+    def test_budget_computed_fields(self):
+        fakra = Fakra.objects.create(
+            title="Groceries", household=self.household, created_by=self.owner, budget=Decimal("10.00")
+        )
+        self._done(fakra, "Milk", "2.00", self.member, qty=2)  # 4.00 spent
+        Item.objects.create(fakra=fakra, name="Eggs", quantity=1, estimated_price=Decimal("3.00"),
+                            created_by=self.member, status="pending")
+
+        self.client.force_authenticate(self.owner)
+        r = self.client.get(f"/api/fakras/{fakra.id}/")
+
+        self.assertEqual(r.data["budget"], "10.00")
+        self.assertEqual(r.data["estimated_spent"], Decimal("4.00"))
+        self.assertEqual(r.data["budget_remaining"], Decimal("6.00"))
+        self.assertFalse(r.data["over_budget"])
+        self.assertAlmostEqual(r.data["budget_progress"], 0.4, places=3)
+
+    def test_over_budget_flag(self):
+        fakra = Fakra.objects.create(
+            title="Party", household=self.household, created_by=self.owner, budget=Decimal("5.00")
+        )
+        self._done(fakra, "Cake", "8.00", self.owner)
+
+        self.client.force_authenticate(self.owner)
+        r = self.client.get(f"/api/fakras/{fakra.id}/")
+        self.assertTrue(r.data["over_budget"])
+        self.assertEqual(r.data["budget_remaining"], Decimal("-3.00"))
+
+    @patch("fakras.views.notify_household")
+    def test_budget_alert_uses_explicit_budget(self, _mock):
+        fakra = Fakra.objects.create(
+            title="Groceries", household=self.household, created_by=self.owner, budget=Decimal("2.00")
+        )
+        item = Item.objects.create(fakra=fakra, name="Milk", quantity=1,
+                                   estimated_price=Decimal("2.50"), created_by=self.member)
+
+        self.client.force_authenticate(self.member)
+        self.client.post(f"/api/fakras/{fakra.id}/items/{item.id}/done/")
+
+        fakra.refresh_from_db()
+        # 2.50 spent >= 2.00 budget -> alert, even though not all items "done".
+        self.assertTrue(fakra.budget_alert_sent)
+
+    def test_analytics_by_member(self):
+        fakra = Fakra.objects.create(title="Shared", household=self.household, created_by=self.owner)
+        self._done(fakra, "Milk", "5.00", self.owner)
+        self._done(fakra, "Bread", "3.00", self.member)
+
+        self.client.force_authenticate(self.owner)
+        r = self.client.get("/api/fakras/analytics/spending/")
+        by_member = {e["member"]: e["total"] for e in r.data["by_member"]}
+        self.assertEqual(by_member["owner@test.com"], Decimal("5.00"))
+        self.assertEqual(by_member["member@test.com"], Decimal("3.00"))
+
+    def test_analytics_range_filter_excludes_old(self):
+        fakra = Fakra.objects.create(title="Shared", household=self.household, created_by=self.owner)
+        self._done(fakra, "Old", "10.00", self.owner, when=timezone.now() - timedelta(days=40))
+        self._done(fakra, "Recent", "4.00", self.owner, when=timezone.now())
+
+        self.client.force_authenticate(self.owner)
+        r = self.client.get("/api/fakras/analytics/spending/?range=month")
+        self.assertEqual(r.data["total_spent"], Decimal("4.00"))
+        r_all = self.client.get("/api/fakras/analytics/spending/?range=all")
+        self.assertEqual(r_all.data["total_spent"], Decimal("14.00"))
+
+    def test_analytics_over_budget_count(self):
+        over = Fakra.objects.create(title="Over", household=self.household, created_by=self.owner, budget=Decimal("2.00"))
+        self._done(over, "Thing", "5.00", self.owner)
+        under = Fakra.objects.create(title="Under", household=self.household, created_by=self.owner, budget=Decimal("100.00"))
+        self._done(under, "Thing", "5.00", self.owner)
+
+        self.client.force_authenticate(self.owner)
+        r = self.client.get("/api/fakras/analytics/spending/")
+        self.assertEqual(r.data["over_budget_count"], 1)
