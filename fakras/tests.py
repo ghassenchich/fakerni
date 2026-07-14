@@ -52,14 +52,24 @@ class FakraTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["status"], "active")
 
-    def test_member_cannot_create_household_fakra(self):
+    def test_member_can_create_household_fakra(self):
+        # Policy: any member of a group may create a shared Fakra.
         self.client.force_authenticate(self.member)
         response = self.client.post("/api/fakras/", {
             "title": "Weekly groceries",
             "household": self.household.id,
         })
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_non_member_cannot_create_household_fakra(self):
+        self.client.force_authenticate(self.outsider)
+        response = self.client.post("/api/fakras/", {
+            "title": "Weekly groceries",
+            "household": self.household.id,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_personal_fakra(self):
         self.client.force_authenticate(self.member)
@@ -1190,3 +1200,91 @@ class RestockSuggestionTests(APITestCase):
         response = self.client.post("/api/fakras/price-check/", {"name": "Saffron", "price": "99"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNone(response.data["anomaly"])
+
+
+class FakraPermissionMatrixTests(APITestCase):
+    """Centralized role-permission policy (fakras/permissions.py)."""
+
+    def setUp(self):
+        self.owner = User.objects.create_user(email="owner@test.com", password="pass1234")
+        self.admin = User.objects.create_user(email="admin@test.com", password="pass1234")
+        self.member = User.objects.create_user(email="member@test.com", password="pass1234")
+        self.other = User.objects.create_user(email="other@test.com", password="pass1234")
+
+        self.household = Household.objects.create(name="Community", owner=self.owner)
+        Membership.objects.create(user=self.owner, household=self.household, role="owner")
+        Membership.objects.create(user=self.admin, household=self.household, role="admin")
+        Membership.objects.create(user=self.member, household=self.household, role="member")
+        Membership.objects.create(user=self.other, household=self.household, role="member")
+
+        # A Fakra created by a plain member.
+        self.fakra = Fakra.objects.create(
+            title="Weekly groceries", household=self.household, created_by=self.member
+        )
+
+    # --- Fakra edit (PATCH /api/fakras/<id>/) ---
+
+    def test_plain_member_cannot_edit_others_fakra(self):
+        self.client.force_authenticate(self.other)
+        r = self.client.patch(f"/api/fakras/{self.fakra.id}/", {"title": "Hijacked title"})
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_can_edit_members_fakra(self):
+        self.client.force_authenticate(self.admin)
+        r = self.client.patch(f"/api/fakras/{self.fakra.id}/", {"title": "Tidied title"})
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+
+    def test_creator_can_edit_own_fakra(self):
+        self.client.force_authenticate(self.member)
+        r = self.client.patch(f"/api/fakras/{self.fakra.id}/", {"title": "My new title"})
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+
+    # --- Fakra delete (DELETE /api/fakras/<id>/) ---
+
+    def test_plain_member_cannot_delete_others_fakra(self):
+        self.client.force_authenticate(self.other)
+        r = self.client.delete(f"/api/fakras/{self.fakra.id}/")
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Fakra.objects.filter(id=self.fakra.id).exists())
+
+    def test_owner_can_delete_members_fakra(self):
+        self.client.force_authenticate(self.owner)
+        r = self.client.delete(f"/api/fakras/{self.fakra.id}/")
+        self.assertEqual(r.status_code, status.HTTP_204_NO_CONTENT)
+
+    # --- Item moderation ---
+
+    def test_admin_can_delete_members_item(self):
+        item = Item.objects.create(fakra=self.fakra, name="Bread", created_by=self.member)
+        self.client.force_authenticate(self.admin)
+        r = self.client.delete(f"/api/fakras/{self.fakra.id}/items/{item.id}/")
+        self.assertEqual(r.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_plain_member_cannot_edit_others_item(self):
+        item = Item.objects.create(fakra=self.fakra, name="Bread", created_by=self.member)
+        self.client.force_authenticate(self.other)
+        r = self.client.patch(f"/api/fakras/{self.fakra.id}/items/{item.id}/", {"name": "Baguette"})
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_any_member_can_complete_item(self):
+        item = Item.objects.create(fakra=self.fakra, name="Bread", created_by=self.member)
+        self.client.force_authenticate(self.other)
+        r = self.client.post(f"/api/fakras/{self.fakra.id}/items/{item.id}/done/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+
+    # --- my_permissions surfaced to clients ---
+
+    def test_my_permissions_reflects_role(self):
+        self.client.force_authenticate(self.other)
+        r = self.client.get(f"/api/fakras/{self.fakra.id}/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        perms = r.data["my_permissions"]
+        self.assertFalse(perms["can_edit"])
+        self.assertFalse(perms["can_delete"])
+        self.assertTrue(perms["can_add_item"])
+        self.assertEqual(perms["role"], "member")
+
+        self.client.force_authenticate(self.admin)
+        r = self.client.get(f"/api/fakras/{self.fakra.id}/")
+        self.assertTrue(r.data["my_permissions"]["can_edit"])
+        self.assertEqual(r.data["my_permissions"]["role"], "admin")

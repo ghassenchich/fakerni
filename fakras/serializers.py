@@ -133,6 +133,7 @@ class FakraSerializer(serializers.ModelSerializer):
 
     estimated_total = serializers.SerializerMethodField()
     estimated_remaining = serializers.SerializerMethodField()
+    my_permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = Fakra
@@ -153,6 +154,7 @@ class FakraSerializer(serializers.ModelSerializer):
             "items",
             "estimated_total",
             "estimated_remaining",
+            "my_permissions",
         ]
 
         read_only_fields = [
@@ -175,6 +177,13 @@ class FakraSerializer(serializers.ModelSerializer):
             for item in obj.items.all()
             if item.status != "done"
         )
+
+    def get_my_permissions(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return None
+        from .permissions import fakra_permissions
+        return fakra_permissions(request.user, obj)
 
     def validate_title(self, value):
         value = value.strip()

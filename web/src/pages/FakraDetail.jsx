@@ -21,7 +21,6 @@ import {
   Trash2,
   Wand2,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
 import * as fakrasApi from "../api/fakras";
 import { useFakraSocket } from "../hooks/useFakraSocket";
 import { Badge, Button, Card, ErrorText, IconButton, Input, Label, Select, Textarea, extractError } from "../components/ui";
@@ -35,7 +34,6 @@ const DUE_STATUS_COLORS = {
 
 export default function FakraDetail() {
   const { id } = useParams();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -462,8 +460,8 @@ export default function FakraDetail() {
   if (error) return <ErrorText>{error}</ErrorText>;
   if (!fakra) return null;
 
-  const isOwner = fakra.created_by === user?.id;
-  const canShare = isOwner && !fakra.household;
+  const perms = fakra.my_permissions || {};
+  const canShare = perms.can_share && !fakra.household;
 
   return (
     <div className="space-y-4">
@@ -498,17 +496,19 @@ export default function FakraDetail() {
       <ErrorText>{actionError}</ErrorText>
 
       <div className="flex gap-2 flex-wrap">
-        <Button variant="secondary" onClick={() => setEditing((v) => !v)}>
-          <Pencil className="h-4 w-4" />
-          {editing ? t("common.cancel") : t("common.edit")}
-        </Button>
-        {fakra.status === "active" && (
+        {perms.can_edit && (
+          <Button variant="secondary" onClick={() => setEditing((v) => !v)}>
+            <Pencil className="h-4 w-4" />
+            {editing ? t("common.cancel") : t("common.edit")}
+          </Button>
+        )}
+        {fakra.status === "active" && perms.can_archive && (
           <Button variant="secondary" onClick={handleArchive}>
             <Archive className="h-4 w-4" />
             {t("common.archive")}
           </Button>
         )}
-        {isOwner && (
+        {perms.can_delete && (
           <Button variant="danger" onClick={handleDelete}>
             <Trash2 className="h-4 w-4" />
             {t("common.delete")}

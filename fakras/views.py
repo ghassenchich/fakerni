@@ -10,7 +10,7 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 
 from rest_framework import status, viewsets
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -34,12 +34,20 @@ from .serializers import (
 )
 from .notifications import notify_fakra_access
 from .insights import predict_restock, price_anomaly
-from .permissions import require_fakra_access
+from .permissions import (
+    require_fakra_access,
+    require_can_edit_fakra,
+    require_can_delete_fakra,
+    require_can_archive_fakra,
+    require_can_share_fakra,
+    require_can_modify_item,
+    require_can_delete_attachment,
+    can_modify_item,
+)
 from .realtime import broadcast_to_fakra
 from .services import log_activity, mark_item_done, undo_item
 
 from household.notifications import notify_household
-from household.permissions import require_role, get_role
 from household.realtime import broadcast_to_household
 from users.realtime import broadcast_to_user
 
@@ -75,13 +83,8 @@ class FakraViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         household = serializer.validated_data.get("household")
 
-        if household:
-            require_role(
-                self.request.user,
-                household,
-                ["owner", "admin"]
-            )
-
+        # Any member of the group may create a shared Fakra; membership itself
+        # is enforced by FakraSerializer.validate_household.
         fakra = serializer.save(created_by=self.request.user)
 
         if household:
@@ -103,6 +106,17 @@ class FakraViewSet(viewsets.ModelViewSet):
                     "fakra": FakraSerializer(fakra, context=self.get_serializer_context()).data,
                     "household_id": household.id,
                 })
+
+    def perform_update(self, serializer):
+        # get_queryset already limits to visible Fakras; additionally require
+        # edit rights (creator or group owner/admin) so a plain member can't
+        # edit a Fakra they don't own.
+        require_can_edit_fakra(self.request.user, serializer.instance)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        require_can_delete_fakra(self.request.user, instance)
+        instance.delete()
 
 
 def _create_item_and_notify(fakra, user, data):
@@ -507,7 +521,7 @@ class ItemSmartCommandView(APIView):
                 item_data = ItemSerializer(item).data
 
             elif command.action == "delete":
-                if item.created_by != request.user and fakra.created_by != request.user:
+                if not can_modify_item(request.user, item):
                     results.append({
                         "item_id": item_id,
                         "action": command.action,
@@ -538,11 +552,7 @@ class ItemDetailView(APIView):
 
     def check_edit_permission(self, request, item):
         require_fakra_access(request.user, item.fakra)
-
-        if item.created_by != request.user and item.fakra.created_by != request.user:
-            raise PermissionDenied(
-                "Only the item creator or the Fakra creator can edit or delete this item"
-            )
+        require_can_modify_item(request.user, item)
 
     def patch(self, request, fakra_id, item_id):
         item = self.get_item(fakra_id, item_id)
@@ -708,11 +718,7 @@ class ItemAttachmentDetailView(APIView):
         )
         item = attachment.item
         require_fakra_access(request.user, item.fakra)
-
-        if attachment.uploaded_by != request.user and item.fakra.created_by != request.user:
-            raise PermissionDenied(
-                "Only the uploader or the Fakra creator can delete this attachment"
-            )
+        require_can_delete_attachment(request.user, attachment)
 
         attachment.file.delete(save=False)
         attachment.delete()
@@ -756,16 +762,7 @@ class FakraArchiveView(APIView):
     def post(self, request, pk):
         fakra = get_object_or_404(Fakra, pk=pk)
         require_fakra_access(request.user, fakra)
-
-        is_household_admin = (
-            fakra.household_id and
-            get_role(request.user, fakra.household) in ["owner", "admin"]
-        )
-
-        if fakra.created_by != request.user and not is_household_admin:
-            raise PermissionDenied(
-                "Only the creator or a household owner/admin can archive this Fakra"
-            )
+        require_can_archive_fakra(request.user, fakra)
 
         fakra.status = "archived"
         fakra.save()
@@ -840,16 +837,7 @@ class FakraShareView(APIView):
     @extend_schema(request=ShareFakraSerializer, responses=FakraSerializer)
     def post(self, request, pk):
         fakra = get_object_or_404(Fakra, pk=pk)
-
-        is_household_admin = (
-            fakra.household_id and
-            get_role(request.user, fakra.household) in ["owner", "admin"]
-        )
-
-        if fakra.created_by != request.user and not is_household_admin:
-            raise PermissionDenied(
-                "Only the creator or a household owner/admin can share this Fakra"
-            )
+        require_can_share_fakra(request.user, fakra)
 
         user_ids = request.data.get("user_ids", [])
         users = get_user_model().objects.filter(id__in=user_ids)
