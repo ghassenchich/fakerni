@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
+import { Sparkles, RefreshCw } from "lucide-react-native";
 import * as fakrasApi from "../../src/api/fakras";
 import { Card, ErrorText, Select, SelectItem, extractError } from "../../src/components/ui";
 import LoadingScreen from "../../src/components/LoadingScreen";
@@ -19,6 +20,24 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [range, setRange] = useState("all");
+  const [digest, setDigest] = useState(null);
+  const [digestLoading, setDigestLoading] = useState(false);
+
+  async function loadDigest() {
+    setDigestLoading(true);
+    try {
+      const response = await fakrasApi.getSpendingDigest();
+      setDigest(response.data.digest);
+    } catch {
+      setDigest(null);
+    } finally {
+      setDigestLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadDigest();
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -66,6 +85,25 @@ export default function Analytics() {
           <SelectItem key={r} label={t(`analytics.range.${r}`)} value={r} />
         ))}
       </Select>
+
+      {digestLoading || digest ? (
+        <Card style={styles.digestCard}>
+          <View style={styles.digestHeader}>
+            <View style={styles.digestTitleRow}>
+              <Sparkles size={16} color={colors.blue700} />
+              <Text style={styles.digestTitle}>{t("analytics.digestTitle")}</Text>
+            </View>
+            <Pressable onPress={loadDigest} disabled={digestLoading} hitSlop={8}>
+              <RefreshCw size={16} color={colors.blue500} />
+            </Pressable>
+          </View>
+          {digestLoading ? (
+            <ActivityIndicator size="small" color={colors.blue500} />
+          ) : (
+            <Text style={styles.digestText}>{digest}</Text>
+          )}
+        </Card>
+      ) : null}
 
       <View style={styles.summaryRow}>
         <Card style={styles.summaryCard}>
@@ -179,6 +217,11 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 12, color: colors.slate500 },
   summaryValue: { fontSize: 18, fontWeight: "600", color: colors.blue950 },
   overBudgetValue: { color: colors.red600 },
+  digestCard: { gap: 8, backgroundColor: colors.blue50, borderColor: colors.blue200, borderWidth: 1 },
+  digestHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  digestTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  digestTitle: { fontWeight: "600", color: colors.blue900 },
+  digestText: { fontSize: 14, color: colors.blue900, lineHeight: 20 },
   card: { gap: 8 },
   cardTitle: { fontWeight: "600", color: colors.blue950, marginBottom: 4 },
   noData: { fontSize: 14, color: colors.slate500 },

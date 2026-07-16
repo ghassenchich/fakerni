@@ -23,6 +23,7 @@ from .ai import (
     parse_items_from_image,
     parse_items_from_text,
     suggest_items_for_fakra,
+    generate_spend_digest,
 )
 from .models import Fakra, Item, ItemAttachment, FakraAccess
 from .serializers import (
@@ -977,6 +978,56 @@ class RestockSuggestionsView(APIView):
         fakras = _visible_fakras(request.user)
         suggestions = predict_restock(fakras)
         return Response({"suggestions": suggestions})
+
+
+class SpendingDigestView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "ai"
+
+    def get(self, request):
+        fakras = _visible_fakras(request.user)
+        done_items = Item.objects.filter(
+            fakra__in=fakras, status="done", estimated_price__isnull=False
+        ).annotate(cost=F("estimated_price") * F("quantity"))
+
+        total_spent = done_items.aggregate(total=Sum("cost"))["total"] or 0
+        if not total_spent:
+            # Nothing to summarize — skip the paid AI call.
+            return Response({"digest": None})
+
+        top_category = (
+            done_items
+            .annotate(label=Coalesce("category", Value("Uncategorized"), output_field=CharField()))
+            .values("label").annotate(total=Sum("cost")).order_by("-total").first()
+        )
+        top_member = (
+            done_items.values("done_by__email").annotate(total=Sum("cost")).order_by("-total").first()
+        )
+
+        over_budget_count = 0
+        for fakra in fakras:
+            items = list(fakra.items.all())
+            spent = sum((i.estimated_price or 0) * i.quantity for i in items if i.status == "done")
+            cap = fakra.budget if fakra.budget is not None else sum(
+                (i.estimated_price or 0) * i.quantity for i in items
+            )
+            if cap and cap > 0 and spent > cap:
+                over_budget_count += 1
+
+        stats_lines = [f"Total spent: {total_spent}"]
+        if top_category:
+            stats_lines.append(f"Top category: {top_category['label']} ({top_category['total']})")
+        if top_member and top_member["done_by__email"]:
+            stats_lines.append(f"Top spender: {top_member['done_by__email']} ({top_member['total']})")
+        stats_lines.append(f"Lists over budget: {over_budget_count}")
+
+        try:
+            digest = generate_spend_digest("\n".join(stats_lines))
+        except AIError as exc:
+            raise ValidationError({"detail": str(exc)})
+
+        return Response({"digest": digest})
 
 
 class PriceCheckView(APIView):

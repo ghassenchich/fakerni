@@ -1378,3 +1378,53 @@ class BudgetAndAnalyticsTests(APITestCase):
         self.client.force_authenticate(self.owner)
         r = self.client.get("/api/fakras/analytics/spending/")
         self.assertEqual(r.data["over_budget_count"], 1)
+
+
+class SpendingDigestTests(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(email="owner@test.com", password="pass1234")
+        self.household = Household.objects.create(name="Community", owner=self.owner)
+        Membership.objects.create(user=self.owner, household=self.household, role="owner")
+
+    def _done(self, fakra, name, price):
+        return Item.objects.create(
+            fakra=fakra, name=name, quantity=1, estimated_price=Decimal(str(price)),
+            created_by=self.owner, status="done", done_by=self.owner, done_at=timezone.now(),
+        )
+
+    def test_digest_is_null_without_spending(self):
+        self.client.force_authenticate(self.owner)
+        r = self.client.get("/api/fakras/analytics/digest/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertIsNone(r.data["digest"])
+
+    @patch("fakras.views.generate_spend_digest")
+    def test_digest_returns_summary(self, mock_digest):
+        mock_digest.return_value = "You spent 5.00 this period, mostly on groceries. Nicely within budget!"
+        fakra = Fakra.objects.create(title="Groceries", household=self.household, created_by=self.owner)
+        self._done(fakra, "Milk", "5.00")
+
+        self.client.force_authenticate(self.owner)
+        r = self.client.get("/api/fakras/analytics/digest/")
+
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertIn("budget", r.data["digest"])
+        self.assertTrue(mock_digest.called)
+        # The stats block passed to the model should mention the total.
+        stats_arg = mock_digest.call_args[0][0]
+        self.assertIn("Total spent", stats_arg)
+
+    @patch("fakras.views.generate_spend_digest")
+    def test_digest_handles_ai_error(self, mock_digest):
+        from .ai import AIError
+        mock_digest.side_effect = AIError("AI features are not configured")
+        fakra = Fakra.objects.create(title="Groceries", household=self.household, created_by=self.owner)
+        self._done(fakra, "Milk", "5.00")
+
+        self.client.force_authenticate(self.owner)
+        r = self.client.get("/api/fakras/analytics/digest/")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_digest_requires_authentication(self):
+        r = self.client.get("/api/fakras/analytics/digest/")
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)

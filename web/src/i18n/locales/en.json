@@ -220,6 +220,9 @@
       "week": "Last 7 days",
       "month": "Last 30 days",
       "year": "Last year"
-    }
+    },
+    "digestTitle": "AI summary",
+    "digestLoading": "Analyzing your spending…",
+    "regenerate": "Regenerate"
   }
 }

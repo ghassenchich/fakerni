@@ -32,8 +32,12 @@ export function duplicateFakra(id) {
   return client.post(`/api/fakras/${id}/duplicate/`);
 }
 
-export function getSpendingAnalytics() {
-  return client.get("/api/fakras/analytics/spending/");
+export function getSpendingAnalytics(params = {}) {
+  return client.get("/api/fakras/analytics/spending/", { params });
+}
+
+export function getSpendingDigest() {
+  return client.get("/api/fakras/analytics/digest/");
 }
 
 export function getRestockSuggestions() {

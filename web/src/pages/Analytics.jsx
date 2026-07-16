@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Sparkles, RefreshCw } from "lucide-react";
 import * as fakrasApi from "../api/fakras";
 import { Card, ErrorText, Select, extractError } from "../components/ui";
 
@@ -16,6 +17,21 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [range, setRange] = useState("all");
+
+  const [digest, setDigest] = useState(null);
+  const [digestLoading, setDigestLoading] = useState(false);
+
+  async function loadDigest() {
+    setDigestLoading(true);
+    try {
+      const response = await fakrasApi.getSpendingDigest();
+      setDigest(response.data.digest);
+    } catch {
+      setDigest(null);
+    } finally {
+      setDigestLoading(false);
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -34,6 +50,10 @@ export default function Analytics() {
 
     load();
   }, [range]);
+
+  useEffect(() => {
+    loadDigest();
+  }, []);
 
   if (loading && !data) {
     return <p className="text-sm text-slate-500">{t("common.loading")}</p>;
@@ -64,6 +84,31 @@ export default function Analytics() {
           </Select>
         </div>
       </div>
+
+      {(digestLoading || digest) && (
+        <Card className="border-teal-200 bg-teal-50 dark:border-teal-800 dark:bg-teal-950/40">
+          <div className="flex items-start gap-3">
+            <Sparkles className="h-5 w-5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-teal-900 dark:text-teal-200">{t("analytics.digestTitle")}</p>
+                <button
+                  type="button"
+                  onClick={loadDigest}
+                  disabled={digestLoading}
+                  className="text-teal-600 hover:text-teal-800 dark:text-teal-400 disabled:opacity-50"
+                  aria-label={t("analytics.regenerate")}
+                >
+                  <RefreshCw className={`h-4 w-4 ${digestLoading ? "animate-spin" : ""}`} />
+                </button>
+              </div>
+              <p className="text-sm text-teal-800 dark:text-teal-100 mt-1">
+                {digestLoading ? t("analytics.digestLoading") : digest}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>

@@ -102,6 +102,15 @@ SUGGEST_SYSTEM_PROMPT = (
     "If you can't think of any good suggestions, return an empty list."
 )
 
+DIGEST_SYSTEM_PROMPT = (
+    "You are a friendly assistant for a group shopping & task app. "
+    "Given a group's spending statistics, write a short, encouraging summary "
+    "of 2 to 3 sentences in plain language. Highlight what stands out: total "
+    "spend, the top spending category, who spent the most, and whether the "
+    "group is within or over budget. Do not invent numbers that aren't given, "
+    "do not use markdown or bullet points, and keep it warm and concise."
+)
+
 
 def _client_and_model():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -204,3 +213,23 @@ def interpret_item_commands(text, items):
         raise AIError("AI could not understand that command")
 
     return response.parsed.commands
+
+
+def generate_spend_digest(stats_text):
+    """Turn a plain-text block of spending stats into a short natural-language
+    summary. Returns the summary string."""
+    client, model = _client_and_model()
+
+    response = client.models.generate_content(
+        model=model,
+        contents=stats_text,
+        config=types.GenerateContentConfig(
+            system_instruction=DIGEST_SYSTEM_PROMPT,
+        ),
+    )
+
+    text = (response.text or "").strip()
+    if not text:
+        raise AIError("AI could not generate a summary right now")
+
+    return text

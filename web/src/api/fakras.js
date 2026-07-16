@@ -48,6 +48,10 @@ export function getSpendingAnalytics(params = {}) {
   return client.get("/api/fakras/analytics/spending/", { params });
 }
 
+export function getSpendingDigest() {
+  return client.get("/api/fakras/analytics/digest/");
+}
+
 export function getRestockSuggestions() {
   return client.get("/api/fakras/restock-suggestions/");
 }

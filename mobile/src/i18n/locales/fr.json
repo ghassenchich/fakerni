@@ -237,6 +237,9 @@
       "week": "7 derniers jours",
       "month": "30 derniers jours",
       "year": "Dernière année"
-    }
+    },
+    "digestTitle": "Résumé IA",
+    "digestLoading": "Analyse de vos dépenses…",
+    "regenerate": "Régénérer"
   }
 }
