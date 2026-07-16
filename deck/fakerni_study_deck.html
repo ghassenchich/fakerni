@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fakerni — Study Guide</title>
+<meta name="hz:slide-selector" content=".slide" />
+<meta name="hz:canvas-width" content="1920" />
+<meta name="hz:canvas-height" content="1080" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #333; font-family: 'Inter', sans-serif; }
+.slide { position: relative; width: 1920px; height: 1080px; background: #f8f9fa; overflow: hidden; color: #191c1d; }
+.topbar { position:absolute; top:0; left:0; width:100%; height:12px;
+  background: linear-gradient(90deg,#00363d 0%,#1a6b73 45%,#ff6f61 78%,#f5a623 100%); }
+.kicker { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:24px; letter-spacing:4px; text-transform:uppercase; color:#1a6b73; }
+.title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:72px; line-height:1.02; color:#00363d; letter-spacing:-1px; }
+.divider { width:88px; height:7px; border-radius:4px; background:#ff6f61; margin:20px 0 0 2px; }
+.head-block { position:absolute; top:84px; left:96px; right:96px; }
+.content { position:absolute; top:290px; left:96px; right:96px; }
+.foot { position:absolute; bottom:44px; left:96px; right:96px; display:flex; justify-content:space-between; align-items:center;
+  font-family:'Space Grotesk',sans-serif; font-size:19px; color:#9aa1a2; letter-spacing:1px; }
+.foot .brand { color:#1a6b73; font-weight:600; }
+.mono { font-family:'JetBrains Mono',monospace; }
+
+/* steps */
+.step { display:flex; gap:26px; margin-bottom:24px; align-items:flex-start; }
+.step .badge { flex:0 0 auto; width:56px; height:56px; border-radius:14px; background:#00363d; color:#bcebf3;
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; display:flex; align-items:center; justify-content:center; }
+.step .txt h4 { font-family:'Space Grotesk',sans-serif; font-size:27px; color:#00363d; font-weight:600; margin-bottom:5px; }
+.step .txt p { font-size:23px; color:#565e60; line-height:1.4; }
+.step .txt code { font-family:'JetBrains Mono',monospace; font-size:20px; color:#1a6b73; background:#eef9fb; padding:2px 8px; border-radius:6px; }
+
+/* grids & cards */
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:26px; }
+.card { background:#fff; border:1.5px solid #e1e3e4; border-radius:20px; padding:30px 32px; box-shadow:0 8px 26px rgba(0,54,61,0.05); }
+.card h3 { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:29px; color:#00363d; margin-bottom:10px; }
+.card p { font-size:22px; line-height:1.42; color:#565e60; }
+.card p b { color:#00363d; }
+
+/* glossary */
+.term { margin-bottom:22px; }
+.term .t { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:26px; color:#00363d; }
+.term .d { font-size:22px; color:#565e60; line-height:1.4; margin-top:3px; }
+.term .d code { font-family:'JetBrains Mono',monospace; font-size:19px; color:#1a6b73; }
+
+/* plain list */
+.li { display:flex; gap:18px; align-items:flex-start; margin-bottom:20px; }
+.li .dot { flex:0 0 auto; width:15px; height:15px; border-radius:50%; background:#ff6f61; margin-top:11px; }
+.li .tealdot { background:#1a6b73; } .li .amberdot { background:#f5a623; }
+.li p { font-size:24px; line-height:1.4; color:#40484a; } .li b { color:#00363d; }
+
+.note { background:#eef9fb; border:1.5px solid #bcebf3; border-radius:18px; padding:26px 30px; }
+.note p { font-size:24px; color:#00363d; line-height:1.45; }
+
+.s-dark { background:#00363d; color:#fff; }
+.codeblock { background:#00282d; border-radius:16px; padding:26px 30px; font-family:'JetBrains Mono',monospace;
+  font-size:23px; color:#bcebf3; line-height:1.7; }
+.codeblock .c { color:#5f8f96; }
+</style>
+</head>
+<body>
+
+<!-- 1 TITLE -->
+<div class="slide s-dark" data-canvas-width="1920" data-canvas-height="1080">
+  <div style="position:absolute; top:150px; left:130px; width:118px; height:118px; border-radius:30px; background:#bcebf3; display:flex; align-items:center; justify-content:center;">
+    <svg width="66" height="66" viewBox="0 0 24 24" fill="none" stroke="#00363d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+  </div>
+  <div style="position:absolute; top:310px; left:132px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:118px; color:#fff; letter-spacing:-2px;">Understand<br/>your project</div>
+  <div style="position:absolute; top:600px; left:136px; font-family:'Space Grotesk',sans-serif; font-size:40px; color:#bcebf3;">Fakerni — a plain-language study guide</div>
+  <div style="position:absolute; top:670px; left:136px; width:1200px; font-size:26px; color:#a0ced6; line-height:1.5;">Not the jury deck — this one explains how every part actually works, in your own code, so you can answer anything with confidence.</div>
+  <div style="position:absolute; bottom:60px; left:136px; font-family:'Space Grotesk',sans-serif; font-size:22px; color:#8fbdc5; letter-spacing:2px;">STUDY EDITION · FOR YOU, NOT THE JURY</div>
+</div>
+
+<!-- 2 WHAT IS IT / 3 PARTS -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Start Here</div><div class="title" style="margin-top:12px;">Your project is three programs</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="note" style="margin-bottom:34px;"><p><b>In one sentence:</b> Fakerni lets a family share live shopping/task lists (“Fakras”) across web and mobile, with AI, budgets and notifications. The same <b>backend</b> serves both apps.</p></div>
+    <div class="grid3">
+      <div class="card"><h3>1 · Backend</h3><p>The “brain”. Stores data, enforces rules, exposes an <b>API</b>. Django + DRF + Channels. Folders: <b>users, household, fakras</b>.</p></div>
+      <div class="card"><h3>2 · Web app</h3><p>Runs in a browser. React + Vite. Folder: <b>web/</b>. Talks to the backend over the internet.</p></div>
+      <div class="card"><h3>3 · Mobile app</h3><p>Runs on a phone. React Native + Expo. Folder: <b>mobile/</b>. Same logic as web, native features added.</p></div>
+    </div>
+    <div class="li" style="margin-top:36px;"><span class="dot tealdot"></span><p>The web and mobile apps are just <b>faces</b>. They hold no data — they ask the backend for everything.</p></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>02 / 17</span></div>
+</div>
+
+<!-- 3 VOCABULARY -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Vocabulary</div><div class="title" style="margin-top:12px;">Words the jury will use</div><div class="divider"></div></div>
+  <div class="content" style="top:290px;">
+    <div class="grid2" style="gap:30px 70px;">
+      <div class="term"><div class="t">API</div><div class="d">A menu of requests the backend accepts. The apps “order” from it (get fakras, add item…).</div></div>
+      <div class="term"><div class="t">REST endpoint</div><div class="d">One URL for one action, e.g. <code>POST /api/fakras/</code> = create a fakra.</div></div>
+      <div class="term"><div class="t">JWT (token)</div><div class="d">A signed digital badge proving who you are. Sent with every request instead of a password.</div></div>
+      <div class="term"><div class="t">WebSocket</div><div class="d">A phone line kept open so the server can push updates instantly (real-time).</div></div>
+      <div class="term"><div class="t">ORM / Model</div><div class="d">Python classes that map to database tables. You write Python, Django writes SQL.</div></div>
+      <div class="term"><div class="t">Serializer</div><div class="d">Translator between database objects and the JSON the apps send/receive.</div></div>
+      <div class="term"><div class="t">Migration</div><div class="d">A versioned change to the database shape (add a column, a table…).</div></div>
+      <div class="term"><div class="t">Consumer</div><div class="d">The WebSocket equivalent of a view — handles a live connection.</div></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>03 / 17</span></div>
+</div>
+
+<!-- 4 DOMAIN IN PLAIN WORDS -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">The Domain</div><div class="title" style="margin-top:12px;">The idea, as a real family</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="grid2" style="grid-template-columns:1fr 1fr; gap:50px;">
+      <div>
+        <div class="li"><span class="dot tealdot"></span><p><b>User</b> = a person with an account.</p></div>
+        <div class="li"><span class="dot tealdot"></span><p><b>Household</b> = the family group. You join with an <b>invite code</b>.</p></div>
+        <div class="li"><span class="dot tealdot"></span><p><b>Membership</b> = your place in a household + your <b>role</b> (owner / admin / member).</p></div>
+        <div class="li"><span class="dot"></span><p><b>Fakra</b> = one list (e.g. “Weekly Groceries”). Can belong to the family or be personal.</p></div>
+        <div class="li"><span class="dot amberdot"></span><p><b>Item</b> = one line in the list (milk, ×2, done by Ali).</p></div>
+      </div>
+      <div class="note" style="align-self:start;">
+        <p><b>Analogy:</b> a <b>Household</b> is a shared fridge door. Each <b>Fakra</b> is a sticky note on it. Each <b>Item</b> is a line on the note. Anyone in the family can add a line or tick one off — and everyone sees it change at the same moment.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>04 / 17</span></div>
+</div>
+
+<!-- 5 BACKEND STRUCTURE -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Backend Map</div><div class="title" style="margin-top:12px;">Three Django apps (folders)</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="grid3">
+      <div class="card"><h3 class="mono">users/</h3><p>Accounts &amp; identity. Custom <b>User</b> (login by email), JWT tokens, password-reset OTP, device tokens for push, biometric flag.</p></div>
+      <div class="card"><h3 class="mono">household/</h3><p>The family group. <b>Household</b> + <b>Membership</b> models, invite codes, roles, member management, household WebSocket.</p></div>
+      <div class="card"><h3 class="mono">fakras/</h3><p>The heart. <b>Fakra</b>, <b>Item</b>, <b>ActivityLog</b>, AI (<span class="mono">ai.py</span>), real-time (<span class="mono">consumers.py</span>), budgets, exports.</p></div>
+    </div>
+    <div class="note" style="margin-top:34px;"><p>Inside each app the files always play the same roles: <b class="mono">models.py</b> (data shape) · <b class="mono">serializers.py</b> (JSON translation) · <b class="mono">views.py</b> (what happens on each request) · <b class="mono">urls.py</b> (which URL → which view) · <b class="mono">tests.py</b> (proof it works).</p></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>05 / 17</span></div>
+</div>
+
+<!-- 6 ANATOMY OF A REQUEST -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Walkthrough</div><div class="title" style="margin-top:12px;">What happens when you add an item</div><div class="divider"></div></div>
+  <div class="content" style="top:290px;">
+    <div class="step"><div class="badge">1</div><div class="txt"><h4>You tap “Add” in the app</h4><p>The app sends <code>POST /api/fakras/8/items/</code> with the item data + your JWT badge.</p></div></div>
+    <div class="step"><div class="badge">2</div><div class="txt"><h4>Django checks your badge &amp; access</h4><p><code>require_fakra_access()</code> confirms you’re allowed to touch fakra 8. If not → refused.</p></div></div>
+    <div class="step"><div class="badge">3</div><div class="txt"><h4>The item is saved</h4><p>The serializer validates the data and the ORM writes a new row to the <b>Item</b> table.</p></div></div>
+    <div class="step"><div class="badge">4</div><div class="txt"><h4>Everyone is told — live</h4><p>The view calls <code>broadcast_to_fakra()</code> (WebSocket) + a push notification to other members.</p></div></div>
+    <div class="step" style="margin-bottom:0;"><div class="badge">5</div><div class="txt"><h4>The screen updates</h4><p>Your app shows the new item; other people’s apps receive the live event and refresh instantly.</p></div></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>06 / 17</span></div>
+</div>
+
+<!-- 7 LOGIN / JWT FLOW -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Walkthrough</div><div class="title" style="margin-top:12px;">How login &amp; tokens work</div><div class="divider"></div></div>
+  <div class="content" style="top:290px;">
+    <div class="step"><div class="badge">1</div><div class="txt"><h4>You send email + password</h4><p><code>POST /api/token/</code>. The backend checks the password (compared against a PBKDF2 <b>hash</b>, never plaintext).</p></div></div>
+    <div class="step"><div class="badge">2</div><div class="txt"><h4>You get two tokens</h4><p>An <b>access</b> token (valid 60 min) and a <b>refresh</b> token (valid 7 days).</p></div></div>
+    <div class="step"><div class="badge">3</div><div class="txt"><h4>Every request carries the access token</h4><p>Sent as <code>Authorization: Bearer …</code>. The server trusts the signature — no DB lookup needed.</p></div></div>
+    <div class="step" style="margin-bottom:0;"><div class="badge">4</div><div class="txt"><h4>When it expires, it refreshes silently</h4><p>The app catches the “401 expired”, uses the refresh token to get a new access token, and retries — you never notice.</p></div></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>07 / 17</span></div>
+</div>
+
+<!-- 8 REAL-TIME FLOW -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Walkthrough</div><div class="title" style="margin-top:12px;">How real-time actually works</div><div class="divider"></div></div>
+  <div class="content" style="top:290px;">
+    <div class="step"><div class="badge">1</div><div class="txt"><h4>The app opens a WebSocket</h4><p>e.g. <code>ws/fakras/8/?token=…</code> — a line that stays open, with the JWT in the URL.</p></div></div>
+    <div class="step"><div class="badge">2</div><div class="txt"><h4>Middleware authenticates it</h4><p><code>JWTAuthMiddleware</code> validates the token and attaches the user; the <b>consumer</b> then checks access and joins a “group”.</p></div></div>
+    <div class="step"><div class="badge">3</div><div class="txt"><h4>Something changes</h4><p>When any member adds/completes an item, the view calls <code>broadcast_to_fakra()</code>.</p></div></div>
+    <div class="step" style="margin-bottom:0;"><div class="badge">4</div><div class="txt"><h4>The message fans out</h4><p>Redis pushes the event to everyone in that group; each open app receives it and updates — no refresh.</p></div></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>08 / 17</span></div>
+</div>
+
+<!-- 9 AI FLOW -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Walkthrough</div><div class="title" style="margin-top:12px;">How “Smart Add” uses AI</div><div class="divider"></div></div>
+  <div class="content" style="top:290px;">
+    <div class="step"><div class="badge">1</div><div class="txt"><h4>You type free text</h4><p>“milk, eggs and 2kg rice”. The app sends it to <code>POST /…/items/smart-add/</code>.</p></div></div>
+    <div class="step"><div class="badge">2</div><div class="txt"><h4>The backend calls Gemini</h4><p><span class="mono">ai.py</span> sends your text + a <b>system prompt</b> + a strict <b>schema</b> describing the item shape.</p></div></div>
+    <div class="step"><div class="badge">3</div><div class="txt"><h4>Gemini returns clean JSON</h4><p>Because of the schema, the answer is always valid structured data — never messy text to guess-parse.</p></div></div>
+    <div class="step" style="margin-bottom:0;"><div class="badge">4</div><div class="txt"><h4>Items are created (and editable)</h4><p>Each parsed item is saved to the fakra. If the AI key is missing/fails → a clean error, app keeps working.</p></div></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>09 / 17</span></div>
+</div>
+
+<!-- 10 WEB STRUCTURE -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Web App</div><div class="title" style="margin-top:12px;">How web/ is organised</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="grid2" style="gap:30px;">
+      <div class="card"><h3 class="mono">src/api/</h3><p>One file per resource (<b>fakras.js</b>, <b>households.js</b>…). Thin functions that call endpoints. <b>client.js</b> attaches the JWT &amp; auto-refreshes it.</p></div>
+      <div class="card"><h3 class="mono">src/pages/</h3><p>One file per screen: <b>Dashboard</b>, <b>FakraDetail</b>, <b>Analytics</b>, login, profile… Each fetches data via the api layer and renders it.</p></div>
+      <div class="card"><h3 class="mono">src/context/</h3><p><b>AuthContext</b> holds “who is logged in”, exposes login/logout, and guards protected pages.</p></div>
+      <div class="card"><h3 class="mono">src/hooks/</h3><p><b>useFakraSocket / useUserSocket</b> open WebSockets and refresh the screen on live events.</p></div>
+    </div>
+    <div class="note" style="margin-top:32px;"><p><b>Mental model:</b> pages ask the <b>api layer</b> → api layer hits the <b>backend</b> → results render. Live updates arrive through <b>hooks</b>.</p></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>10 / 17</span></div>
+</div>
+
+<!-- 11 MOBILE STRUCTURE -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Mobile App</div><div class="title" style="margin-top:12px;">How mobile/ mirrors web</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="grid2" style="gap:30px;">
+      <div class="card"><h3 class="mono">app/</h3><p>Screens as files (<b>expo-router</b>). <b>(auth)</b> group = login flow; <b>(tabs)</b> = Fakras / Households / Analytics / Profile; <b>fakras/[id]</b> = detail.</p></div>
+      <div class="card"><h3 class="mono">src/api/</h3><p>Same per-resource files as web. <b>client.js</b> stores tokens in <b>AsyncStorage</b> instead of the browser.</p></div>
+      <div class="card"><h3>Shared logic</h3><p>Auth, hooks, api and i18n are near-identical to web — that’s why building two apps wasn’t double the work.</p></div>
+      <div class="card"><h3>Native extras</h3><p>Things a browser can’t do: <b>camera barcode scan</b>, <b>biometric lock</b>, native <b>push tokens</b>.</p></div>
+    </div>
+    <div class="note" style="margin-top:32px;"><p><b>One-liner for the jury:</b> “The mobile app reuses the web app’s architecture and API layer; only the presentation and device features differ.”</p></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>11 / 17</span></div>
+</div>
+
+<!-- 12 DATA / DATABASE -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Data &amp; Database</div><div class="title" style="margin-top:12px;">From Python class to table</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="grid2" style="grid-template-columns:1fr 1fr; gap:44px;">
+      <div>
+        <div class="step"><div class="badge">1</div><div class="txt"><h4>You write a Model</h4><p>A Python class in <span class="mono">models.py</span> (e.g. <b>Item</b>) with fields.</p></div></div>
+        <div class="step"><div class="badge">2</div><div class="txt"><h4>You “makemigrations”</h4><p>Django generates a migration file describing the change.</p></div></div>
+        <div class="step" style="margin-bottom:0;"><div class="badge">3</div><div class="txt"><h4>You “migrate”</h4><p>Django runs it → a real table/column appears in PostgreSQL.</p></div></div>
+      </div>
+      <div class="codeblock">
+<span class="c"># fakras/models.py</span><br/>
+class Item(models.Model):<br/>
+&nbsp;&nbsp;fakra = ForeignKey(Fakra)<br/>
+&nbsp;&nbsp;name = CharField()<br/>
+&nbsp;&nbsp;quantity = IntegerField()<br/>
+&nbsp;&nbsp;estimated_price = Decimal…<br/>
+&nbsp;&nbsp;status = "pending"/"done"<br/>
+&nbsp;&nbsp;done_by = ForeignKey(User)
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>12 / 17</span></div>
+</div>
+
+<!-- 13 SECURITY SIMPLE -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Security — in plain words</div><div class="title" style="margin-top:12px;">Why each measure exists</div><div class="divider"></div></div>
+  <div class="content" style="top:290px;">
+    <div class="grid2" style="gap:22px 60px;">
+      <div class="li"><span class="dot tealdot"></span><p><b>Hashed passwords</b> — even if the DB leaks, real passwords stay unreadable.</p></div>
+      <div class="li"><span class="dot"></span><p><b>JWT expiry</b> — a stolen token is useless after 60 minutes.</p></div>
+      <div class="li"><span class="dot amberdot"></span><p><b>Rate limiting</b> — blocks robots guessing passwords (too many tries → 429).</p></div>
+      <div class="li"><span class="dot tealdot"></span><p><b>OTP reset</b> — one-time code, expires in 10 min, doesn’t reveal if an email exists.</p></div>
+      <div class="li"><span class="dot"></span><p><b>Encryption at rest</b> — OTP codes &amp; push tokens are stored scrambled.</p></div>
+      <div class="li"><span class="dot amberdot"></span><p><b>Access checks everywhere</b> — you can never open a family’s data that isn’t yours.</p></div>
+    </div>
+    <div class="note" style="margin-top:30px;"><p><b>The golden rule of the app:</b> the backend <b>never trusts the client</b>. Every request re-proves who you are and what you may touch.</p></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>13 / 17</span></div>
+</div>
+
+<!-- 14 TESTING -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Testing</div><div class="title" style="margin-top:12px;">How you know it works</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="grid2" style="gap:30px;">
+      <div class="card"><h3>What a test is</h3><p>A small script that calls part of your app and checks the result. If behaviour breaks later, the test fails and warns you.</p></div>
+      <div class="card"><h3>What yours cover</h3><p>Login, permissions, the 10-min undo rule, budget alerts, AI endpoints (Gemini faked), and live WebSocket delivery — <b>120 tests</b>.</p></div>
+    </div>
+    <div class="codeblock" style="margin-top:34px;">
+<span class="c"># run every test in the project</span><br/>
+python manage.py test users household fakras<br/><br/>
+<span class="c"># … Ran 120 tests … OK ✅</span>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>14 / 17</span></div>
+</div>
+
+<!-- 15 RUN IT -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Run It Yourself</div><div class="title" style="margin-top:12px;">Starting the whole project</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="codeblock">
+<span class="c"># 1 · Backend (from the project root)</span><br/>
+python manage.py migrate<br/>
+python manage.py runserver &nbsp;<span class="c"># → http://localhost:8000</span><br/><br/>
+<span class="c"># 2 · Web app</span><br/>
+cd web &amp;&amp; npm run dev &nbsp;<span class="c"># → http://localhost:5173</span><br/><br/>
+<span class="c"># 3 · Mobile app (browser preview)</span><br/>
+cd mobile &amp;&amp; npx expo start --web &nbsp;<span class="c"># → http://localhost:8081</span>
+    </div>
+    <div class="li" style="margin-top:32px;"><span class="dot tealdot"></span><p>Login for the demo: <b class="mono">demo@fakerni.com</b> / <b class="mono">demo1234</b>.</p></div>
+    <div class="li" style="margin-bottom:0;"><span class="dot"></span><p>API reference while running: <b class="mono">http://localhost:8000/api/docs/</b> (Swagger).</p></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>15 / 17</span></div>
+</div>
+
+<!-- 16 IF THE JURY ASKS -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block"><div class="kicker">Decode the Hard Questions</div><div class="title" style="margin-top:12px;">If the jury asks…</div><div class="divider"></div></div>
+  <div class="content" style="top:290px;">
+    <div class="li"><span class="dot tealdot"></span><p><b>“Where is the business logic?”</b> → in the backend <b class="mono">views.py</b> of each app — never in the phone/browser.</p></div>
+    <div class="li"><span class="dot"></span><p><b>“How do two users not see each other’s data?”</b> → every request runs <b class="mono">require_fakra_access()</b> / role checks.</p></div>
+    <div class="li"><span class="dot amberdot"></span><p><b>“What makes it real-time?”</b> → open WebSockets + Redis fan-out; the server pushes, the app doesn’t poll.</p></div>
+    <div class="li"><span class="dot tealdot"></span><p><b>“Is the AI reliable?”</b> → structured-output schema forces valid JSON; results are shown as editable, and it degrades gracefully.</p></div>
+    <div class="li"><span class="dot"></span><p><b>“Will it scale?”</b> → stateless JWT API (add servers) + Redis channel layer (real-time across them).</p></div>
+    <div class="li" style="margin-bottom:0;"><span class="dot amberdot"></span><p><b>“Hardest part?”</b> → authenticated, spoof-proof real-time across three channel scopes.</p></div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI · STUDY</span><span>16 / 17</span></div>
+</div>
+
+<!-- 17 FILE MAP / CLOSE -->
+<div class="slide s-dark" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="head-block"><div class="kicker" style="color:#8fbdc5;">Your Project Map</div><div class="title" style="margin-top:12px; color:#fff;">Where everything lives</div><div class="divider"></div></div>
+  <div class="content" style="top:300px;">
+    <div class="grid2" style="gap:40px;">
+      <div class="codeblock" style="background:#00282d;">
+fakerni/<br/>
+├─ <span style="color:#f5a623;">users/</span> &nbsp;&nbsp;<span class="c">accounts, JWT, OTP</span><br/>
+├─ <span style="color:#f5a623;">household/</span> <span class="c">groups, roles</span><br/>
+├─ <span style="color:#f5a623;">fakras/</span> &nbsp;<span class="c">lists, items, AI, realtime</span><br/>
+├─ <span style="color:#f5a623;">fakerni/</span> <span class="c">settings, routing</span><br/>
+├─ <span style="color:#ff6f61;">web/</span> &nbsp;&nbsp;&nbsp;<span class="c">React app</span><br/>
+└─ <span style="color:#ff6f61;">mobile/</span> <span class="c">Expo app</span>
+      </div>
+      <div>
+        <div class="li"><span class="dot tealdot"></span><p style="color:#c0e6ec;">Read a feature top-down: <b style="color:#fff;">urls → views → serializers → models</b>.</p></div>
+        <div class="li"><span class="dot tealdot"></span><p style="color:#c0e6ec;">The two docs beside this deck: <b style="color:#fff;">PROJECT_REPORT.md</b> (full history) &amp; <b style="color:#fff;">DEFENSE_KIT.md</b> (Q&amp;A).</p></div>
+        <div class="li"><span class="dot amberdot"></span><p style="color:#c0e6ec;">If you can explain <b style="color:#fff;">one request end-to-end</b> (slide 06), you can defend the whole project.</p></div>
+      </div>
+    </div>
+    <div style="position:absolute; top:520px; left:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:52px; color:#fff;">You built this. Now you know it.</div>
+  </div>
+  <div class="foot"><span class="brand" style="color:#bcebf3;">FAKERNI · فكّرني</span><span style="color:#8fbdc5;">17 / 17</span></div>
+</div>
+
+</body>
+</html>

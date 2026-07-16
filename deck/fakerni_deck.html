@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fakerni — Jury Defense Deck</title>
+<meta name="hz:slide-selector" content=".slide" />
+<meta name="hz:canvas-width" content="1920" />
+<meta name="hz:canvas-height" content="1080" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #333; font-family: 'Inter', sans-serif; }
+
+.slide {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  background: #f8f9fa;
+  overflow: hidden;
+  color: #191c1d;
+}
+
+/* shared type roles */
+.kicker {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 26px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #1a6b73;
+}
+.title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 84px;
+  line-height: 1.02;
+  color: #00363d;
+  letter-spacing: -1px;
+}
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  color: #565e60;
+  line-height: 1.4;
+}
+.body { font-size: 27px; line-height: 1.5; color: #40484a; }
+.foot {
+  position: absolute; bottom: 46px; left: 96px; right: 96px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px; color: #9aa1a2; letter-spacing: 1px;
+}
+.foot .brand { color: #1a6b73; font-weight: 600; }
+.content { position: absolute; top: 150px; left: 96px; right: 96px; }
+.head-block { position: absolute; top: 96px; left: 96px; right: 96px; }
+
+/* accent bar top */
+.topbar { position: absolute; top: 0; left: 0; width: 100%; height: 12px;
+  background: linear-gradient(90deg, #00363d 0%, #1a6b73 45%, #ff6f61 78%, #f5a623 100%); }
+
+/* ---- Slide 1 : Title ---- */
+.s-title { background: #00363d; color: #ffffff; }
+.s-title .bg-orb { position: absolute; border-radius: 50%; opacity: 0.5; }
+.orb1 { width: 900px; height: 900px; right: -260px; top: -260px;
+  background: radial-gradient(circle at center, #04434a 0%, rgba(4,67,74,0) 70%); }
+.orb2 { width: 700px; height: 700px; left: -220px; bottom: -260px;
+  background: radial-gradient(circle at center, #1a6b73 0%, rgba(26,107,115,0) 70%); opacity: 0.35; }
+.s-title .logo-badge {
+  position: absolute; top: 150px; left: 130px; width: 118px; height: 118px;
+  border-radius: 30px; background: #bcebf3; display: flex; align-items: center; justify-content: center;
+}
+.s-title .big {
+  position: absolute; top: 320px; left: 130px;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 168px; letter-spacing: -3px; color: #ffffff;
+}
+.s-title .arabic { position: absolute; top: 300px; left: 900px; font-size: 120px; color: #38656c; font-weight: 700; opacity: .55; }
+.s-title .tag {
+  position: absolute; top: 540px; left: 134px; font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500; font-size: 46px; color: #bcebf3; letter-spacing: .5px;
+}
+.s-title .desc { position: absolute; top: 620px; left: 134px; width: 1100px; font-size: 28px; color: #a0ced6; line-height: 1.5; }
+.s-title .chips { position: absolute; top: 810px; left: 134px; display: flex; gap: 16px; flex-wrap: wrap; width: 1400px; }
+.chip {
+  font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 500;
+  padding: 12px 26px; border: 1.5px solid #38656c; border-radius: 40px; color: #bcebf3;
+}
+.s-title .meta { position: absolute; bottom: 60px; left: 134px; font-size: 22px; color: #8fbdc5; letter-spacing: 1px; }
+.s-title .meta b { color: #ffffff; font-weight: 600; }
+
+/* ---- generic light slide header ---- */
+.divider { width: 92px; height: 7px; border-radius: 4px; background: #ff6f61; margin: 22px 0 0 2px; }
+
+/* cards / grids */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+.card {
+  background: #ffffff; border: 1.5px solid #e1e3e4; border-radius: 22px; padding: 34px 36px;
+  box-shadow: 0 10px 30px rgba(0,54,61,0.05);
+}
+.card h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 32px; color: #00363d; margin-bottom: 12px; }
+.card p { font-size: 23px; line-height: 1.45; color: #565e60; }
+.pill { display:inline-flex; align-items:center; justify-content:center; width: 60px; height: 60px; border-radius: 16px;
+  background: #eef9fb; margin-bottom: 18px; }
+.num { font-family: 'Space Grotesk', sans-serif; font-weight:700; font-size: 30px; color:#1a6b73; }
+
+.li { display:flex; gap: 18px; align-items:flex-start; margin-bottom: 22px; }
+.li .dot { flex: 0 0 auto; width: 16px; height: 16px; border-radius: 50%; background: #ff6f61; margin-top: 12px; }
+.li .amberdot { background: #f5a623; }
+.li .tealdot { background: #1a6b73; }
+.li p { font-size: 27px; line-height: 1.4; color: #40484a; }
+.li b { color: #00363d; font-weight: 600; }
+
+/* architecture boxes */
+.arch-tier { background:#ffffff; border:2px solid #e1e3e4; border-radius:20px; padding: 22px 26px; text-align:center; }
+.arch-tier .lbl { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:22px; color:#00363d; }
+.arch-tier .sub { font-size:19px; color:#71787a; margin-top:6px; }
+.arrow { text-align:center; color:#9aa1a2; font-size: 40px; line-height: 1; }
+
+.tblrow { display:grid; grid-template-columns: 360px 1fr; gap: 0; border-bottom:1.5px solid #e1e3e4; }
+.tblrow > div { padding: 20px 24px; }
+.tblrow .k { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:25px; color:#00363d; background:#eef9fb; }
+.tblrow .v { font-size:24px; color:#40484a; line-height:1.35; }
+.tblrow.headrow .k, .tblrow.headrow .v { background:#00363d; color:#ffffff; font-weight:600; font-family:'Space Grotesk',sans-serif; font-size:23px; }
+
+.stat { background:#00363d; border-radius:22px; padding: 40px 30px; text-align:center; color:#fff; }
+.stat .big { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size: 92px; color:#bcebf3; line-height:1; }
+.stat .cap { font-size: 24px; color:#a0ced6; margin-top:14px; }
+
+.s-section { background:#00363d; color:#fff; }
+</style>
+</head>
+<body>
+
+<!-- ===== SLIDE 1 : TITLE ===== -->
+<div class="slide s-title" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="logo-badge">
+    <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="#00363d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  </div>
+  <div class="arabic">فكّرني</div>
+  <div class="big">Fakerni</div>
+  <div class="tag">Family Smart Shopping &amp; Task Coordination</div>
+  <div class="desc">A shared, real-time platform where families organise what to buy and do — across web and mobile — enhanced with AI, budgets, and push notifications.</div>
+  <div class="chips">
+    <span class="chip">Django · DRF · Channels</span>
+    <span class="chip">React · Vite</span>
+    <span class="chip">React Native · Expo</span>
+    <span class="chip">PostgreSQL · Redis</span>
+    <span class="chip">Google Gemini AI</span>
+  </div>
+  <div class="meta">PROJET DE FIN D'ÉTUDES &nbsp;·&nbsp; <b>Fakerni</b> &nbsp;·&nbsp; Full-Stack Web &amp; Mobile Application</div>
+</div>
+
+<!-- ===== SLIDE 2 : PROBLEM ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">The Problem</div>
+    <div class="title" style="margin-top:14px;">Coordinating a family is messy</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:330px;">
+    <div class="grid2">
+      <div class="card"><div class="pill"><span class="num">01</span></div><h3>Scattered communication</h3><p>Shopping and chores are coordinated over WhatsApp messages and paper lists — nothing is shared or structured.</p></div>
+      <div class="card"><div class="pill"><span class="num">02</span></div><h3>Duplicated &amp; forgotten</h3><p>Two people buy the same thing, or an item nobody claimed is forgotten entirely. No single live list.</p></div>
+      <div class="card"><div class="pill"><span class="num">03</span></div><h3>No accountability</h3><p>Who added what? Who bought it? There is no record of who did which task and when.</p></div>
+      <div class="card"><div class="pill"><span class="num">04</span></div><h3>No spend awareness</h3><p>Families have no shared view of how much a shopping trip costs or whether they are over budget.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>02 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 3 : SOLUTION ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">The Solution</div>
+    <div class="title" style="margin-top:14px;">One shared, live source of truth</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:340px;">
+    <div class="grid2" style="grid-template-columns:1fr 1fr; gap:34px;">
+      <div class="li"><span class="dot tealdot"></span><p><b>Households &amp; Fakras.</b> A family shares smart lists (“Fakras”) of things to buy or do — personal, group, or shared with specific people.</p></div>
+      <div class="li"><span class="dot"></span><p><b>Real-time sync.</b> Add or complete an item and everyone sees it instantly on web and mobile — no refresh, no double-buying.</p></div>
+      <div class="li"><span class="dot amberdot"></span><p><b>AI assistance.</b> Photograph a receipt or type “milk, eggs, 2kg rice” — Gemini fills the structured list for you.</p></div>
+      <div class="li"><span class="dot tealdot"></span><p><b>Budgets &amp; analytics.</b> Each item has a price; the app tracks spend, alerts on overruns, and charts spending.</p></div>
+      <div class="li"><span class="dot"></span><p><b>Accountability.</b> An activity log records who added and completed every item, with timestamps.</p></div>
+      <div class="li"><span class="dot amberdot"></span><p><b>Trilingual &amp; mobile-first.</b> Arabic (RTL), French, English — with push notifications and biometric lock.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>03 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 4 : FEATURES ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">Functional Scope</div>
+    <div class="title" style="margin-top:14px;">What Fakerni does</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:330px;">
+    <div class="grid3">
+      <div class="card"><h3>Accounts</h3><p>JWT login, email-OTP password reset, profile, biometric app-lock.</p></div>
+      <div class="card"><h3>Households</h3><p>Invite codes, roles (owner / admin / member), member management.</p></div>
+      <div class="card"><h3>Fakras</h3><p>Personal / shared / recurring lists, archive, duplicate, search &amp; filter.</p></div>
+      <div class="card"><h3>Items</h3><p>Add / edit, Done &amp; Undo (10-min window), price, category, photo attachments.</p></div>
+      <div class="card"><h3>AI (Gemini)</h3><p>Smart Add, receipt Scan, Suggestions, natural-language Commands.</p></div>
+      <div class="card"><h3>Budgets</h3><p>Per-item price, totals, over-budget alerts, spending analytics dashboard.</p></div>
+      <div class="card"><h3>Notifications</h3><p>Push for new items, completions, members, due-date reminders.</p></div>
+      <div class="card"><h3>Exports</h3><p>CSV on both platforms, server-generated PDF of any Fakra.</p></div>
+      <div class="card"><h3>Extras</h3><p>Barcode scan (mobile), dark mode (web), trilingual EN / FR / AR.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>04 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 5 : ARCHITECTURE ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">System Architecture</div>
+    <div class="title" style="margin-top:14px;">Three-tier, real-time</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:320px;">
+    <!-- clients -->
+    <div class="grid2" style="gap:40px; width:1180px; margin:0 auto;">
+      <div class="arch-tier"><div class="lbl">Web Client</div><div class="sub">React 19 · Vite · Tailwind v4</div></div>
+      <div class="arch-tier"><div class="lbl">Mobile Client</div><div class="sub">React Native · Expo</div></div>
+    </div>
+    <div class="arrow" style="margin:14px 0;">▼ &nbsp; REST (HTTPS) + WebSocket (WSS) &nbsp; ▼</div>
+    <!-- server -->
+    <div class="arch-tier" style="width:1180px; margin:0 auto; background:#00363d; border-color:#00363d;">
+      <div class="lbl" style="color:#bcebf3;">Django + DRF + Channels &nbsp;(ASGI / Daphne)</div>
+      <div class="sub" style="color:#8fbdc5;">JWT auth · REST API · WebSocket consumers · business logic</div>
+    </div>
+    <div class="arrow" style="margin:14px 0;">▼</div>
+    <!-- infra -->
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr 1fr; gap:24px; width:1400px; margin:0 auto;">
+      <div class="arch-tier"><div class="lbl">PostgreSQL</div><div class="sub">Relational data</div></div>
+      <div class="arch-tier"><div class="lbl">Redis</div><div class="sub">Channel layer / fan-out</div></div>
+      <div class="arch-tier"><div class="lbl">Gemini API</div><div class="sub">AI parsing</div></div>
+      <div class="arch-tier"><div class="lbl">Firebase FCM</div><div class="sub">Push notifications</div></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>05 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 6 : DATA MODEL ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">Data Model</div>
+    <div class="title" style="margin-top:14px;">Core entities &amp; relations</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:330px;">
+    <div class="grid2" style="grid-template-columns: 1.15fr 0.85fr; gap:44px;">
+      <div>
+        <div class="li"><span class="dot tealdot"></span><p><b>User</b> → belongs to <b>Households</b> via <b>Membership</b> (role: owner / admin / member).</p></div>
+        <div class="li"><span class="dot tealdot"></span><p><b>Fakra</b> — a list. Its <i>household</i> link is optional, so a Fakra can be <b>personal</b>.</p></div>
+        <div class="li"><span class="dot"></span><p><b>Item</b> — belongs to a Fakra: name, quantity, unit, category, price, status, done-by.</p></div>
+        <div class="li"><span class="dot amberdot"></span><p><b>ItemAttachment</b> (photo), <b>ActivityLog</b> (who did what), <b>FakraAccess</b> (explicit share).</p></div>
+      </div>
+      <div class="card" style="background:#00363d; border-color:#00363d;">
+        <h3 style="color:#bcebf3;">Three ways to access a Fakra</h3>
+        <p style="color:#a0ced6; margin-top:16px;"><b style="color:#fff;">1 —</b> You created it (personal)</p>
+        <p style="color:#a0ced6; margin-top:14px;"><b style="color:#fff;">2 —</b> It belongs to your household</p>
+        <p style="color:#a0ced6; margin-top:14px;"><b style="color:#fff;">3 —</b> It was shared with you</p>
+        <p style="color:#8fbdc5; margin-top:22px; font-size:21px;">A single helper — <span style="color:#bcebf3;">require_fakra_access()</span> — enforces all three, on every REST route <i>and</i> every WebSocket connection.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>06 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 7 : TECH STACK ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">Technology Choices</div>
+    <div class="title" style="margin-top:14px;">What &amp; why</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:320px;">
+    <div style="border:1.5px solid #e1e3e4; border-radius:18px; overflow:hidden;">
+      <div class="tblrow headrow"><div class="k">Layer</div><div class="v">Technology &amp; justification</div></div>
+      <div class="tblrow"><div class="k">Backend</div><div class="v"><b>Django + DRF</b> — mature ORM, auth, serializers, throttling; build a correct, secure API fast.</div></div>
+      <div class="tblrow"><div class="k">Real-time</div><div class="v"><b>Django Channels + Daphne</b> — WebSockets in the same codebase &amp; auth system, no separate service.</div></div>
+      <div class="tblrow"><div class="k">Database</div><div class="v"><b>PostgreSQL</b> — relational integrity for users → households → fakras → items; transactions.</div></div>
+      <div class="tblrow"><div class="k">Auth</div><div class="v"><b>JWT (SimpleJWT)</b> — stateless tokens → API scales horizontally with no session store.</div></div>
+      <div class="tblrow"><div class="k">AI</div><div class="v"><b>Google Gemini (flash)</b> — fast &amp; low-cost, called with structured schemas for valid JSON.</div></div>
+      <div class="tblrow" style="border-bottom:none;"><div class="k">Clients</div><div class="v"><b>React (web) + Expo/React Native (mobile)</b> — shared logic; one JS codebase for iOS + Android.</div></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>07 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 8 : AI ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">Highlight · AI</div>
+    <div class="title" style="margin-top:14px;">Removing the typing with Gemini</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:330px;">
+    <div class="grid2" style="gap:30px;">
+      <div class="card"><h3>Smart Add</h3><p>“milk, eggs and 2kg rice” → structured items with quantity, unit &amp; category.</p></div>
+      <div class="card"><h3>Smart Scan</h3><p>Photograph a receipt → items <i>and</i> prices extracted automatically.</p></div>
+      <div class="card"><h3>Suggestions</h3><p>Context-aware ideas for what else the list probably needs.</p></div>
+      <div class="card"><h3>Smart Command</h3><p>“mark milk done, remove the bread” → actions applied to the real list.</p></div>
+    </div>
+    <div class="card" style="margin-top:30px; background:#eef9fb; border-color:#bcebf3;">
+      <p style="font-size:26px; color:#00363d;"><b>Reliable by design:</b> every call passes a <b>Pydantic output schema</b>, so Gemini returns guaranteed-valid JSON — never fragile free text. If the key is missing or the API fails, it raises a clean error and the rest of the app keeps working <i>(graceful degradation)</i>.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>08 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 9 : REALTIME ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">Highlight · Real-Time</div>
+    <div class="title" style="margin-top:14px;">Authenticated, spoof-proof channels</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:330px;">
+    <div class="grid3">
+      <div class="card"><div class="pill"><span class="num">01</span></div><h3>Household channel</h3><p><span style="color:#71787a;">ws/households/&lt;id&gt;/</span><br/>Broadcasts family-wide events to all members.</p></div>
+      <div class="card"><div class="pill"><span class="num">02</span></div><h3>Per-Fakra channel</h3><p><span style="color:#71787a;">ws/fakras/&lt;id&gt;/</span><br/>Works for personal &amp; shared lists, not just household ones.</p></div>
+      <div class="card"><div class="pill"><span class="num">03</span></div><h3>Per-user channel</h3><p><span style="color:#71787a;">ws/notifications/</span><br/>Joined from the JWT identity — <b>can’t be spoofed</b>. Live Dashboard.</p></div>
+    </div>
+    <div class="card" style="margin-top:32px; background:#00363d; border-color:#00363d;">
+      <p style="font-size:26px; color:#a0ced6;"><b style="color:#fff;">The hard part:</b> JWT auth doesn’t apply to WebSockets automatically. A custom <span style="color:#bcebf3;">ASGI middleware</span> validates the token, attaches the user to the connection, and each consumer <b style="color:#fff;">rejects</b> connections the user isn’t authorised for.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>09 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 10 : SECURITY ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">Security</div>
+    <div class="title" style="margin-top:14px;">Defence in depth</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:330px;">
+    <div class="grid2" style="gap:30px 60px;">
+      <div class="li"><span class="dot tealdot"></span><p><b>Passwords —</b> Django PBKDF2 hashing, salted, never stored in plaintext.</p></div>
+      <div class="li"><span class="dot"></span><p><b>Auth —</b> short-lived JWT access (60 min) + refresh (7 days) with silent renewal.</p></div>
+      <div class="li"><span class="dot amberdot"></span><p><b>Brute force —</b> rate limiting on login / register / reset → HTTP 429.</p></div>
+      <div class="li"><span class="dot tealdot"></span><p><b>Password reset —</b> single-use email OTP, 10-min validity, no user-enumeration leak.</p></div>
+      <div class="li"><span class="dot"></span><p><b>Encryption at rest —</b> OTP codes &amp; device tokens encrypted with Fernet.</p></div>
+      <div class="li"><span class="dot amberdot"></span><p><b>Authorization —</b> centralised access checks on every endpoint &amp; socket.</p></div>
+      <div class="li"><span class="dot tealdot"></span><p><b>Transport —</b> HTTPS redirect, secure cookies, HSTS when DEBUG=False.</p></div>
+      <div class="li"><span class="dot"></span><p><b>Device —</b> optional biometric app-lock (Face ID / fingerprint) on mobile.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>10 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 11 : QUALITY ===== -->
+<div class="slide" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="topbar"></div>
+  <div class="head-block">
+    <div class="kicker">Quality &amp; Engineering</div>
+    <div class="title" style="margin-top:14px;">Tested and reproducible</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:340px;">
+    <div class="grid3" style="gap:30px; margin-bottom:40px;">
+      <div class="stat"><div class="big">120</div><div class="cap">automated tests, all passing</div></div>
+      <div class="stat"><div class="big">3</div><div class="cap">apps covered · users · household · fakras</div></div>
+      <div class="stat"><div class="big">0</div><div class="cap">API-schema warnings / errors</div></div>
+    </div>
+    <div class="grid2" style="gap:30px;">
+      <div class="card"><h3>What’s tested</h3><p>Auth flows, authorization checks, the 10-min undo window, budget-alert logic, AI endpoints (Gemini mocked), and WebSocket delivery.</p></div>
+      <div class="card"><h3>How it’s shipped</h3><p>Dockerised (Postgres + Redis + app), GitHub Actions CI runs the full suite on every push, OpenAPI/Swagger auto-generated docs.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand">FAKERNI</span><span>11 / 12</span></div>
+</div>
+
+<!-- ===== SLIDE 12 : ROADMAP / CONCLUSION ===== -->
+<div class="slide s-section" data-canvas-width="1920" data-canvas-height="1080">
+  <div class="bg-orb orb1" style="opacity:.4;"></div>
+  <div class="head-block">
+    <div class="kicker" style="color:#8fbdc5;">Conclusion &amp; Roadmap</div>
+    <div class="title" style="margin-top:14px; color:#ffffff;">Built, tested — and extensible</div>
+    <div class="divider"></div>
+  </div>
+  <div class="content" style="top:340px;">
+    <div class="grid2" style="gap:44px;">
+      <div>
+        <h3 style="font-family:'Space Grotesk',sans-serif; font-size:34px; color:#bcebf3; margin-bottom:26px;">Delivered</h3>
+        <div class="li"><span class="dot tealdot"></span><p style="color:#c0e6ec;">Full-stack: Django API · React web · React Native mobile</p></div>
+        <div class="li"><span class="dot tealdot"></span><p style="color:#c0e6ec;">Real-time sync · AI parsing · budgets &amp; analytics</p></div>
+        <div class="li"><span class="dot tealdot"></span><p style="color:#c0e6ec;">Trilingual · secure · Dockerised · CI · 120 tests</p></div>
+      </div>
+      <div>
+        <h3 style="font-family:'Space Grotesk',sans-serif; font-size:34px; color:#f5a623; margin-bottom:26px;">Next — Spend Intelligence</h3>
+        <div class="li"><span class="dot amberdot"></span><p style="color:#c0e6ec;"><b style="color:#fff;">Predictive restock</b> — suggest what you’re due to buy from past patterns.</p></div>
+        <div class="li"><span class="dot amberdot"></span><p style="color:#c0e6ec;"><b style="color:#fff;">Price-anomaly alerts</b> — warn when a scanned price is unusually high.</p></div>
+        <div class="li"><span class="dot amberdot"></span><p style="color:#c0e6ec;">The data to power both is already being collected.</p></div>
+      </div>
+    </div>
+    <div style="position:absolute; top:500px; left:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:58px; color:#ffffff;">Thank you — questions welcome.</div>
+  </div>
+  <div class="foot"><span class="brand" style="color:#bcebf3;">FAKERNI · فكّرني</span><span style="color:#8fbdc5;">12 / 12</span></div>
+</div>
+
+</body>
+</html>

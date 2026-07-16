@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fakerni Diagrams</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#333; font-family:'Inter',sans-serif; }
+.diagram { position:relative; width:1600px; background:#ffffff; overflow:hidden; padding:64px; }
+.dtitle { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:40px; color:#00363d; margin-bottom:6px; }
+.dsub { font-size:20px; color:#71787a; margin-bottom:40px; }
+.mono { font-family:'JetBrains Mono',monospace; }
+
+/* ERD */
+.erd { display:grid; grid-template-columns:repeat(4,1fr); gap:26px 40px; align-items:start; }
+.entity { border:2px solid #00363d; border-radius:14px; overflow:hidden; }
+.entity .en { background:#00363d; color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:22px; padding:12px 16px; }
+.entity .field { font-family:'JetBrains Mono',monospace; font-size:16px; color:#40484a; padding:7px 16px; border-bottom:1px solid #edeeef; }
+.entity .field:last-child { border-bottom:none; }
+.entity .pk { color:#ba6b00; font-weight:600; }
+.entity .fk { color:#1a6b73; }
+.rel { grid-column:1 / -1; margin-top:8px; padding:22px 26px; background:#eef9fb; border-radius:14px; border:1.5px solid #bcebf3; }
+.rel h4 { font-family:'Space Grotesk',sans-serif; font-size:20px; color:#00363d; margin-bottom:12px; }
+.rel p { font-family:'JetBrains Mono',monospace; font-size:16px; color:#40484a; line-height:1.9; }
+.rel .arr { color:#ff6f61; font-weight:700; }
+
+/* Architecture */
+.tier { border:2px solid #e1e3e4; border-radius:16px; padding:20px 24px; text-align:center; background:#f8f9fa; }
+.tier.dark { background:#00363d; border-color:#00363d; }
+.tier .tl { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:24px; color:#00363d; }
+.tier.dark .tl { color:#bcebf3; }
+.tier .ts { font-size:17px; color:#71787a; margin-top:6px; }
+.tier.dark .ts { color:#8fbdc5; }
+.rowflex { display:grid; gap:30px; }
+.arrow { text-align:center; color:#9aa1a2; font-size:34px; margin:16px 0; font-family:'Space Grotesk',sans-serif; }
+.arrow span { font-size:19px; color:#71787a; }
+.legend { margin-top:36px; font-size:17px; color:#565e60; line-height:1.7; }
+.legend b { color:#00363d; }
+</style>
+</head>
+<body>
+
+<!-- ============ ERD ============ -->
+<div class="diagram" id="erd">
+  <div class="dtitle">Fakerni — Entity-Relationship Diagram</div>
+  <div class="dsub">Core data model (Django models → PostgreSQL tables)</div>
+  <div class="erd">
+    <div class="entity">
+      <div class="en">User</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field">email (unique)</div>
+      <div class="field">name</div>
+      <div class="field">password (hash)</div>
+      <div class="field">created_at</div>
+    </div>
+    <div class="entity">
+      <div class="en">Household</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field">name</div>
+      <div class="field fk">owner &rarr; User</div>
+      <div class="field">invite_code</div>
+    </div>
+    <div class="entity">
+      <div class="en">Membership</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field fk">user &rarr; User</div>
+      <div class="field fk">household &rarr; Household</div>
+      <div class="field">role (owner/admin/member)</div>
+    </div>
+    <div class="entity">
+      <div class="en">Fakra</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field">title, description</div>
+      <div class="field">status, due_date</div>
+      <div class="field">recurrence</div>
+      <div class="field fk">household &rarr; Household (nullable)</div>
+      <div class="field fk">created_by &rarr; User</div>
+    </div>
+    <div class="entity">
+      <div class="en">Item</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field fk">fakra &rarr; Fakra</div>
+      <div class="field">name, quantity, unit</div>
+      <div class="field">category, estimated_price</div>
+      <div class="field">status (pending/done)</div>
+      <div class="field fk">created_by, done_by &rarr; User</div>
+    </div>
+    <div class="entity">
+      <div class="en">FakraAccess</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field fk">fakra &rarr; Fakra</div>
+      <div class="field fk">user &rarr; User</div>
+      <div class="field">(unique together)</div>
+    </div>
+    <div class="entity">
+      <div class="en">ItemAttachment</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field fk">item &rarr; Item</div>
+      <div class="field">file (image)</div>
+      <div class="field fk">uploaded_by &rarr; User</div>
+    </div>
+    <div class="entity">
+      <div class="en">ActivityLog</div>
+      <div class="field pk">id (PK)</div>
+      <div class="field fk">fakra &rarr; Fakra</div>
+      <div class="field fk">actor &rarr; User</div>
+      <div class="field">action_type, description</div>
+    </div>
+
+    <div class="rel">
+      <h4>Relationships</h4>
+      <p>
+        User <span class="arr">1&mdash;N</span> Membership <span class="arr">N&mdash;1</span> Household &nbsp;&nbsp;(a user joins many households; each household has many members)<br/>
+        Household <span class="arr">1&mdash;N</span> Fakra &nbsp;&middot;&nbsp; Fakra.household is <b>nullable</b> &rarr; a personal Fakra<br/>
+        Fakra <span class="arr">1&mdash;N</span> Item <span class="arr">1&mdash;N</span> ItemAttachment &nbsp;&middot;&nbsp; Fakra <span class="arr">1&mdash;N</span> ActivityLog<br/>
+        Fakra <span class="arr">1&mdash;N</span> FakraAccess <span class="arr">N&mdash;1</span> User &nbsp;&nbsp;(explicit sharing of a personal Fakra)
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ARCHITECTURE ============ -->
+<div class="diagram" id="arch" style="margin-top:40px;">
+  <div class="dtitle">Fakerni — System Architecture</div>
+  <div class="dsub">Three-tier, real-time; stateless API</div>
+
+  <div class="rowflex" style="grid-template-columns:1fr 1fr; width:1000px; margin:0 auto;">
+    <div class="tier"><div class="tl">Web Client</div><div class="ts">React 19 &middot; Vite &middot; Tailwind v4</div></div>
+    <div class="tier"><div class="tl">Mobile Client</div><div class="ts">React Native &middot; Expo</div></div>
+  </div>
+  <div class="arrow">&#9650;&nbsp;&nbsp;<span>REST over HTTPS &nbsp;+&nbsp; WebSocket over WSS &nbsp;(JWT auth)</span>&nbsp;&nbsp;&#9650;</div>
+  <div class="tier dark" style="width:1000px; margin:0 auto;">
+    <div class="tl">Django + DRF + Channels &nbsp;(ASGI / Daphne)</div>
+    <div class="ts">REST API &middot; WebSocket consumers &middot; JWT auth middleware &middot; business logic &middot; AI orchestration</div>
+  </div>
+  <div class="arrow">&#9650;</div>
+  <div class="rowflex" style="grid-template-columns:repeat(4,1fr); width:1360px; margin:0 auto;">
+    <div class="tier"><div class="tl">PostgreSQL</div><div class="ts">Relational data store</div></div>
+    <div class="tier"><div class="tl">Redis</div><div class="ts">Channel layer (fan-out)</div></div>
+    <div class="tier"><div class="tl">Google Gemini</div><div class="ts">AI parsing (external)</div></div>
+    <div class="tier"><div class="tl">Firebase FCM</div><div class="ts">Push notifications (external)</div></div>
+  </div>
+
+  <div class="legend">
+    <b>Why this shape:</b> the API is <b>stateless</b> (JWT), so it scales horizontally behind a load balancer;
+    <b>Redis</b> fans real-time events across instances; <b>PostgreSQL</b> holds all persistent data; external services
+    (Gemini, FCM) are called on demand and degrade gracefully if unavailable. Everything is containerised (Docker) and
+    verified by CI on every push.
+  </div>
+</div>
+
+</body>
+</html>
