@@ -120,6 +120,11 @@
       "subtitle": "Based on what you usually buy but isn't on any current list.",
       "cta": "Create a list with these",
       "listTitle": "Restock"
+    },
+    "overview": {
+      "spentThisMonth": "Spent this month",
+      "budgetRemaining": "Budget left",
+      "overBudget": "Over budget"
     }
   },
   "households": {
@@ -219,7 +224,9 @@
     "budgetPlaceholder": "Optional spending cap",
     "budgetSpentOf": "{{spent}} of {{budget}} spent",
     "budgetRemaining": "{{amount}} left in budget",
-    "overBudgetBy": "Over budget by {{amount}}"
+    "overBudgetBy": "Over budget by {{amount}}",
+    "viewingNow_one": "{{count}} viewing now",
+    "viewingNow_other": "{{count}} viewing now"
   },
   "analytics": {
     "heading": "Spending analytics",

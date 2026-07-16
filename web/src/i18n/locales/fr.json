@@ -104,6 +104,11 @@
       "subtitle": "D'après ce que vous achetez souvent mais qui n'est sur aucune liste actuelle.",
       "cta": "Créer une liste avec ces articles",
       "listTitle": "Réappro"
+    },
+    "overview": {
+      "spentThisMonth": "Dépensé ce mois",
+      "budgetRemaining": "Budget restant",
+      "overBudget": "Hors budget"
     }
   },
   "households": {
@@ -202,7 +207,9 @@
     "budgetPlaceholder": "Plafond de dépenses (optionnel)",
     "budgetSpentOf": "{{spent}} sur {{budget}} dépensés",
     "budgetRemaining": "{{amount}} restant dans le budget",
-    "overBudgetBy": "Dépassement de {{amount}}"
+    "overBudgetBy": "Dépassement de {{amount}}",
+    "viewingNow_one": "{{count}} en train de regarder",
+    "viewingNow_other": "{{count}} en train de regarder"
   },
   "analytics": {
     "heading": "Statistiques de dépenses",

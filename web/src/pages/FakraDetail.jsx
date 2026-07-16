@@ -49,6 +49,7 @@ export default function FakraDetail() {
   const [editDueDate, setEditDueDate] = useState("");
   const [editRecurrence, setEditRecurrence] = useState("none");
   const [editBudget, setEditBudget] = useState("");
+  const [present, setPresent] = useState([]);
   const [editError, setEditError] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
@@ -126,6 +127,10 @@ export default function FakraDetail() {
   }, [load]);
 
   useFakraSocket(id, (message) => {
+    if (message.event === "presence") {
+      setPresent(message.payload?.users || []);
+      return;
+    }
     if (
       message.payload?.fakra_id === Number(id) &&
       ["item.created", "item.done", "item.undo", "attachment.created", "attachment.deleted"].includes(message.event)
@@ -494,6 +499,26 @@ export default function FakraDetail() {
       </div>
       {fakra.recurrence_parent && (
         <p className="text-xs text-slate-400">{t("fakraDetail.continuesSeries")}</p>
+      )}
+
+      {present.length > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="flex -space-x-2">
+            {present.slice(0, 5).map((u) => (
+              <span
+                key={u.id}
+                title={u.name || u.email}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-teal-600 text-white text-xs font-medium ring-2 ring-white dark:ring-slate-900"
+              >
+                {(u.name || u.email || "?").trim().charAt(0).toUpperCase()}
+              </span>
+            ))}
+          </div>
+          <span className="flex items-center gap-1 text-xs text-slate-500">
+            <span className="h-2 w-2 rounded-full bg-green-500 inline-block" />
+            {t("fakraDetail.viewingNow", { count: present.length })}
+          </span>
+        </div>
       )}
 
       <ErrorText>{actionError}</ErrorText>

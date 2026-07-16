@@ -58,6 +58,7 @@ export default function Dashboard() {
   const [restock, setRestock] = useState([]);
   const [restockDismissed, setRestockDismissed] = useState(false);
   const [creatingRestock, setCreatingRestock] = useState(false);
+  const [overview, setOverview] = useState(null);
 
   const loadFakras = useCallback(async (pageNum = 1, append = false) => {
     if (append) setLoadingMore(true);
@@ -94,6 +95,10 @@ export default function Dashboard() {
     fakrasApi
       .getRestockSuggestions()
       .then((response) => setRestock(response.data.suggestions ?? []))
+      .catch(() => {});
+    fakrasApi
+      .getSpendingAnalytics()
+      .then((response) => setOverview(response.data))
       .catch(() => {});
   }, []);
 
@@ -165,6 +170,25 @@ export default function Dashboard() {
           <Text style={styles.buttonLabel}>{showCreate ? t("common.cancel") : t("dashboard.newFakra")}</Text>
         </Button>
       </View>
+
+      {overview ? (
+        <View style={styles.overviewRow}>
+          <Card style={styles.overviewCard}>
+            <Text style={styles.overviewLabel}>{t("dashboard.overview.spentThisMonth")}</Text>
+            <Text style={styles.overviewValue}>{Number(overview.spent_this_month || 0).toFixed(2)}</Text>
+          </Card>
+          <Card style={styles.overviewCard}>
+            <Text style={styles.overviewLabel}>{t("dashboard.overview.budgetRemaining")}</Text>
+            <Text style={styles.overviewValue}>{Number(overview.budget_remaining || 0).toFixed(2)}</Text>
+          </Card>
+          <Card style={styles.overviewCard}>
+            <Text style={styles.overviewLabel}>{t("dashboard.overview.overBudget")}</Text>
+            <Text style={[styles.overviewValue, overview.over_budget_count > 0 && styles.overviewOver]}>
+              {overview.over_budget_count ?? 0}
+            </Text>
+          </Card>
+        </View>
+      ) : null}
 
       {restock.length > 0 && !restockDismissed && (
         <Card style={styles.restockCard}>
@@ -333,6 +357,11 @@ const styles = StyleSheet.create({
   fakraMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
   dueDate: { flexDirection: "row", alignItems: "center", gap: 4 },
   dueDateText: { fontSize: 12, color: colors.slate500 },
+  overviewRow: { flexDirection: "row", gap: 8 },
+  overviewCard: { flex: 1, gap: 2 },
+  overviewLabel: { fontSize: 11, color: colors.slate500 },
+  overviewValue: { fontSize: 18, fontWeight: "600", color: colors.blue950 },
+  overviewOver: { color: colors.red600 },
   restockCard: { gap: 8, backgroundColor: colors.blue50, borderColor: colors.blue200, borderWidth: 1 },
   restockHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   restockTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },

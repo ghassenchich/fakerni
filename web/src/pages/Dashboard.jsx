@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [restock, setRestock] = useState([]);
   const [restockDismissed, setRestockDismissed] = useState(false);
   const [creatingRestock, setCreatingRestock] = useState(false);
+  const [overview, setOverview] = useState(null);
 
   const [statusFilter, setStatusFilter] = useState("active");
   const [householdFilter, setHouseholdFilter] = useState("");
@@ -81,6 +82,10 @@ export default function Dashboard() {
     fakrasApi
       .getRestockSuggestions()
       .then((response) => setRestock(response.data.suggestions ?? []))
+      .catch(() => {});
+    fakrasApi
+      .getSpendingAnalytics()
+      .then((response) => setOverview(response.data))
       .catch(() => {});
   }, []);
 
@@ -154,6 +159,29 @@ export default function Dashboard() {
           {showCreate ? t("common.cancel") : t("dashboard.newFakra")}
         </Button>
       </div>
+
+      {overview && (
+        <div className="grid grid-cols-3 gap-3">
+          <Card>
+            <p className="text-xs text-slate-500">{t("dashboard.overview.spentThisMonth")}</p>
+            <p className="text-xl font-semibold text-blue-950 dark:text-blue-100 mt-0.5">
+              {Number(overview.spent_this_month || 0).toFixed(2)}
+            </p>
+          </Card>
+          <Card>
+            <p className="text-xs text-slate-500">{t("dashboard.overview.budgetRemaining")}</p>
+            <p className="text-xl font-semibold text-blue-950 dark:text-blue-100 mt-0.5">
+              {Number(overview.budget_remaining || 0).toFixed(2)}
+            </p>
+          </Card>
+          <Card>
+            <p className="text-xs text-slate-500">{t("dashboard.overview.overBudget")}</p>
+            <p className={`text-xl font-semibold mt-0.5 ${overview.over_budget_count > 0 ? "text-red-600" : "text-blue-950 dark:text-blue-100"}`}>
+              {overview.over_budget_count ?? 0}
+            </p>
+          </Card>
+        </div>
+      )}
 
       {restock.length > 0 && !restockDismissed && (
         <Card className="border-teal-200 bg-teal-50 dark:border-teal-800 dark:bg-teal-950/40">

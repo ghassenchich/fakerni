@@ -120,6 +120,11 @@
       "subtitle": "بناءً على ما تشتريه عادةً لكنه غير موجود في أي قائمة حالية.",
       "cta": "إنشاء قائمة بهذه العناصر",
       "listTitle": "إعادة تخزين"
+    },
+    "overview": {
+      "spentThisMonth": "مصروف هذا الشهر",
+      "budgetRemaining": "الميزانية المتبقية",
+      "overBudget": "تجاوز الميزانية"
     }
   },
   "households": {
@@ -219,7 +224,9 @@
     "budgetPlaceholder": "حد إنفاق اختياري",
     "budgetSpentOf": "{{spent}} من {{budget}} مصروف",
     "budgetRemaining": "{{amount}} متبقٍ في الميزانية",
-    "overBudgetBy": "تجاوز الميزانية بمقدار {{amount}}"
+    "overBudgetBy": "تجاوز الميزانية بمقدار {{amount}}",
+    "viewingNow_one": "{{count}} يشاهد الآن",
+    "viewingNow_other": "{{count}} يشاهدون الآن"
   },
   "analytics": {
     "heading": "إحصائيات الإنفاق",

@@ -62,14 +62,44 @@ class FakraRealtimeTests(TransactionTestCase):
         connected, _ = await communicator.connect()
         self.assertTrue(connected)
 
+        # On connect the consumer sends the current presence first; drain it.
+        first = await communicator.receive_json_from(timeout=5)
+        self.assertEqual(first["event"], "presence")
+
         await sync_to_async(self._create_item)(self.owner)
 
         response = await communicator.receive_json_from(timeout=5)
         self.assertEqual(response["event"], "item.created")
         self.assertEqual(response["payload"]["fakra_id"], self.fakra.id)
         self.assertEqual(response["payload"]["item"]["name"], "Milk")
-
         await communicator.disconnect()
+
+    async def test_presence_reports_current_viewers(self):
+        c1 = WebsocketCommunicator(application, self.ws_url(self.owner))
+        connected, _ = await c1.connect()
+        self.assertTrue(connected)
+
+        msg = await c1.receive_json_from(timeout=5)
+        self.assertEqual(msg["event"], "presence")
+        self.assertEqual(len(msg["payload"]["users"]), 1)
+
+        c2 = WebsocketCommunicator(application, self.ws_url(self.shared_user))
+        connected2, _ = await c2.connect()
+        self.assertTrue(connected2)
+
+        # The first client is told a second viewer joined.
+        msg2 = await c1.receive_json_from(timeout=5)
+        self.assertEqual(msg2["event"], "presence")
+        self.assertEqual(len(msg2["payload"]["users"]), 2)
+
+        await c2.disconnect()
+
+        # And told again when they leave.
+        msg3 = await c1.receive_json_from(timeout=5)
+        self.assertEqual(msg3["event"], "presence")
+        self.assertEqual(len(msg3["payload"]["users"]), 1)
+
+        await c1.disconnect()
 
     def _create_item(self, user):
         client = APIClient()

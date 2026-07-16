@@ -76,6 +76,7 @@ export default function FakraDetail() {
   const [newItemCategory, setNewItemCategory] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
   const [priceHint, setPriceHint] = useState(null);
+  const [present, setPresent] = useState([]);
   const [itemError, setItemError] = useState("");
   const [itemLoading, setItemLoading] = useState(false);
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -145,6 +146,10 @@ export default function FakraDetail() {
   }, [load]);
 
   useFakraSocket(id, (message) => {
+    if (message.event === "presence") {
+      setPresent(message.payload?.users || []);
+      return;
+    }
     if (
       message.payload?.fakra_id === Number(id) &&
       ["item.created", "item.done", "item.undo", "attachment.created", "attachment.deleted"].includes(message.event)
@@ -553,6 +558,22 @@ export default function FakraDetail() {
 
       {fakra.recurrence_parent ? (
         <Text style={styles.muted}>{t("fakraDetail.continuesSeries")}</Text>
+      ) : null}
+
+      {present.length > 0 ? (
+        <View style={styles.presenceRow}>
+          <View style={styles.presenceAvatars}>
+            {present.slice(0, 5).map((u, i) => (
+              <View key={u.id} style={[styles.presenceAvatar, i > 0 && styles.presenceAvatarOverlap]}>
+                <Text style={styles.presenceInitial}>
+                  {(u.name || u.email || "?").trim().charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.presenceDot} />
+          <Text style={styles.presenceText}>{t("fakraDetail.viewingNow", { count: present.length })}</Text>
+        </View>
       ) : null}
 
       <ErrorText>{actionError}</ErrorText>
@@ -978,6 +999,13 @@ const styles = StyleSheet.create({
   successText: { fontSize: 14, color: colors.emerald600 },
   skippedText: { fontSize: 12, color: colors.amber700 },
   priceHint: { fontSize: 13, color: "#b45309", marginTop: 4 },
+  presenceRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  presenceAvatars: { flexDirection: "row" },
+  presenceAvatar: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.blue600, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.white },
+  presenceAvatarOverlap: { marginLeft: -8 },
+  presenceInitial: { color: colors.white, fontSize: 12, fontWeight: "600" },
+  presenceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.emerald600 },
+  presenceText: { fontSize: 12, color: colors.slate500 },
   budgetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   budgetOver: { fontSize: 13, color: colors.red600, fontWeight: "600" },
   budgetTrack: { height: 10, borderRadius: 999, backgroundColor: colors.slate100, overflow: "hidden" },
