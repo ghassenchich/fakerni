@@ -19,9 +19,11 @@ import {
   Share2,
   Sparkles,
   Trash2,
+  UserRound,
   Wand2,
 } from "lucide-react";
 import * as fakrasApi from "../api/fakras";
+import * as householdsApi from "../api/households";
 import { useFakraSocket } from "../hooks/useFakraSocket";
 import { Badge, Button, Card, ErrorText, IconButton, Input, Label, Select, Textarea, extractError } from "../components/ui";
 import { getDueStatus } from "../utils/dueStatus";
@@ -69,6 +71,8 @@ export default function FakraDetail() {
   const [editItemUnit, setEditItemUnit] = useState("");
   const [editItemCategory, setEditItemCategory] = useState("");
   const [editItemPrice, setEditItemPrice] = useState("");
+  const [editItemAssignee, setEditItemAssignee] = useState("");
+  const [members, setMembers] = useState([]);
   const [editItemError, setEditItemError] = useState("");
   const [editItemLoading, setEditItemLoading] = useState(false);
 
@@ -114,6 +118,12 @@ export default function FakraDetail() {
       setEditDueDate(response.data.due_date ? response.data.due_date.slice(0, 10) : "");
       setEditRecurrence(response.data.recurrence || "none");
       setEditBudget(response.data.budget ?? "");
+      if (response.data.household) {
+        householdsApi
+          .listMembers(response.data.household)
+          .then((res) => setMembers(res.data))
+          .catch(() => {});
+      }
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -382,6 +392,7 @@ export default function FakraDetail() {
     setEditItemUnit(item.unit || "");
     setEditItemCategory(item.category || "");
     setEditItemPrice(item.estimated_price != null ? String(item.estimated_price) : "");
+    setEditItemAssignee(item.assigned_to ? String(item.assigned_to) : "");
     setEditItemError("");
   }
 
@@ -397,6 +408,7 @@ export default function FakraDetail() {
         unit: editItemUnit || null,
         category: editItemCategory || null,
         estimated_price: editItemPrice === "" ? null : Number(editItemPrice),
+        assigned_to: editItemAssignee === "" ? null : Number(editItemAssignee),
       });
       setEditingItem(null);
       load();
@@ -858,6 +870,17 @@ export default function FakraDetail() {
                       <Label>{t("fakraDetail.price")}</Label>
                       <Input type="number" min={0} step="0.01" value={editItemPrice} onChange={(e) => setEditItemPrice(e.target.value)} />
                     </div>
+                    {members.length > 0 && (
+                      <div className="w-40">
+                        <Label>{t("fakraDetail.assignee")}</Label>
+                        <Select value={editItemAssignee} onChange={(e) => setEditItemAssignee(e.target.value)}>
+                          <option value="">{t("fakraDetail.unassigned")}</option>
+                          {members.map((m) => (
+                            <option key={m.user} value={m.user}>{m.user_email}</option>
+                          ))}
+                        </Select>
+                      </div>
+                    )}
                     <div className="flex gap-1">
                       <Button type="submit" disabled={editItemLoading}>{editItemLoading ? t("common.saving") : t("common.save")}</Button>
                       <Button type="button" variant="secondary" onClick={() => setEditingItem(null)}>{t("common.cancel")}</Button>
@@ -884,6 +907,12 @@ export default function FakraDetail() {
                     {item.estimated_price != null && (
                       <span className="text-xs text-slate-400">
                         {(item.estimated_price * item.quantity).toFixed(2)}
+                      </span>
+                    )}
+                    {item.assigned_to_email && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                        <UserRound className="h-3 w-3" />
+                        {item.assigned_to_email.split("@")[0]}
                       </span>
                     )}
                   </button>

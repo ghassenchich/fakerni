@@ -25,6 +25,7 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import * as fakrasApi from "../../src/api/fakras";
+import * as householdsApi from "../../src/api/households";
 import { useFakraSocket } from "../../src/hooks/useFakraSocket";
 import {
   Badge,
@@ -91,6 +92,8 @@ export default function FakraDetail() {
   const [editItemUnit, setEditItemUnit] = useState("");
   const [editItemCategory, setEditItemCategory] = useState("");
   const [editItemPrice, setEditItemPrice] = useState("");
+  const [editItemAssignee, setEditItemAssignee] = useState("");
+  const [members, setMembers] = useState([]);
   const [editItemError, setEditItemError] = useState("");
   const [editItemLoading, setEditItemLoading] = useState(false);
 
@@ -133,6 +136,9 @@ export default function FakraDetail() {
       setEditDueDate(response.data.due_date ? response.data.due_date.slice(0, 10) : "");
       setEditRecurrence(response.data.recurrence || "none");
       setEditBudget(response.data.budget != null ? String(response.data.budget) : "");
+      if (response.data.household) {
+        householdsApi.listMembers(response.data.household).then((res) => setMembers(res.data)).catch(() => {});
+      }
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -395,6 +401,7 @@ export default function FakraDetail() {
     setEditItemUnit(item.unit || "");
     setEditItemCategory(item.category || "");
     setEditItemPrice(item.estimated_price != null ? String(item.estimated_price) : "");
+    setEditItemAssignee(item.assigned_to ? String(item.assigned_to) : "");
     setEditItemError("");
   }
 
@@ -409,6 +416,7 @@ export default function FakraDetail() {
         unit: editItemUnit || null,
         category: editItemCategory || null,
         estimated_price: editItemPrice === "" ? null : Number(editItemPrice),
+        assigned_to: editItemAssignee === "" ? null : Number(editItemAssignee),
       });
       setEditingItem(null);
       load();
@@ -881,6 +889,17 @@ export default function FakraDetail() {
                       <Input value={editItemPrice} onChangeText={setEditItemPrice} keyboardType="numeric" />
                     </View>
                   </View>
+                  {members.length > 0 ? (
+                    <View style={styles.field}>
+                      <Label>{t("fakraDetail.assignee")}</Label>
+                      <Select selectedValue={editItemAssignee} onValueChange={setEditItemAssignee}>
+                        <SelectItem label={t("fakraDetail.unassigned")} value="" />
+                        {members.map((m) => (
+                          <SelectItem key={m.user} label={m.user_email} value={String(m.user)} />
+                        ))}
+                      </Select>
+                    </View>
+                  ) : null}
                   <ErrorText>{editItemError}</ErrorText>
                   <View style={styles.actionsRow}>
                     <Button disabled={editItemLoading} onPress={handleSaveEditItem}>
@@ -906,6 +925,11 @@ export default function FakraDetail() {
                   </Text>
                   {item.estimated_price != null ? (
                     <Text style={styles.itemPrice}>{(item.estimated_price * item.quantity).toFixed(2)}</Text>
+                  ) : null}
+                  {item.assigned_to_email ? (
+                    <View style={styles.assigneeBadge}>
+                      <Text style={styles.assigneeText}>{item.assigned_to_email.split("@")[0]}</Text>
+                    </View>
                   ) : null}
                 </Pressable>
                 <View style={styles.itemActions}>
@@ -1006,6 +1030,8 @@ const styles = StyleSheet.create({
   presenceInitial: { color: colors.white, fontSize: 12, fontWeight: "600" },
   presenceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.emerald600 },
   presenceText: { fontSize: 12, color: colors.slate500 },
+  assigneeBadge: { backgroundColor: colors.blue100, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  assigneeText: { fontSize: 11, color: colors.blue800 },
   budgetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   budgetOver: { fontSize: 13, color: colors.red600, fontWeight: "600" },
   budgetTrack: { height: 10, borderRadius: 999, backgroundColor: colors.slate100, overflow: "hidden" },

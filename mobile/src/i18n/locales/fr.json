@@ -232,7 +232,9 @@
     "budgetRemaining": "{{amount}} restant dans le budget",
     "overBudgetBy": "Dépassement de {{amount}}",
     "viewingNow_one": "{{count}} en train de regarder",
-    "viewingNow_other": "{{count}} en train de regarder"
+    "viewingNow_other": "{{count}} en train de regarder",
+    "assignee": "Assigné à",
+    "unassigned": "Non assigné"
   },
   "analytics": {
     "heading": "Statistiques de dépenses",

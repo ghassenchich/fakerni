@@ -47,6 +47,11 @@ class ItemSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    assigned_to_email = serializers.EmailField(
+        source="assigned_to.email",
+        read_only=True
+    )
+
     attachments = AttachmentSerializer(many=True, read_only=True)
 
     class Meta:
@@ -64,6 +69,8 @@ class ItemSerializer(serializers.ModelSerializer):
             "status",
             "created_by",
             "created_by_email",
+            "assigned_to",
+            "assigned_to_email",
             "done_by",
             "done_by_email",
             "done_at",
@@ -76,12 +83,25 @@ class ItemSerializer(serializers.ModelSerializer):
             "status",
             "created_by",
             "created_by_email",
+            "assigned_to_email",
             "done_by",
             "done_by_email",
             "done_at",
             "created_at",
             "attachments",
         ]
+
+    def validate_assigned_to(self, value):
+        if value is None:
+            return value
+        fakra = getattr(self.instance, "fakra", None)
+        if fakra is not None:
+            from .permissions import can_view_fakra
+            if not can_view_fakra(value, fakra):
+                raise serializers.ValidationError(
+                    "That user doesn't have access to this Fakra"
+                )
+        return value
 
     def validate_name(self, value):
         value = value.strip()

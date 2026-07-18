@@ -232,7 +232,9 @@
     "budgetRemaining": "{{amount}} left in budget",
     "overBudgetBy": "Over budget by {{amount}}",
     "viewingNow_one": "{{count}} viewing now",
-    "viewingNow_other": "{{count}} viewing now"
+    "viewingNow_other": "{{count}} viewing now",
+    "assignee": "Assignee",
+    "unassigned": "Unassigned"
   },
   "analytics": {
     "heading": "Spending analytics",

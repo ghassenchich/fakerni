@@ -160,6 +160,14 @@ class Item(models.Model):
         related_name="created_items"
     )
 
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="assigned_items",
+        null=True,
+        blank=True
+    )
+
     done_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

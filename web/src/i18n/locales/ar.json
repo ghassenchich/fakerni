@@ -215,7 +215,9 @@
     "budgetRemaining": "{{amount}} متبقٍ في الميزانية",
     "overBudgetBy": "تجاوز الميزانية بمقدار {{amount}}",
     "viewingNow_one": "{{count}} يشاهد الآن",
-    "viewingNow_other": "{{count}} يشاهدون الآن"
+    "viewingNow_other": "{{count}} يشاهدون الآن",
+    "assignee": "المكلَّف",
+    "unassigned": "غير مُكلَّف"
   },
   "analytics": {
     "heading": "إحصائيات الإنفاق",

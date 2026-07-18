@@ -1428,3 +1428,44 @@ class SpendingDigestTests(APITestCase):
     def test_digest_requires_authentication(self):
         r = self.client.get("/api/fakras/analytics/digest/")
         self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class ItemAssignmentTests(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(email="owner@test.com", password="pass1234")
+        self.member = User.objects.create_user(email="member@test.com", password="pass1234")
+        self.outsider = User.objects.create_user(email="outsider@test.com", password="pass1234")
+        self.household = Household.objects.create(name="Family", owner=self.owner)
+        Membership.objects.create(user=self.owner, household=self.household, role="owner")
+        Membership.objects.create(user=self.member, household=self.household, role="member")
+        self.fakra = Fakra.objects.create(title="Groceries", household=self.household, created_by=self.owner)
+        self.item = Item.objects.create(fakra=self.fakra, name="Milk", created_by=self.owner)
+
+    def test_assign_item_to_member(self):
+        self.client.force_authenticate(self.owner)
+        r = self.client.patch(
+            f"/api/fakras/{self.fakra.id}/items/{self.item.id}/",
+            {"assigned_to": self.member.id},
+        )
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data["assigned_to"], self.member.id)
+        self.assertEqual(r.data["assigned_to_email"], "member@test.com")
+
+    def test_cannot_assign_to_user_without_access(self):
+        self.client.force_authenticate(self.owner)
+        r = self.client.patch(
+            f"/api/fakras/{self.fakra.id}/items/{self.item.id}/",
+            {"assigned_to": self.outsider.id},
+        )
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unassign_item(self):
+        self.item.assigned_to = self.member
+        self.item.save()
+        self.client.force_authenticate(self.owner)
+        r = self.client.patch(
+            f"/api/fakras/{self.fakra.id}/items/{self.item.id}/",
+            {"assigned_to": None}, format="json",
+        )
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertIsNone(r.data["assigned_to"])
