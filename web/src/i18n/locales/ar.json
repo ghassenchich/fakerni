@@ -141,7 +141,13 @@
     "removeMember": "إزالة العضو",
     "fakras": "الفكرات",
     "noFakras": "لا توجد فكرات لهذه المجموعة حتى الآن.",
-    "newFakraLink": "+ فكرة جديدة من لوحة التحكم"
+    "newFakraLink": "+ فكرة جديدة من لوحة التحكم",
+    "settleUp": "تسوية الحسابات",
+    "totalSpent": "إجمالي إنفاق المجموعة: {{amount}}",
+    "getsBack": "يسترد {{amount}}",
+    "owes": "مدين بـ {{amount}}",
+    "settled": "تمت التسوية",
+    "suggestedTransfers": "التحويلات المقترحة"
   },
   "fakraDetail": {
     "due": "الاستحقاق {{date}}",

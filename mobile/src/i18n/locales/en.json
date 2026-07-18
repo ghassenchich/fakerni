@@ -157,7 +157,13 @@
     "removeMember": "Remove member",
     "fakras": "Fakras",
     "noFakras": "No Fakras for this group yet.",
-    "newFakraLink": "+ New Fakra from dashboard"
+    "newFakraLink": "+ New Fakra from dashboard",
+    "settleUp": "Settle up",
+    "totalSpent": "Total group spend: {{amount}}",
+    "getsBack": "gets back {{amount}}",
+    "owes": "owes {{amount}}",
+    "settled": "settled up",
+    "suggestedTransfers": "Suggested transfers"
   },
   "fakraDetail": {
     "due": "Due {{date}}",

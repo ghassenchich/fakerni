@@ -141,7 +141,13 @@
     "removeMember": "Retirer le membre",
     "fakras": "Fakras",
     "noFakras": "Aucun Fakra pour ce groupe pour le moment.",
-    "newFakraLink": "+ Nouveau Fakra depuis le tableau de bord"
+    "newFakraLink": "+ Nouveau Fakra depuis le tableau de bord",
+    "settleUp": "Régler les comptes",
+    "totalSpent": "Dépense totale du groupe : {{amount}}",
+    "getsBack": "récupère {{amount}}",
+    "owes": "doit {{amount}}",
+    "settled": "à jour",
+    "suggestedTransfers": "Transferts suggérés"
   },
   "fakraDetail": {
     "due": "Échéance {{date}}",

@@ -188,3 +188,60 @@ class HouseholdTests(APITestCase):
         response = self.client.delete(f"/api/household/{household.id}/members/{self.owner.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class HouseholdBalancesTests(APITestCase):
+    def setUp(self):
+        from decimal import Decimal
+        self.Decimal = Decimal
+        self.a = get_user_model().objects.create_user(email="a@test.com", password="pass1234")
+        self.b = get_user_model().objects.create_user(email="b@test.com", password="pass1234")
+        self.c = get_user_model().objects.create_user(email="c@test.com", password="pass1234")
+        self.outsider = get_user_model().objects.create_user(email="out@test.com", password="pass1234")
+
+        self.household = Household.objects.create(name="Trip", owner=self.a)
+        for u in (self.a, self.b, self.c):
+            Membership.objects.create(user=u, household=self.household, role="owner" if u == self.a else "member")
+
+    def _done(self, who, price):
+        from fakras.models import Fakra, Item
+        fakra = Fakra.objects.create(title="Shop", household=self.household, created_by=who)
+        Item.objects.create(
+            fakra=fakra, name="Thing", quantity=1, estimated_price=self.Decimal(str(price)),
+            created_by=who, status="done", done_by=who, done_at=timezone.now(),
+        )
+
+    def test_balances_and_settlements(self):
+        # A paid 90, B and C paid nothing. Total 90, fair share 30 each.
+        self._done(self.a, "90.00")
+
+        self.client.force_authenticate(self.a)
+        r = self.client.get(f"/api/household/{self.household.id}/balances/")
+
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(float(r.data["total"]), 90.0)
+        self.assertEqual(r.data["member_count"], 3)
+
+        by_email = {m["email"]: m for m in r.data["per_member"]}
+        self.assertEqual(by_email["a@test.com"]["balance"], 60.0)   # paid 90 - share 30
+        self.assertEqual(by_email["b@test.com"]["balance"], -30.0)
+        self.assertEqual(by_email["c@test.com"]["balance"], -30.0)
+
+        # B and C each owe A 30.
+        settlements = r.data["settlements"]
+        self.assertEqual(len(settlements), 2)
+        for s in settlements:
+            self.assertEqual(s["to"], "a@test.com")
+            self.assertEqual(s["amount"], 30.0)
+
+    def test_non_member_forbidden(self):
+        self.client.force_authenticate(self.outsider)
+        r = self.client.get(f"/api/household/{self.household.id}/balances/")
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_no_spend_is_zero(self):
+        self.client.force_authenticate(self.a)
+        r = self.client.get(f"/api/household/{self.household.id}/balances/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(float(r.data["total"]), 0.0)
+        self.assertEqual(r.data["settlements"], [])

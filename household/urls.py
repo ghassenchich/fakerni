@@ -8,6 +8,7 @@ from .views import (
     RegenerateInviteView,
     HouseholdMembersView,
     HouseholdMemberDetailView,
+    HouseholdBalancesView,
 )
 
 router = DefaultRouter()
@@ -34,6 +35,11 @@ urlpatterns = [
     path(
         "<int:pk>/members/",
         HouseholdMembersView.as_view(),
+    ),
+
+    path(
+        "<int:pk>/balances/",
+        HouseholdBalancesView.as_view(),
     ),
 
     path(

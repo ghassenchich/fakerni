@@ -7,6 +7,7 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 
 from rest_framework import status, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -267,3 +268,88 @@ class HouseholdMemberDetailView(APIView):
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+def _settlements(balances):
+    """Greedy minimum-cash-flow: who should pay whom to zero out balances.
+
+    `balances` maps user-key -> net balance (amount paid minus fair share).
+    Positive means the group owes them; negative means they owe the group.
+    """
+    creditors = [[k, round(v, 2)] for k, v in balances.items() if v > 0.01]
+    debtors = [[k, round(-v, 2)] for k, v in balances.items() if v < -0.01]
+    creditors.sort(key=lambda x: -x[1])
+    debtors.sort(key=lambda x: -x[1])
+
+    result = []
+    i = j = 0
+    while i < len(debtors) and j < len(creditors):
+        pay = min(debtors[i][1], creditors[j][1])
+        if pay > 0:
+            result.append({"from": debtors[i][0], "to": creditors[j][0], "amount": round(pay, 2)})
+        debtors[i][1] -= pay
+        creditors[j][1] -= pay
+        if debtors[i][1] <= 0.01:
+            i += 1
+        if creditors[j][1] <= 0.01:
+            j += 1
+    return result
+
+
+class HouseholdBalancesView(APIView):
+    """Expense-splitting: who paid what across a group's Fakras, and who owes whom.
+
+    Fair share = total group spend / number of members. A member's balance is
+    what they actually paid (items they marked done) minus their fair share.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        from django.db.models import F, Sum
+        from fakras.models import Item
+
+        household = get_object_or_404(Household, pk=pk)
+        if not household.memberships.filter(user=request.user).exists():
+            raise PermissionDenied("You are not a member of this group")
+
+        memberships = list(household.memberships.select_related("user"))
+        members = [m.user for m in memberships]
+        member_count = len(members) or 1
+
+        paid_rows = (
+            Item.objects
+            .filter(fakra__household=household, status="done", estimated_price__isnull=False)
+            .annotate(cost=F("estimated_price") * F("quantity"))
+            .values("done_by")
+            .annotate(total=Sum("cost"))
+        )
+        paid = {row["done_by"]: row["total"] or 0 for row in paid_rows}
+
+        total = sum(paid.values())
+        share = (total / member_count) if total else 0
+
+        by_email = {u.id: u.email for u in members}
+        name_by_email = {u.id: (getattr(u, "name", "") or "") for u in members}
+
+        balances = {}
+        per_member = []
+        for u in members:
+            u_paid = paid.get(u.id, 0)
+            balance = float(u_paid) - float(share)
+            balances[u.email] = balance
+            per_member.append({
+                "email": u.email,
+                "name": name_by_email[u.id],
+                "paid": round(float(u_paid), 2),
+                "share": round(float(share), 2),
+                "balance": round(balance, 2),
+            })
+
+        per_member.sort(key=lambda m: m["balance"], reverse=True)
+        settlements = _settlements(balances)
+
+        return Response({
+            "total": round(float(total), 2),
+            "member_count": member_count,
+            "per_member": per_member,
+            "settlements": settlements,
+        })

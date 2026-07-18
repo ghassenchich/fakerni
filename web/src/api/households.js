@@ -39,3 +39,7 @@ export function listMembers(householdId) {
 export function removeMember(householdId, userId) {
   return client.delete(`/api/household/${householdId}/members/${userId}/`);
 }
+
+export function getBalances(householdId) {
+  return client.get(`/api/household/${householdId}/balances/`);
+}

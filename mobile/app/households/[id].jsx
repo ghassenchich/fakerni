@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, KeyRound, ListChecks, LogOut, RefreshCw, Users, UserX } from "lucide-react-native";
+import { ChevronRight, KeyRound, ListChecks, LogOut, RefreshCw, Users, UserX, Wallet } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import * as householdsApi from "../../src/api/households";
 import * as fakrasApi from "../../src/api/fakras";
@@ -35,6 +35,7 @@ export default function HouseholdDetail() {
 
   const [household, setHousehold] = useState(null);
   const [fakras, setFakras] = useState([]);
+  const [balances, setBalances] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -50,6 +51,7 @@ export default function HouseholdDetail() {
       ]);
       setHousehold(householdRes.data);
       setFakras(fakrasRes.data.results ?? fakrasRes.data);
+      householdsApi.getBalances(id).then((res) => setBalances(res.data)).catch(() => {});
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -201,6 +203,40 @@ export default function HouseholdDetail() {
         ))}
       </Card>
 
+      {balances && balances.total > 0 ? (
+        <Card style={styles.card}>
+          <View style={styles.cardTitleRow}>
+            <Wallet size={16} color={colors.blue700} />
+            <Text style={styles.cardTitle}>{t("householdDetail.settleUp")}</Text>
+          </View>
+          <Text style={styles.muted}>{t("householdDetail.totalSpent", { amount: Number(balances.total).toFixed(2) })}</Text>
+          <View style={styles.balanceList}>
+            {balances.per_member.map((m) => (
+              <View key={m.email} style={styles.balanceRow}>
+                <Text style={styles.balanceName}>{m.name || m.email}</Text>
+                <Text style={m.balance > 0 ? styles.balancePos : m.balance < 0 ? styles.balanceNeg : styles.muted}>
+                  {m.balance > 0
+                    ? t("householdDetail.getsBack", { amount: m.balance.toFixed(2) })
+                    : m.balance < 0
+                      ? t("householdDetail.owes", { amount: Math.abs(m.balance).toFixed(2) })
+                      : t("householdDetail.settled")}
+                </Text>
+              </View>
+            ))}
+          </View>
+          {balances.settlements.length > 0 ? (
+            <View style={styles.settlementBlock}>
+              <Text style={styles.settlementLabel}>{t("householdDetail.suggestedTransfers")}</Text>
+              {balances.settlements.map((s, i) => (
+                <Text key={i} style={styles.settlementRow}>
+                  {s.from} → {s.to}   <Text style={styles.settlementAmount}>{s.amount.toFixed(2)}</Text>
+                </Text>
+              ))}
+            </View>
+          ) : null}
+        </Card>
+      ) : null}
+
       <Card style={styles.card}>
         <View style={styles.cardTitleRow}>
           <ListChecks size={16} color={colors.blue700} />
@@ -242,6 +278,15 @@ const styles = StyleSheet.create({
   card: { gap: 8 },
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
   cardTitle: { fontWeight: "500", color: colors.blue950 },
+  balanceList: { gap: 6, marginTop: 4 },
+  balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  balanceName: { fontSize: 14, color: colors.slate700 },
+  balancePos: { fontSize: 14, color: colors.emerald600, fontWeight: "600" },
+  balanceNeg: { fontSize: 14, color: colors.red600, fontWeight: "600" },
+  settlementBlock: { borderTopWidth: 1, borderTopColor: colors.slate100, paddingTop: 8, marginTop: 8, gap: 4 },
+  settlementLabel: { fontSize: 11, textTransform: "uppercase", color: colors.slate400, marginBottom: 2 },
+  settlementRow: { fontSize: 14, color: colors.slate700 },
+  settlementAmount: { fontWeight: "600", color: colors.blue800 },
   inviteRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   inviteCode: {
     backgroundColor: colors.blue50,
