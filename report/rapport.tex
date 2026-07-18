@@ -1,0 +1,445 @@
+%=====================================================================
+%  Fakerni — End-of-Studies Project Report (PFE)
+%  Compile on Overleaf with pdfLaTeX.
+%  Upload the whole "report/" folder (this file + the images/ subfolder).
+%  Edit the \myXxx values just below with your real details.
+%=====================================================================
+\documentclass[12pt,a4paper,oneside]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{images/}}
+
+% ---- Your details (EDIT THESE) -------------------------------------
+\newcommand{\myTitle}{Fakerni: A Smart Shopping and Task Coordination Platform for Groups}
+\newcommand{\mySubtitle}{Full-Stack Web, Mobile and Real-Time Application with AI}
+\newcommand{\myAuthor}{Ghassen Chich}          % <-- change to your full name
+\newcommand{\mySupervisor}{[Supervisor Name]}   % <-- change
+\newcommand{\myUniversity}{[University / Institute Name]}
+\newcommand{\myDept}{[Department / Field of Study]}
+\newcommand{\myYear}{2025 -- 2026}
+% --------------------------------------------------------------------
+
+% ---- Colors & code style -------------------------------------------
+\definecolor{brand}{RGB}{0,54,61}
+\definecolor{codebg}{RGB}{244,247,247}
+\definecolor{codekw}{RGB}{26,107,115}
+\definecolor{codecm}{RGB}{113,120,122}
+
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecm}\itshape,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{lightgray},
+  columns=fullflexible,
+  showstringspaces=false,
+  captionpos=b,
+}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\huge\bfseries\color{brand}}{\thechapter\quad}{0pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{brand}Fakerni}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Include an image only if it exists, otherwise print a placeholder box.
+\newcommand{\safefig}[3]{% {file}{width}{caption}
+  \begin{figure}[ht]\centering
+  \IfFileExists{images/#1}{\includegraphics[width=#2]{#1}}%
+  {\fbox{\parbox[c][3cm][c]{#2}{\centering\itshape Figure placeholder: upload \texttt{images/#1}}}}%
+  \caption{#3}\label{fig:#1}
+  \end{figure}}
+
+\begin{document}
+
+%=====================================================================
+% TITLE PAGE
+%=====================================================================
+\begin{titlepage}
+\centering
+\vspace*{0.5cm}
+{\large \myUniversity\par}
+{\large \myDept\par}
+\vspace{2cm}
+{\Large\bfseries End-of-Studies Project Report\par}
+\vspace{1.5cm}
+\rule{\linewidth}{0.5mm}\\[0.5cm]
+{\huge\bfseries\color{brand} \myTitle \par}
+\vspace{0.4cm}
+{\large\itshape \mySubtitle \par}
+\rule{\linewidth}{0.5mm}\\[2cm]
+
+\begin{tabular}{rl}
+\textbf{Prepared by:} & \myAuthor\\[6pt]
+\textbf{Supervised by:} & \mySupervisor\\[6pt]
+\textbf{Academic year:} & \myYear\\
+\end{tabular}
+
+\vfill
+{\small Source code: \url{https://github.com/ghassenchich/fakerni}\par}
+\end{titlepage}
+
+%=====================================================================
+% ABSTRACT
+%=====================================================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\thispagestyle{fancy}
+
+Coordinating shared shopping and tasks within a group --- a family, a
+community, an association or a society --- is commonly handled through informal
+messaging and paper lists. This leads to duplicated purchases, forgotten items,
+no accountability for who did what, and no visibility over shared spending.
+
+This project presents \textbf{Fakerni}, a full-stack platform that gives any
+group a shared, structured and \emph{real-time} space to organise what to buy
+and do, available on both web and mobile. Beyond a conventional to-do
+application, Fakerni introduces three differentiating capabilities:
+\textbf{artificial intelligence} (turning a photographed receipt or a free-text
+sentence into structured list items), \textbf{budget management and spending
+analytics}, and \textbf{live collaboration} (instant synchronisation and
+presence indicators). The system is built with a Django REST + Channels
+backend, a React web client and a React Native (Expo) mobile client, is fully
+trilingual (Arabic, French, English), and is validated by an automated test
+suite of over 150 tests.
+
+\vspace{0.4cm}
+\noindent\textbf{Keywords:} group coordination, real-time web, Django, React,
+React Native, WebSockets, artificial intelligence, budget analytics,
+role-based access control.
+
+%=====================================================================
+% TOC
+%=====================================================================
+\tableofcontents
+\listoffigures
+
+%=====================================================================
+\chapter{General Introduction}
+%=====================================================================
+Digital tools have transformed how individuals organise their daily lives, yet
+the coordination of \emph{shared} responsibilities inside a group remains
+surprisingly under-served. Families still coordinate grocery shopping over chat
+messages; student clubs and associations track their errands on paper; nobody
+has a reliable, shared view of what has been done or how much has been spent.
+
+The aim of this end-of-studies project is to design and build a complete
+platform, named \textbf{Fakerni} (from the Arabic \emph{fakkerni}, ``remind
+me''), that addresses these shortcomings. A \emph{Fakra} (from the Arabic
+\emph{fikra}, ``idea'') is a single shared list of items to buy or tasks to do;
+a \emph{group} is the set of people who share it, with defined roles and an
+invitation mechanism.
+
+This report is organised as follows. Chapter~\ref{ch:context} presents the
+context, the shortcomings of existing practices and the objectives of the
+project. Chapter~\ref{ch:analysis} details the functional and non-functional
+requirements. Chapter~\ref{ch:techarch} justifies the chosen technologies and
+describes the overall architecture. Chapter~\ref{ch:design} covers the data
+model, the authorisation model and the real-time design. Chapter~\ref{ch:impl}
+describes the implementation of the main features. Chapter~\ref{ch:testing}
+addresses testing and quality assurance, and Chapter~\ref{ch:deploy} discusses
+deployment. A general conclusion then summarises the work and outlines
+perspectives.
+
+%=====================================================================
+\chapter{Project Context and Problem Statement}\label{ch:context}
+%=====================================================================
+\section{Context}
+The project sits at the intersection of two mature domains: collaborative task
+management (to-do and list applications) and shared expense management. Popular
+task applications excel at individual productivity but rarely model a
+\emph{group} as a first-class entity with roles and real-time collaboration.
+Conversely, expense-splitting applications track shared money but do not manage
+the underlying shopping or task lists. Fakerni unifies both around a single
+shared object, the Fakra.
+
+\section{Study of the Existing Situation}
+Current group coordination typically relies on:
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Instant messaging} (e.g.\ group chats): unstructured, items get
+        lost in the conversation, and there is no notion of ``done''.
+  \item \textbf{Paper or personal note apps}: not shared; only one person sees
+        the list.
+  \item \textbf{Generic to-do apps}: individual-centric, without group roles,
+        shared budgets or live synchronisation.
+\end{itemize}
+
+\section{Problem Statement}
+From the study above, four concrete problems emerge:
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Scattered information} --- no single shared source of truth.
+  \item \textbf{Duplication and omissions} --- two people buy the same thing,
+        or an unclaimed item is forgotten.
+  \item \textbf{No accountability} --- no record of who added or completed what.
+  \item \textbf{No spending awareness} --- no shared view of cost or budget.
+\end{enumerate}
+
+\section{Proposed Solution and Objectives}
+Fakerni proposes a shared, real-time platform providing: a single source of
+truth (groups, Fakras, items); instant synchronisation across web and mobile;
+an activity log for accountability; per-item pricing with budgets and analytics;
+and AI assistance to reduce manual data entry. The measurable objectives were:
+a secure multi-user REST + real-time API, two client applications (web and
+mobile) sharing the same backend, trilingual support, and a comprehensive
+automated test suite.
+
+%=====================================================================
+\chapter{Requirements Analysis}\label{ch:analysis}
+%=====================================================================
+\section{Actors}
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Visitor} --- can register and log in.
+  \item \textbf{Member} --- a registered user who belongs to a group; can create
+        and manage Fakras and items.
+  \item \textbf{Admin / Owner} --- a member with elevated privileges over a group
+        (manage members, moderate content, delete lists).
+\end{itemize}
+
+\section{Functional Requirements}
+The main functional requirements are summarised in Table~\ref{tab:func}.
+
+\begin{table}[ht]\centering
+\caption{Main functional requirements}\label{tab:func}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Module} & \textbf{Capabilities}\\
+\midrule
+Accounts & Registration, JWT login, password reset by e-mail OTP, profile, biometric app-lock (mobile).\\
+Groups & Types (family/community/organization/society), invitation codes, roles (owner/admin/member), member management.\\
+Fakras & Personal, shared and recurring lists; archive, duplicate, search and filter.\\
+Items & Create/edit, mark done/undo (10-minute window), quantity, unit, category, price, photo attachments, assignment to a member.\\
+AI & Smart Add (text $\rightarrow$ items), Smart Scan (receipt $\rightarrow$ items+prices), Suggestions, natural-language Commands, spending digest.\\
+Budgets & Per-Fakra budget, progress and over-budget alerts, spending analytics by month/category/member, expense splitting (``settle up'').\\
+Real-time & Live synchronisation and presence (who is viewing a list).\\
+Notifications & Push notifications for new items, completions, members, reminders and budget alerts.\\
+Exports & CSV (both platforms) and server-generated PDF.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Non-Functional Requirements}
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Security:} hashed passwords, short-lived JWT, rate limiting,
+        encryption of sensitive data at rest, centralised authorisation.
+  \item \textbf{Performance:} optimised database queries, stateless API enabling
+        horizontal scaling.
+  \item \textbf{Usability:} responsive interfaces, dark mode, trilingual UI with
+        right-to-left support for Arabic.
+  \item \textbf{Reliability:} automated tests and continuous integration.
+  \item \textbf{Portability:} containerised deployment (Docker).
+\end{itemize}
+
+%=====================================================================
+\chapter{Technologies and Architecture}\label{ch:techarch}
+%=====================================================================
+\section{Technology Choices}
+Table~\ref{tab:tech} lists the main technologies and the rationale behind each
+choice.
+
+\begin{table}[ht]\centering
+\caption{Technology stack and justification}\label{tab:tech}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Layer} & \textbf{Technology and justification}\\
+\midrule
+Backend framework & \textbf{Django + Django REST Framework} --- mature ORM, authentication, serializers and throttling, enabling a correct and secure API to be built quickly.\\
+Real-time & \textbf{Django Channels + Daphne (ASGI)} --- adds WebSockets within the same codebase and authentication system, avoiding a separate service.\\
+Database & \textbf{PostgreSQL} --- relational integrity for the users/groups/lists/items hierarchy, transactions and good concurrency.\\
+Authentication & \textbf{JWT (SimpleJWT)} --- stateless tokens allowing the API to scale horizontally without server-side sessions.\\
+Artificial intelligence & \textbf{Google Gemini} --- fast, low-cost model called with structured output schemas to guarantee valid JSON responses.\\
+Web client & \textbf{React 19 + Vite + Tailwind CSS} --- fast development and a consistent component-based UI.\\
+Mobile client & \textbf{React Native + Expo} --- a single JavaScript codebase for Android and iOS, reusing the web application's logic.\\
+Infrastructure & \textbf{Docker, docker-compose, GitHub Actions} --- reproducible environment and continuous integration.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Global Architecture}
+Fakerni follows a classic three-tier architecture with an added real-time
+channel, illustrated in Figure~\ref{fig:architecture.png}. The two clients (web
+and mobile) communicate with the backend through a REST API over HTTPS and a
+WebSocket connection over WSS. The backend, served by the Daphne ASGI server,
+exposes the REST endpoints and the WebSocket consumers, and connects to
+PostgreSQL for persistence, to Redis for the real-time channel layer, and to
+external services (Gemini for AI, Firebase Cloud Messaging for push
+notifications).
+
+\safefig{architecture.png}{\linewidth}{Three-tier, real-time system architecture.}
+
+Because the REST API is stateless (authentication is carried by a JWT on each
+request), it can be replicated horizontally behind a load balancer; the Redis
+channel layer then fans real-time events out across all instances.
+
+%=====================================================================
+\chapter{Design}\label{ch:design}
+%=====================================================================
+\section{Data Model}
+The core entities and their relationships are shown in the
+entity--relationship diagram in Figure~\ref{fig:erd.png}. A \texttt{User}
+belongs to \texttt{Household}s (the generic ``group'' entity) through
+\texttt{Membership}, which carries the role. A \texttt{Fakra} may belong to a
+group or be personal (its group reference is nullable). A \texttt{Fakra}
+contains \texttt{Item}s, which may have \texttt{ItemAttachment}s and an
+assignee; every action is recorded in the \texttt{ActivityLog}; and a personal
+Fakra can be explicitly shared through \texttt{FakraAccess}.
+
+\safefig{erd.png}{\linewidth}{Entity--relationship diagram of the core data model.}
+
+\section{Authorisation Model}
+A distinctive design decision is that access to a Fakra can be granted in three
+ways: the user created it, the user belongs to its group, or it was explicitly
+shared with them. All authorisation decisions --- who may view, edit, delete,
+archive or share a Fakra, and who may modify or assign an item --- are
+centralised in a single module (\texttt{fakras/permissions.py}). Views never
+re-implement rules inline; they call helper functions. The API additionally
+returns, for each Fakra, the set of actions the current caller is permitted to
+perform, so the clients can hide forbidden actions from the interface.
+
+\section{Real-Time Design}
+The real-time layer uses three channel scopes: a per-group channel, a per-Fakra
+channel (which also works for personal and shared lists), and a per-user
+channel used to keep each user's dashboard current. Because JSON Web Tokens are
+not automatically applied to WebSocket connections, a custom ASGI middleware
+validates the token from the connection query string and attaches the
+authenticated user to the connection; each consumer then verifies authorisation
+before joining a channel group, which prevents a user from listening on a
+channel that is not theirs.
+
+%=====================================================================
+\chapter{Implementation}\label{ch:impl}
+%=====================================================================
+This chapter describes the realisation of the main features. The backend is
+organised into three Django applications: \texttt{users} (accounts and
+identity), \texttt{household} (groups and roles) and \texttt{fakras} (lists,
+items, AI, budgets and real-time).
+
+\section{Authentication and Accounts}
+Authentication is token-based. On login the server verifies the password
+against a salted PBKDF2 hash and issues a short-lived access token and a
+longer-lived refresh token. The clients attach the access token to every
+request and transparently refresh it when it expires. Figure~\ref{fig:web-login.png}
+shows the web login screen.
+
+\safefig{web-login.png}{0.7\linewidth}{Web authentication screen.}
+
+\section{Groups, Fakras and Items}
+Users create groups and invite others through an expiring invitation code.
+Within a group, any member may create a shared Fakra; editing or deleting a
+Fakra, or moderating items created by others, is governed by the centralised
+authorisation model. Items support quantities, units, categories, prices, photo
+attachments, a ten-minute ``undo'' window after completion, and assignment to a
+specific member. Figure~\ref{fig:web-dashboard.png} shows the web dashboard and
+Figure~\ref{fig:web-fakra.png} a Fakra detail view.
+
+\safefig{web-dashboard.png}{\linewidth}{Web dashboard with the overview strip and list of Fakras.}
+\safefig{web-fakra.png}{\linewidth}{Fakra detail: items, budget, AI Smart Add and export actions.}
+
+\section{Artificial Intelligence}
+Four AI capabilities are built on Google Gemini, each called with a strict
+output schema so that the model returns valid structured data rather than free
+text: \emph{Smart Add} converts a sentence such as ``milk, eggs and 2kg rice''
+into structured items; \emph{Smart Scan} reads a receipt photograph and extracts
+items together with their prices; \emph{Suggestions} proposes relevant
+additional items; and \emph{Smart Command} interprets natural-language commands
+(``mark milk as done, remove the bread''). A fifth feature, the \emph{spending
+digest}, produces a short natural-language summary of a group's spending. If the
+AI service is unavailable, the corresponding endpoints fail gracefully and the
+rest of the application continues to work.
+
+\section{Budgets, Analytics and Expense Splitting}
+Each item can carry an estimated price. A Fakra may define an explicit budget,
+against which the application computes the amount spent, the remaining amount and
+a progress indicator, and raises an alert when the budget is exceeded. A
+dedicated analytics endpoint aggregates spending by month, by category and by
+member, and supports time-range filtering. Finally, an expense-splitting feature
+computes, from the ``who bought what'' data, each member's balance relative to
+their fair share and proposes a minimal set of transfers to settle the group's
+accounts.
+
+\section{Real-Time Collaboration}
+Changes to a list --- adding an item, marking it done, uploading an attachment
+--- are broadcast instantly to all connected members. A presence feature shows,
+in real time, which members are currently viewing a given Fakra. On the mobile
+client, the same backend is complemented by native capabilities: camera-based
+barcode scanning, biometric application lock and native push notifications.
+Figures~\ref{fig:mobile-dashboard.png} and~\ref{fig:mobile-fakra.png} show the
+mobile client.
+
+\safefig{mobile-dashboard.png}{0.32\linewidth}{Mobile dashboard.}
+\safefig{mobile-fakra.png}{0.32\linewidth}{Mobile Fakra detail.}
+
+\section{Internationalisation}
+The two clients are fully translated into English, French and Arabic. Selecting
+Arabic switches the whole interface to a right-to-left layout, not merely the
+text.
+
+%=====================================================================
+\chapter{Testing and Quality Assurance}\label{ch:testing}
+%=====================================================================
+Quality was addressed continuously rather than as a final step. The backend is
+covered by an automated suite of more than \textbf{150 tests} spanning the three
+applications, including authentication flows, the centralised authorisation
+rules, the ten-minute undo window, budget alerts, the AI endpoints (with the
+external model mocked), the expense-splitting computations, and the WebSocket
+delivery of real-time events (including presence on join and leave). The web
+client additionally has unit tests for its utility functions.
+
+A continuous-integration pipeline (GitHub Actions) runs the full backend suite
+against a PostgreSQL service, together with the web unit tests and production
+build, on every push. The OpenAPI schema of the API is generated automatically
+and is available through interactive Swagger and Redoc interfaces.
+
+%=====================================================================
+\chapter{Deployment}\label{ch:deploy}
+%=====================================================================
+The application is fully containerised. A \texttt{Dockerfile} builds the backend
+image, and a \texttt{docker-compose} configuration orchestrates the database,
+the Redis channel layer and the application server. A deployment blueprint for
+the Render platform is also provided, allowing the backend and its managed
+PostgreSQL database to be provisioned automatically; the web client is built as
+a static bundle and served by any static host. Configuration is entirely driven
+by environment variables, and production security settings (HTTPS redirection,
+secure cookies, HSTS) are enabled automatically when debugging is disabled.
+
+%=====================================================================
+\chapter*{Conclusion and Perspectives}
+\addcontentsline{toc}{chapter}{Conclusion and Perspectives}
+%=====================================================================
+This project resulted in a complete, tested and deployable platform that turns
+the informal coordination of a group's shopping and tasks into a shared,
+real-time and financially aware experience, available on both web and mobile.
+The main contributions are a unified data model centred on the Fakra, a
+centralised and spoof-proof authorisation model, an integrated artificial-
+intelligence layer that removes manual data entry, a complete budgeting and
+analytics module including expense splitting, and a multi-scope real-time layer
+with presence.
+
+Several perspectives would extend the work further. A history-aware
+\emph{predictive restock} engine and \emph{price-anomaly} detection are already
+partially in place and could be deepened. Collaboration could be enriched with
+comments and typing indicators; the AI could generate a shopping list directly
+from a meal plan; and the mobile client could gain an offline mode with
+background synchronisation and location-based reminders. These directions build
+naturally on the foundations established in this project.
+
+\end{document}
