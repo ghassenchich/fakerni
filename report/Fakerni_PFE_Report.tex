@@ -1,15 +1,10 @@
 %=====================================================================
-%  FAKERNI — End-of-Studies / Internship Report (PFE)
-%  ESPRIT-style layout (modelled on a standard Tunisian PFE report).
-%
-%  HOW TO USE:
-%   1. Upload the whole "report/" folder to Overleaf (this file + images/).
-%   2. Set the compiler to pdfLaTeX.
-%   3. Edit every \myXxx value in the "EDIT THESE" block below with your
-%      real details (name, firm, supervisors, school, dates).
-%   4. Drop your diagrams into images/ using the file names referenced by
-%      each \figph{...} command; until then a labelled placeholder box
-%      is shown so the document still compiles.
+%  FAKERNI — Internship / End-of-Studies Report (PFE)
+%  Ghassen Chich — ESPRIT School of Business
+%  Compile on Overleaf with pdfLaTeX.  Upload the whole report/ folder.
+%  All personal details are already filled in below.
+%  Diagrams: each \figph{file}{caption} shows the image if present in
+%  images/, otherwise a labelled placeholder box (so it always compiles).
 %=====================================================================
 \documentclass[12pt,a4paper,oneside]{report}
 
@@ -34,24 +29,23 @@
 \graphicspath{{images/}}
 
 % ---------------------------------------------------------------------
-% EDIT THESE  (all the personal / institutional details)
+% Project details (already filled in)
 % ---------------------------------------------------------------------
-\newcommand{\mySchool}{[Your School / University]}          % e.g. ESPRIT School of Business
-\newcommand{\myReportType}{INTERNSHIP REPORT}               % or "END-OF-STUDIES PROJECT REPORT"
-\newcommand{\myDegree}{Bachelor's Degree in [Your Programme]}
-\newcommand{\mySpecialization}{[Your Specialization]}
-\newcommand{\myProjectTitle}{Design and Development of ``Fakerni'': a Collaborative,
-Real-Time and AI-Assisted Shared-List Platform for Groups}
-\newcommand{\myAuthor}{Ghassen Chich}                        % <-- your full name
-\newcommand{\myCompany}{[Host Company Name]}                 % <-- the firm
-\newcommand{\myProSupervisor}{[Professional Supervisor]}     % supervisor at the firm
-\newcommand{\myAcadSupervisor}{[Academic Supervisor]}        % supervisor at the school
-\newcommand{\myPresentedOn}{[dd/mm/yyyy]}
-\newcommand{\myPeriod}{[Month Year -- Month Year]}
+\newcommand{\mySchool}{ESPRIT School of Business}
+\newcommand{\myReportType}{INTERNSHIP REPORT}
+\newcommand{\myDegree}{Bachelor's Degree in Business Computing}
+\newcommand{\mySpecialization}{Business Information Systems}
+\newcommand{\myProjectTitle}{Design and Development of ``Fakerni'': a
+Collaborative, Real-Time and AI-Assisted Shared-List Platform for Groups}
+\newcommand{\myAuthor}{Ghassen Chich}
+\newcommand{\myCompany}{AGR Vision}
+\newcommand{\myProSupervisor}{Mr. Omar Saya}
+\newcommand{\myAcadSupervisor}{Mr. Noman Ben Makhlouf}
+\newcommand{\myPresentedOn}{15/07/2026} % change to your real defense date
+\newcommand{\myPeriod}{March 2026 -- July 2026}
 \newcommand{\myAcademicYear}{2025 / 2026}
 % ---------------------------------------------------------------------
 
-% ---- Colours & code style ------------------------------------------
 \definecolor{brand}{RGB}{13,110,120}
 \definecolor{brandred}{RGB}{192,57,43}
 \definecolor{codebg}{RGB}{245,247,248}
@@ -63,28 +57,21 @@ Real-Time and AI-Assisted Shared-List Platform for Groups}
   basicstyle=\ttfamily\footnotesize,
   keywordstyle=\color{codekw}\bfseries,
   commentstyle=\color{codecm}\itshape,
-  breaklines=true,
-  frame=single,
-  rulecolor=\color{codebg},
-  showstringspaces=false,
-  columns=fullflexible,
+  breaklines=true, frame=single, rulecolor=\color{codebg},
+  showstringspaces=false, columns=fullflexible,
 }
 
-% ---- Headers / footers ---------------------------------------------
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small\itshape Fakerni --- \myReportType}
 \fancyhead[R]{\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-% ---- Chapter title styling -----------------------------------------
 \titleformat{\chapter}[display]
   {\normalfont\huge\bfseries\color{brand}}
   {\chaptertitlename\ \thechapter}{16pt}{\Huge}
 
-% ---- Figure placeholder helper -------------------------------------
-% \figph{filename.png}{Caption text}
-% Includes images/filename.png if present, otherwise draws a labelled box.
+% \figph{filename.png}{Caption}
 \newcommand{\figph}[2]{%
   \begin{figure}[H]\centering
   \IfFileExists{images/#1}
@@ -95,13 +82,12 @@ Real-Time and AI-Assisted Shared-List Platform for Groups}
        Add your image as \texttt{images/#1}\\[4pt]#2}}}
   \caption{#2}\end{figure}}
 
-% Small logo helper (school / company)
 \newcommand{\logoph}[2]{%
   \IfFileExists{images/#1}
     {\includegraphics[height=2.4cm]{#1}}
     {\setlength{\fboxsep}{6pt}\fbox{\parbox[c][2cm][c]{4cm}{\centering\itshape #2\\\texttt{images/#1}}}}}
 
-\hypersetup{pdftitle={Fakerni PFE Report},pdfauthor={\myAuthor}}
+\hypersetup{pdftitle={Fakerni PFE Report}, pdfauthor={\myAuthor}}
 
 %=====================================================================
 \begin{document}
@@ -113,12 +99,11 @@ Real-Time and AI-Assisted Shared-List Platform for Groups}
 \begin{titlepage}
 \centering
 {\large \mySchool\par}
+\vspace{1.2cm}
+\begin{minipage}{0.45\textwidth}\centering \logoph{school-logo.png}{ESPRIT logo}\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}\centering \logoph{company-logo.png}{AGR Vision logo}\end{minipage}
+
 \vspace{1.4cm}
-
-\begin{minipage}{0.45\textwidth}\centering \logoph{school-logo.png}{School logo}\end{minipage}\hfill
-\begin{minipage}{0.45\textwidth}\centering \logoph{company-logo.png}{Company logo}\end{minipage}
-
-\vspace{1.6cm}
 {\color{brandred}\Huge\bfseries \myReportType\par}
 \vspace{0.4cm}\rule{0.7\textwidth}{0.5pt}\par
 \vspace{0.8cm}
@@ -127,16 +112,16 @@ Real-Time and AI-Assisted Shared-List Platform for Groups}
 {\large \mySpecialization\ Specialization\par}
 \vspace{0.6cm}\rule{0.7\textwidth}{0.5pt}\par
 
-\vspace{1.0cm}
+\vspace{0.9cm}
 {\large Presented on : \myPresentedOn\par}
 \vspace{0.4cm}
 {\large Prepared by : \myAuthor\par}
-\vspace{0.8cm}
+\vspace{0.7cm}
 {\large\itshape \guillemotleft\ \myProjectTitle\ \guillemotright\par}
-\vspace{0.6cm}
+\vspace{0.5cm}
 {\large \myPeriod\par}
 
-\vspace{1.4cm}
+\vspace{1.2cm}
 \begin{flushleft}
 \hspace{1.5cm}\textbf{Professional Supervisor :} \myProSupervisor\par
 \vspace{0.3cm}
@@ -173,18 +158,27 @@ Real-Time and AI-Assisted Shared-List Platform for Groups}
 
 I dedicate this work, first and foremost, to my beloved parents, whose love,
 sacrifices, and unwavering support have been the foundation of every
-achievement in my life. Their patience and constant encouragement guided me
-through every challenge and inspired me to pursue my goals with determination.
+achievement in my life. Their dedication, patience, and constant encouragement
+have guided me through every challenge and inspired me to pursue my goals with
+determination and confidence.
 
 \medskip
-To my family and my dear friends, who stood by my side throughout this journey:
-thank you for your encouragement and support during both the challenging and the
-rewarding moments.
+To my mother, thank you for your endless care, understanding, and
+encouragement; your belief in me has always given me the strength to move
+forward, even during the most difficult moments. To my father, thank you for
+your wisdom, guidance, and the values you have instilled in me; your hard work
+and sacrifices have been a constant source of motivation.
 
 \medskip
-Finally, I dedicate this work to everyone who believed in me and encouraged me
-throughout my academic journey. Your trust has been a driving force behind my
-success.
+I would also like to dedicate this work to my dear friends, who stood by my
+side throughout this journey. Thank you for your friendship, encouragement, and
+support during both the challenging and the rewarding moments.
+
+\medskip
+Finally, I dedicate this work to everyone who believed in me, encouraged me, and
+supported me throughout my academic journey. Your trust and confidence have been
+a driving force behind my success, and I will always be thankful for your
+presence in my life.
 
 %---------------------------------------------------------------------
 % ACKNOWLEDGEMENTS
@@ -193,25 +187,31 @@ success.
 \addcontentsline{toc}{chapter}{Acknowledgements}
 \thispagestyle{fancy}
 
-I would like to express my sincere gratitude to the entire team at \textbf{\myCompany}
-for welcoming me and supporting me throughout this project. This experience was
-far more than a technical assignment; it was a valuable and enriching journey
-that allowed me to strengthen both my professional and personal skills.
+I would like to express my sincere gratitude to the entire team at
+\textbf{\myCompany} for welcoming me with professionalism, kindness, and support
+throughout my internship. This experience was far more than a technical
+assignment; it was a valuable and enriching journey that allowed me to
+strengthen both my professional and personal skills.
 
 \medskip
 I extend my special thanks to my professional supervisor, \textbf{\myProSupervisor},
-for the guidance, availability, and continuous support offered throughout the
-project period.
+for his guidance, availability, and continuous support throughout the internship
+period. His expertise, advice, and encouragement played a significant role in the
+successful completion of this project.
 
 \medskip
 I am also deeply grateful to my academic supervisor, \textbf{\myAcadSupervisor},
-for the valuable guidance, patience, and insightful recommendations that greatly
+for his valuable guidance, patience, constructive feedback, and insightful
+recommendations throughout the development of this project. His support greatly
 contributed to the quality and success of this work.
 
 \medskip
 My sincere appreciation also goes to all the professors and instructors of
-\textbf{\mySchool} who contributed to my education and provided me with the
-knowledge and skills necessary to carry out this project successfully.
+\textbf{\mySchool} who contributed to my academic education and provided me with
+the knowledge and skills necessary to carry out this project successfully.
+Finally, I would like to thank everyone who believed in and supported me
+throughout my academic and professional journey. To all of you, I extend my
+heartfelt thanks and deepest appreciation.
 
 %---------------------------------------------------------------------
 % ABSTRACT
@@ -220,31 +220,33 @@ knowledge and skills necessary to carry out this project successfully.
 \addcontentsline{toc}{chapter}{Abstract}
 \thispagestyle{fancy}
 
-As part of my graduation project at \textbf{\myCompany}, I designed and developed a
-full-stack platform named \textbf{Fakerni}, dedicated to collaborative and
-real-time management of shared lists (``Fakras'') for any kind of group --- a
-family, a community, an association, or an organization. The project centralizes
-group membership with role-based access control, enables members to create and
-share to-do and shopping lists, track budgets and spending, and coordinate in
-real time across the web and mobile.
+As part of my graduation project at \textbf{\myCompany}, I designed and developed
+a full-stack platform named \textbf{Fakerni}, dedicated to the collaborative and
+real-time management of shared lists --- called \emph{Fakras} --- for any kind of
+group: a family, a community, an association, or an organization. The project
+centralizes group membership with role-based access control, enables members to
+create and share shopping and to-do lists, track budgets and spending, and
+coordinate tasks in real time across the web and mobile.
 
 \medskip
-Fakerni integrates several advanced capabilities: an AI assistant (powered by a
-large language model with structured output) that turns free text and receipt
-photos into structured items; a real-time collaboration layer built on
-WebSockets with live presence; a centralized authorization module; budget
-tracking with expense-splitting; and role-based analytics dashboards. A dynamic
-multilingual interface supporting English, French, and Arabic (with
-right-to-left layout) was also integrated.
+Fakerni distinguishes itself through several advanced capabilities: an AI
+assistant (powered by a large language model with structured output) that turns
+free text and receipt photos into structured items; a real-time collaboration
+layer built on WebSockets with live presence; a centralized authorization module;
+budget tracking with fair expense-splitting; and role-based analytics dashboards.
+A dynamic multilingual interface supporting English, French, and Arabic (with
+right-to-left layout) was also integrated to make the platform accessible to a
+wide range of users.
 
 \medskip
 The backend was developed with \textbf{Django} and \textbf{Django REST Framework}
-(with \textbf{Django Channels} for real-time), the web client with \textbf{React},
-and the mobile client with \textbf{React Native (Expo)}, over a
-\textbf{PostgreSQL} database, following the \textbf{Agile Scrum} methodology. This
-project strengthened my skills in full-stack development, real-time systems,
-role-based access control, AI integration, database design, and agile project
-management.
+(with \textbf{Django Channels} for the real-time layer), the web client with
+\textbf{React}, and the mobile client with \textbf{React Native (Expo)}, over a
+\textbf{PostgreSQL} database, following the principles of the \textbf{Agile Scrum}
+methodology. This project enabled me to strengthen and apply my knowledge in
+full-stack development, real-time systems, Role-Based Access Control (RBAC),
+artificial-intelligence integration, database design, software architecture, and
+agile project management.
 
 \medskip
 \noindent\textbf{Keywords:} Fakerni, Shared Lists, Collaborative Platform,
@@ -252,7 +254,7 @@ Real-Time, WebSockets, Role-Based Access Control, Artificial Intelligence,
 Django, React, React Native, PostgreSQL.
 
 %---------------------------------------------------------------------
-% TABLES OF CONTENTS / FIGURES / TABLES
+% TOC / FIGURES / TABLES
 %---------------------------------------------------------------------
 \tableofcontents
 \listoffigures
@@ -267,228 +269,331 @@ Django, React, React Native, PostgreSQL.
 \chapter*{General Introduction}
 \addcontentsline{toc}{chapter}{General Introduction}
 
-In an increasingly connected world, the coordination of everyday tasks within a
-group --- deciding what to buy, who does what, and how much it costs --- still
-largely relies on scattered tools: paper notes, group chats, and spreadsheets.
-These tools fragment information, offer no real-time synchronization, and provide
-no shared view of budgets or responsibilities. It is within this context that the
-\textbf{Fakerni} project was initiated and developed at \textbf{\myCompany}.
+In an increasingly connected world, the way in which groups of people coordinate
+their everyday responsibilities has become a genuine challenge. Deciding what to
+buy, who is responsible for which task, and how shared expenses are divided still
+largely relies on scattered and informal tools: paper notes, instant-messaging
+conversations, and spreadsheets. These tools fragment information across several
+places, offer no real-time synchronization, provide no notion of roles or
+permissions, and give no shared view of budgets or of who did what. The result is
+duplicated effort, forgotten items, and recurring misunderstandings.
 
-The primary objective of the Fakerni application is to design and implement a
-centralized, cross-platform system that enables:
+It is within this context that the \textbf{Fakerni} project was initiated and
+developed at \textbf{\myCompany}, a company specialized in the design and delivery
+of modern digital solutions. The word ``Fakerni'' means \emph{``remind me''}, and
+a ``Fakra'' is a single shared list --- literally an \emph{idea} or a
+\emph{reminder} that the members of a group keep together. The primary objective
+of the Fakerni application is to design and implement a centralized,
+cross-platform system that enables:
 
 \begin{itemize}[nosep]
-  \item real-time creation and sharing of collaborative lists (``Fakras'') among
-        the members of a group;
-  \item structured management of groups, members, and their roles
+  \item the real-time creation and sharing of collaborative lists among the
+        members of any group;
+  \item the structured management of groups, their members, and their roles
         (owner, admin, member) with fine-grained permissions;
   \item budget tracking, spending analytics, and fair expense-splitting;
-  \item AI-assisted item entry from natural language and receipt photos;
-  \item role-based dashboards giving each user a tailored overview of activity.
+  \item AI-assisted item entry from natural language and from receipt photographs;
+  \item role-based dashboards that give each user a tailored overview of activity.
 \end{itemize}
 
 The application consolidates all of a group's coordination data into a single
-source of truth served identically to a web client and a mobile client. It
-distinguishes itself through its real-time collaboration layer, its centralized
-authorization model, and its practical AI features.
+source of truth that is served identically to a web client and to a mobile
+client. Fakerni distinguishes itself through its real-time collaboration layer,
+its centralized and consistent authorization model, and its genuinely useful AI
+features, which reduce the friction of entering and organizing items.
 
 In accordance with modern technological standards, the application was developed
 using \textbf{Django / Django REST Framework} and \textbf{Django Channels} for a
-secure, high-performance, real-time backend; \textbf{React} for a responsive web
-interface; \textbf{React Native (Expo)} for the mobile application; and
-\textbf{PostgreSQL} as the relational database ensuring data integrity and
-persistence.
+secure, high-performance and real-time backend API; \textbf{React} for a
+responsive single-page web interface; \textbf{React Native (Expo)} for the
+cross-platform mobile application; and \textbf{PostgreSQL} as the relational
+database management system ensuring data persistence and integrity. The real-time
+layer is backed by a \textbf{Redis} channel layer, and the AI features rely on a
+large language model with schema-constrained (structured) output.
 
 The project was carried out following the \textbf{Agile Scrum} methodology,
-allowing iterative and flexible development through successive sprints and
-continuous adaptation to requirements. This report presents the various stages of
-the project, from the initial requirements analysis and technical design through
-development, testing, and the integration of user-friendly, high-performance
-interfaces.
+allowing iterative and flexible development through multiple sprints, intermediate
+deliverables, and continuous adaptation to requirements. This experience allowed
+me to apply my web-development and information-systems skills across six coherent
+sprints, from the secure foundation of authentication and access control to the
+full real-time, AI-assisted collaboration cycle. This report presents the various
+stages of the project, from the initial requirements analysis and technical design
+through development, testing, and the integration of user-friendly and
+high-performance interfaces.
 
 %=====================================================================
-% CHAPTER 1 — GENERAL PROJECT CONTEXT
+% CHAPTER 1
 %=====================================================================
 \chapter{General Project Context}
 
 \section*{Introduction}
-Before exploring the technical details, it is essential to understand the
-project's environment and the business needs it addresses. This chapter
-introduces the host organization, analyses the current situation and its
-limitations, states the problem, presents the proposed solution, and describes
-the project-management methodology adopted.
+Before exploring the technical details, understanding the project's organizational
+environment and business needs is essential. This first chapter introduces the
+host organization, \textbf{\myCompany}, and its structure; it then analyses the
+current situation and its limitations, states the problem, presents the proposed
+solution, and finally describes the project-management methodology adopted for the
+development of Fakerni.
 
 \section{Presentation of the Host Organization}
 \subsection{General Presentation}
-\textbf{\myCompany} is [ \textit{editable placeholder --- describe the company:
-its sector, main activities, and market position} ]. The company relies on modern
-technologies and qualified professionals to deliver high-quality products and
-services.
+\textbf{\myCompany} is a technology company specialized in the design, development,
+and delivery of modern digital solutions, including web applications, mobile
+applications, and custom software products. Since its establishment, the company
+has been committed to helping its clients and end users work more efficiently
+through reliable, user-oriented, and scalable software, built with up-to-date
+technologies and engineering best practices.
 
-Its main activities include:
+With a strong focus on innovation and quality, \myCompany\ operates across the
+full software life cycle --- from requirements analysis and product design through
+development, testing, deployment, and maintenance --- and places particular
+emphasis on the user experience and on the long-term maintainability of the
+solutions it delivers. Its main activities include:
+
 \begin{itemize}[nosep]
-  \item [ activity 1 ];
-  \item [ activity 2 ];
-  \item [ activity 3 ].
+  \item Design and development of web and mobile applications;
+  \item Development of custom software products and platforms;
+  \item Digital-transformation and technical consulting;
+  \item Software maintenance, support, and continuous improvement.
 \end{itemize}
 
+Thanks to its commitment to excellence and to modern engineering practices,
+\myCompany\ positions itself as a reliable partner for the delivery of
+high-quality digital products. The company relies on modern technologies, on
+qualified professionals, and on agile, iterative processes to ensure the quality
+of its products and services.
+
 \subsection{Company Structure}
-The internal structure of \myCompany\ is organized around several strategic and
-operational departments that work together to ensure the efficiency of its
-activities. [ \textit{Editable placeholder --- list the main departments, e.g.
-Management, Development / IT, Marketing, Administration, etc.} ]
+The internal structure of \myCompany\ is organized around several complementary
+teams that work together to ensure the efficient delivery of its digital projects.
+The main functional units include:
+\begin{itemize}[nosep]
+  \item \textbf{Development Team} --- backend, frontend, and mobile engineers who
+        build the software products;
+  \item \textbf{Design / UX Team} --- responsible for interface design, prototypes,
+        and the overall user experience;
+  \item \textbf{Quality Assurance} --- responsible for testing and validation;
+  \item \textbf{Project Management} --- coordinates sprints, timelines, and
+        communication with stakeholders;
+  \item \textbf{Business and Client Relations} --- gathers requirements and manages
+        the relationship with clients;
+  \item \textbf{Administrative and Support} --- handles the administrative and
+        operational functions of the company.
+\end{itemize}
+The collaboration between these teams, organized around agile practices, ensures
+efficient operations, supports decision-making, and contributes to the successful
+delivery of the company's software products, including the Fakerni platform
+presented in this report.
 
 \section{Project Overview}
 \subsection{Current Situation}
-Currently, groups (families, roommates, associations, teams) coordinate their
-shared tasks and purchases using dispersed tools such as messaging apps, paper
-lists, and spreadsheets. This makes coordination complex, limits visibility over
-who is responsible for what, and provides no shared, real-time view of spending.
+Currently, most groups --- whether families sharing a household, roommates,
+students working together, or the members of an association --- coordinate their
+shared tasks and purchases using dispersed and informal tools such as
+instant-messaging groups, paper lists, and spreadsheets. Reminders are sent as
+chat messages that quickly scroll out of view; shopping lists are written on paper
+and forgotten at home; and shared expenses are tracked, when they are tracked at
+all, in ad-hoc spreadsheets. This makes coordination complex, limits visibility
+over who is responsible for what, and provides no shared, real-time view of
+spending.
 
 \subsection{Analysis of the Current System}
-The existing ad-hoc approach presents the following limitations:
+This ad-hoc approach presents the following limitations:
 \begin{itemize}[nosep]
-  \item Lack of a centralized, shared list accessible to all members at once;
-  \item No real-time synchronization --- changes are not seen instantly;
-  \item No notion of roles or permissions within the group;
-  \item No shared tracking of budgets, spending, or who paid what;
-  \item Manual, error-prone entry of items with no assistance;
-  \item No consolidated overview or analytics of group activity.
+  \item Lack of a single, centralized list accessible to all members at once;
+  \item No real-time synchronization --- changes made by one member are not seen
+        instantly by the others;
+  \item No notion of roles or permissions within the group, so anyone can alter
+        or delete anything;
+  \item No shared tracking of budgets, spending, or of who paid for what;
+  \item Manual, repetitive, and error-prone entry of items, with no assistance;
+  \item No consolidated overview or analytics of the group's activity over time.
 \end{itemize}
 
 \subsection{Problem Statement}
-Given the challenges identified above, there is a clear need for a single, secure,
+Given the challenges identified above --- fragmented information, the absence of
+real-time synchronization, the lack of roles and permissions, and the absence of
+any shared financial view --- there is a clear need for a single, secure, and
 cross-platform application that streamlines coordination between the members of a
 group. The core problem statement of this project can therefore be formulated as
 follows:
 
 \begin{quote}\itshape
-How can a centralized, real-time and AI-assisted platform be developed to enable
+How can a centralized, real-time, and AI-assisted platform be developed to enable
 any group to create and share collaborative lists, coordinate tasks with
-role-based permissions, track budgets and spending, and stay synchronized across
-web and mobile devices?
+role-based permissions, track budgets and spending, and stay perfectly
+synchronized across web and mobile devices?
 \end{quote}
 
 \subsection{Proposed Solution}
 To address these challenges, we designed and developed a cross-platform
 application named \textbf{Fakerni} with the following features:
 \begin{itemize}[nosep]
-  \item Group management with invitation codes and role-based access control
+  \item Group management with invitation codes and Role-Based Access Control
         (owner / admin / member);
-  \item Shared lists (``Fakras'') with items, categories, attachments, due dates
-        and recurrence;
-  \item Real-time collaboration and live presence over WebSockets;
-  \item Budget tracking, spending analytics, and fair expense-splitting;
-  \item AI-assisted item entry (from text and receipt photos), suggestions, and a
-        spending digest;
+  \item Shared lists (Fakras) with items, categories, attachments, due dates, and
+        recurrence;
+  \item Real-time collaboration and live presence over authenticated WebSockets;
+  \item Budget tracking, spending analytics, over-budget alerts, and fair
+        expense-splitting;
+  \item AI-assisted item entry (from text and from receipt photos), item
+        suggestions, smart commands, and a spending digest;
   \item Role-based interactive dashboards and push notifications;
-  \item A multilingual interface (English, French, Arabic) with right-to-left
-        support.
+  \item A multilingual interface (English, French, and Arabic) with full
+        right-to-left support.
 \end{itemize}
 
 \section{Project Management Methodology}
 \subsection{Different Project-Management Approaches}
-Several approaches can organize a software project. The \textbf{Waterfall} model
-follows a strict sequential process; it offers clear structure but limited
-flexibility when requirements evolve. The \textbf{Spiral} model emphasizes
-iterative risk analysis but is more complex and costly to manage. The
-\textbf{Agile Scrum} framework divides the project into short iterations
-(\emph{sprints}), each delivering a functional increment, and promotes
-adaptability, continuous feedback, and incremental delivery.
+The success of a software development project largely depends on the
+project-management methodology adopted. Several approaches can be used to organize
+and control the development process; the most common are the Waterfall approach,
+the Agile Scrum methodology, and the Spiral model.
+
+\paragraph{Waterfall Approach.}
+The Waterfall model follows a strictly sequential process composed of several
+phases --- requirements analysis, system design, development, testing,
+deployment, and maintenance --- where each phase must be completed before moving
+to the next. Its advantages are a clear structure, comprehensive documentation,
+and easy progress monitoring; its limitations are its limited flexibility when
+requirements change, the late discovery of errors during the testing phase, and
+its unsuitability for dynamic and evolving projects.
+
+\paragraph{Agile Scrum Methodology.}
+Scrum is an iterative and incremental framework derived from the Agile principles.
+The project is divided into short development cycles called \emph{sprints}, during
+each of which a functional increment of the product is delivered. It is organized
+around a Product Backlog and regular events (Sprint Planning, Daily Scrum, Sprint
+Review, Sprint Retrospective). Its advantages are high flexibility, rapid
+adaptation to change, continuous improvement, and early delivery of value; its
+limitations are the need for continuous involvement and strong organization.
+
+\paragraph{Spiral Model.}
+The Spiral model combines characteristics of both the Waterfall and iterative
+approaches; development progresses through successive cycles, each including
+planning, risk analysis, engineering, and evaluation. It is particularly suitable
+for large-scale or high-risk projects because it emphasizes risk assessment, but
+it is more complex and costly to manage and requires expertise in risk
+identification.
 
 \subsection{Chosen Methodology}
 For the development of Fakerni, the \textbf{Agile Scrum} methodology was adopted.
 This choice was motivated by the need to build the application incrementally while
-continuously adapting to feedback and evolving requirements. The project was
-organized into successive sprints, each focused on a coherent set of
-functionalities. At the end of each sprint, a functional increment was delivered
-and evaluated.
+continuously adapting to feedback and to evolving requirements. The project was
+organized into six sprints, each focusing on a coherent set of functionalities:
+authentication and access control; groups and shared lists; budget and analytics;
+AI-assisted features; real-time collaboration; and dashboards with the
+multilingual interface. At the end of each sprint, a functional and validated
+increment of the application was delivered and evaluated. This methodology
+facilitated continuous communication, rapid problem resolution, progressive
+feature delivery, and a strong alignment between the developed solution and the
+target users' needs.
 
 \subsection{SCRUM Role Distribution}
+The Scrum framework was adopted to ensure efficient project management and the
+continuous delivery of functionalities throughout the development life cycle.
 \begin{itemize}[nosep]
-  \item \textbf{Product Owner:} \myProSupervisor\ --- represented the business
-        requirements and validated the delivered functionalities.
-  \item \textbf{Scrum Master:} \myAcadSupervisor\ --- ensured compliance with
-        Scrum practices and facilitated the development process.
+  \item \textbf{Product Owner:} \myProSupervisor\ --- professional supervisor at
+        \myCompany, responsible for representing the product requirements and
+        validating the delivered functionalities.
+  \item \textbf{Scrum Master:} \myAcadSupervisor\ --- academic supervisor at
+        \mySchool, responsible for ensuring compliance with Scrum practices and
+        for facilitating the development process.
   \item \textbf{Development Team:} \myAuthor\ --- sole developer, responsible for
-        requirements analysis, design, backend and frontend development, database
-        implementation, testing, and deployment.
+        all phases of the project including requirements analysis, design,
+        backend and frontend development, database implementation, testing, and
+        deployment.
 \end{itemize}
 
 \section*{Conclusion}
-This chapter presented the general context of the project, the host organization,
-the identified challenges, and the proposed solution, together with the Agile
-Scrum methodology adopted to manage the project. The next chapter details the
-requirements specification and analysis.
+This chapter presented the general context of the project, the host organization
+\myCompany, the identified challenges, and the proposed solution, together with
+the Agile Scrum methodology adopted to manage the project. This foundation
+provides a clear understanding of the project's objectives and prepares for the
+requirements analysis and design presented in the following chapter.
 
 %=====================================================================
-% CHAPTER 2 — REQUIREMENTS SPECIFICATION AND ANALYSIS
+% CHAPTER 2
 %=====================================================================
 \chapter{Requirements Specification and Analysis}
 
 \section*{Introduction}
-This chapter formally defines the functional and non-functional requirements of
-Fakerni, identifies the system actors, presents the global use-case diagram, the
-Scrum artefacts (Product Backlog and Sprint Planning), the software architecture,
-and the development environment.
+Requirements specification is a fundamental step in the development of the Fakerni
+platform. Its objective is to formally define the functional and non-functional
+requirements of the system in order to ensure that the proposed solution
+effectively meets the needs of all user profiles. This chapter provides an
+in-depth analysis of the requirements, identifies the actors, describes the global
+use-case diagram, presents the Scrum team and the Product Backlog, details the
+sprint planning and the software architecture, and finally describes the
+development environment used throughout the project.
 
 \section{Requirements Specification}
 \subsection{Functional Requirements}
-Based on the operational needs of the project, the following core functionalities
-were identified and implemented:
+The functional requirements define the services and behaviours expected from
+Fakerni. Based on the needs of the target users, the following core
+functionalities were identified and implemented:
 \begin{itemize}[nosep]
   \item \textbf{Authentication and Access Control:} secure registration and login
-        using email and password, JWT-based sessions with silent token refresh,
-        password reset via one-time code, and centralized Role-Based Access
-        Control (RBAC).
-  \item \textbf{Group Management:} create a group, join via an invitation code,
-        and manage members and their roles (owner, admin, member).
+        using an email address and password, JWT-based sessions with silent token
+        refresh, password reset via a one-time code (OTP), and a centralized
+        Role-Based Access Control (RBAC) enforced on every request.
+  \item \textbf{Group Management:} create a group, join an existing group via a
+        time-limited invitation code, and manage members and their roles (owner,
+        admin, member).
   \item \textbf{Shared List (Fakra) Management:} create, edit, share, archive,
-        duplicate, and delete lists, with due dates and recurrence.
+        duplicate, and delete lists, including due dates and recurrence.
   \item \textbf{Item Management:} add, edit, complete/undo, delete, and assign
-        items; attach photos; scan barcodes; search and filter.
-  \item \textbf{Budget \& Analytics:} set a budget per list, track spending,
-        receive over-budget alerts, view monthly analytics, and split expenses
-        fairly among members.
-  \item \textbf{AI-Assisted Features:} create items from natural-language text,
-        parse items from a receipt photo, get item suggestions, run smart
-        commands, and generate a spending digest.
-  \item \textbf{Real-Time Collaboration:} instant synchronization of changes and
-        live presence indicators across all connected clients.
-  \item \textbf{Dashboards \& Notifications:} role-based overview dashboards with
-        key indicators, and push notifications.
-  \item \textbf{Multilingual Interface:} switch dynamically between English,
-        French, and Arabic (right-to-left).
+        items; attach photographs; scan barcodes; and search and filter items.
+  \item \textbf{Budget and Analytics:} set a budget per list, track spending
+        against it, receive over-budget alerts, view monthly and per-category
+        analytics, and split shared expenses fairly among the members.
+  \item \textbf{AI-Assisted Features:} create structured items from
+        natural-language text, extract items from a receipt photo, obtain item
+        suggestions, issue smart natural-language commands, and generate a
+        spending digest.
+  \item \textbf{Real-Time Collaboration:} instant synchronization of all changes
+        and live presence indicators across every connected client.
+  \item \textbf{Dashboards and Notifications:} role-based overview dashboards with
+        key indicators, and push notifications for relevant events.
+  \item \textbf{Multilingual Interface:} dynamically switch the display language
+        between English, French, and Arabic (right-to-left).
 \end{itemize}
 
 \subsection{Non-Functional Requirements}
+The non-functional requirements describe the quality attributes and technical
+constraints that the platform must satisfy:
 \begin{itemize}[nosep]
   \item \textbf{Security:} all API endpoints are protected by JWT authentication;
         a centralized authorization module enforces RBAC; passwords are hashed;
         sensitive values (reset codes, device tokens) are encrypted at rest; and
-        WebSocket connections are authenticated.
-  \item \textbf{Performance:} the API uses query optimization (prefetching) and an
-        asynchronous ASGI server for real-time traffic.
+        every WebSocket connection is authenticated before it is accepted.
+  \item \textbf{Performance:} the API uses query optimization (prefetching of
+        related objects) and an asynchronous ASGI server to handle both REST and
+        real-time traffic efficiently.
   \item \textbf{Scalability:} a stateless REST API and a Redis-backed channel
-        layer allow the system to scale horizontally.
+        layer allow the system to scale horizontally as the number of users grows.
   \item \textbf{Usability:} a modern, responsive interface with dark mode and full
-        internationalization, usable on both web and mobile.
+        internationalization, usable comfortably on both web and mobile devices.
   \item \textbf{Reliability:} automatic WebSocket reconnection, transparent token
-        refresh, and an automated test suite executed by continuous integration.
-  \item \textbf{Maintainability:} a modular architecture (separate Django apps,
-        one centralized permissions module) eases evolution and bug-fixing.
-  \item \textbf{Portability:} web and mobile clients share a single backend API.
+        refresh, and an automated test suite executed by continuous integration on
+        every change.
+  \item \textbf{Maintainability:} a modular architecture (separate Django apps and
+        a single centralized permissions module) that eases evolution and bug
+        fixing.
+  \item \textbf{Portability:} the web and mobile clients share a single backend
+        API, so business logic is written and maintained only once.
 \end{itemize}
 
 \section{Global Use Case Diagram}
-Figure~\ref{fig:global-uc} illustrates the global use-case diagram of the Fakerni
-application, showing the interactions between the actors and the system.
+Use-case diagrams, according to the UML standard, allow the representation of the
+interactions between the actors and the system, providing a global view of the
+expected functionalities. Figure~\ref{fig:global-uc} illustrates the global
+use-case diagram of the Fakerni application.
 \figph{uc-global.png}{Global Use Case Diagram of the Fakerni Application}
 \label{fig:global-uc}
 
 \section{Identification of Actors}
-Table~\ref{tab:actors} presents the actors involved in Fakerni and their main
-responsibilities.
+Table~\ref{tab:actors} presents the actors involved in Fakerni, together with
+their roles and their main responsibilities.
 
 \begin{table}[H]\centering
 \caption{Actor Identification Table for the Fakerni Application}
@@ -499,23 +604,40 @@ responsibilities.
 \textbf{Actor} & \textbf{Description / Role} & \textbf{Main Responsibilities} \\ \hline
 Group Owner & Creator and highest authority of a group &
 Create the group; invite and remove members; assign roles; full control over the
-group's lists; manage everything an admin can. \\ \hline
+group's lists; perform every action an admin can. \\ \hline
 Group Admin & Manager appointed within a group &
 Manage and moderate the group's lists and items; edit or delete any list or item;
-help coordinate the group. \\ \hline
+help coordinate the group's activity. \\ \hline
 Member & Regular participant of a group &
-Create lists; add, complete, and assign items; attach photos; view budgets,
-analytics, and the shared dashboard. \\ \hline
+Create lists; add, complete, and assign items; attach photos and scan barcodes;
+view budgets, analytics, and the shared dashboard. \\ \hline
 Individual User & Any authenticated user &
-Create and manage personal lists; share them with specific users; use AI features;
-switch the interface language. \\ \hline
+Register and log in; create and manage personal lists; share them with specific
+users; use the AI features; switch the interface language. \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
+\section{Project Management with Scrum}
+Since Agile Scrum was adopted, the project requirements were organized and
+distributed across sprints based on functional priority and on logical
+development dependencies. The Scrum team for this project was composed as follows:
+\begin{itemize}[nosep]
+  \item \textbf{Product Owner:} \myProSupervisor\ --- professional supervisor at
+        \myCompany, responsible for validating the functionalities and
+        representing the product requirements.
+  \item \textbf{Scrum Master:} \myAcadSupervisor\ --- academic supervisor at
+        \mySchool, responsible for ensuring that Scrum practices were followed and
+        for facilitating the development process.
+  \item \textbf{Development Team:} \myAuthor\ --- sole developer, responsible for
+        all phases of the project, including analysis, design, frontend and
+        backend development, database implementation, and testing.
+\end{itemize}
+
 \section{Product Backlog}
-Table~\ref{tab:backlog} presents the Fakerni Product Backlog, consolidating the
-functional requirements as user stories.
+One of the key elements of the Scrum methodology is the Product Backlog, which
+consolidates all functional requirements broken down into user stories.
+Table~\ref{tab:backlog} presents the Fakerni Product Backlog.
 
 \begin{longtable}{|c|p{3.2cm}|p{7.2cm}|c|}
 \caption{Fakerni Product Backlog}\label{tab:backlog}\\
@@ -525,7 +647,7 @@ functional requirements as user stories.
 \hline \textbf{ID} & \textbf{Feature} & \textbf{User Story} & \textbf{Priority} \\ \hline
 \endhead
 1 & Authentication \& RBAC & As a user, I can register and log in securely, and my
-access to features is restricted by my role. & High \\ \hline
+access to every feature is restricted by my role. & High \\ \hline
 2 & Group Management & As a user, I can create a group, invite members with a
 code, and manage their roles. & High \\ \hline
 3 & Shared Lists (Fakras) & As a member, I can create, share, archive, and
@@ -535,9 +657,9 @@ to items, and scan barcodes. & High \\ \hline
 5 & Budget \& Analytics & As a member, I can set budgets, track spending, split
 expenses, and view analytics. & High \\ \hline
 6 & AI Assistance & As a user, I can create items from text or a receipt photo and
-get suggestions and a spending digest. & Medium \\ \hline
-7 & Real-Time Collaboration & As a member, I can see changes and who is online in
-real time. & High \\ \hline
+receive suggestions and a spending digest. & Medium \\ \hline
+7 & Real-Time Collaboration & As a member, I can see other members' changes and
+who is online in real time. & High \\ \hline
 8 & Dashboards \& Notifications & As a user, I can view a role-based overview and
 receive push notifications. & Medium \\ \hline
 9 & Multilingual Interface & As any user, I can switch between English, French, and
@@ -546,28 +668,28 @@ Arabic at any time. & Low \\ \hline
 
 \section{Sprint Planning}
 The project was organized into six sprints, each targeting a coherent set of
-functionalities based on development priority and dependencies
-(Table~\ref{tab:sprints}).
+functionalities based on development priority and dependencies, as shown in
+Table~\ref{tab:sprints}.
 
 \begin{table}[H]\centering
 \caption{Fakerni Sprint Planning}
 \label{tab:sprints}
 \renewcommand{\arraystretch}{1.3}
-\begin{tabularx}{\textwidth}{|c|X|}
+\begin{tabularx}{\textwidth}{|c|X|c|}
 \hline
-\textbf{Sprint} & \textbf{Features Developed} \\ \hline
+\textbf{Sprint} & \textbf{Features Developed} & \textbf{Duration} \\ \hline
 Sprint 1 & Authentication, user accounts, JWT sessions, password reset, and
-Role-Based Access Control (owner / admin / member). \\ \hline
+Role-Based Access Control (owner / admin / member). & 3 weeks \\ \hline
 Sprint 2 & Groups and shared lists (Fakras): items, categories, sharing,
-attachments, barcode scanning, search and filtering. \\ \hline
+attachments, barcode scanning, search and filtering. & 4 weeks \\ \hline
 Sprint 3 & Budget management, spending analytics, over-budget alerts, and expense
-splitting. \\ \hline
+splitting. & 3 weeks \\ \hline
 Sprint 4 & AI-assisted features: smart add from text, receipt scanning, item
-suggestions, smart commands, and spending digest. \\ \hline
+suggestions, smart commands, and spending digest. & 3 weeks \\ \hline
 Sprint 5 & Real-time collaboration: live synchronization and presence over
-authenticated WebSockets. \\ \hline
+authenticated WebSockets. & 3 weeks \\ \hline
 Sprint 6 & Role-based dashboards and overview, notifications, and the multilingual
-interface. \\ \hline
+interface. & 2 weeks \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
@@ -575,26 +697,28 @@ interface. \\ \hline
 \section{Software Architecture}
 Fakerni is built on a layered client--server architecture that separates the
 presentation, business-logic, and data layers, and adds a dedicated real-time
-channel. Figure~\ref{fig:archi} illustrates this architecture.
-
+channel. This approach ensures modularity, maintainability, and scalability.
 \begin{itemize}[nosep]
   \item \textbf{Presentation Layer:} a \textbf{React} web client and a
-        \textbf{React Native (Expo)} mobile client, both consuming the same REST
-        API and connecting to the same WebSocket endpoints.
+        \textbf{React Native (Expo)} mobile client. Both consume the same REST
+        API and connect to the same WebSocket endpoints, so each platform is a
+        thin, interchangeable face over one backend.
   \item \textbf{Business-Logic Layer:} a \textbf{Django / Django REST Framework}
         backend that processes requests, applies business rules, and enforces JWT
-        authentication and centralized RBAC; \textbf{Django Channels} (ASGI)
-        handles the real-time layer.
+        authentication and centralized RBAC. \textbf{Django Channels} (over an
+        ASGI server) handles the real-time layer.
   \item \textbf{Data Layer:} a \textbf{PostgreSQL} relational database for
-        persistent data, and \textbf{Redis} as the channel layer for real-time
-        message distribution.
+        persistent data, and \textbf{Redis} as the channel layer that distributes
+        real-time messages between connected clients.
 \end{itemize}
-
+Figure~\ref{fig:archi} illustrates this layered architecture.
 \figph{architecture.png}{Layered Architecture of the Fakerni Application}
 \label{fig:archi}
 
-The overall data model (entity--relationship diagram) is shown in
-Figure~\ref{fig:erd}.
+The overall data model of the application (the entity--relationship diagram) is
+shown in Figure~\ref{fig:erd}. It brings together the users, the groups
+(households) and their memberships, the shared lists (Fakras), their items and
+attachments, the activity log, and the explicit-sharing relationship.
 \figph{erd.png}{Entity--Relationship Diagram of the Fakerni Database}
 \label{fig:erd}
 
@@ -602,81 +726,137 @@ Figure~\ref{fig:erd}.
 \subsection{Hardware Environment}
 \begin{table}[H]\centering
 \caption{Hardware Environment}
+\renewcommand{\arraystretch}{1.2}
 \begin{tabular}{|l|l|}
 \hline
 \multicolumn{2}{|c|}{\textbf{Development Machine}} \\ \hline
-\textbf{Processor} & [ e.g. Intel Core i5 ] \\ \hline
-\textbf{RAM} & [ e.g. 16 GB ] \\ \hline
-\textbf{Operating System} & [ e.g. Windows 11 ] \\ \hline
+\textbf{Processor} & Intel Core i7 (11th Generation) \\ \hline
+\textbf{RAM} & 16 GB \\ \hline
+\textbf{Storage} & 512 GB SSD \\ \hline
+\textbf{Operating System} & Windows 11 \\ \hline
 \end{tabular}
+\renewcommand{\arraystretch}{1}
 \end{table}
 
 \subsection{Software Environment}
-The main technologies and tools used to develop Fakerni are:
-\begin{itemize}[nosep]
-  \item \textbf{Django \& Django REST Framework} --- Python backend and REST API.
-  \item \textbf{Django Channels \& Daphne} --- ASGI server and WebSockets for the
-        real-time layer.
-  \item \textbf{PostgreSQL} --- relational database management system.
-  \item \textbf{Redis} --- channel layer for real-time message distribution.
-  \item \textbf{React \& Vite} --- web front-end (single-page application).
-  \item \textbf{React Native \& Expo} --- cross-platform mobile application.
-  \item \textbf{Google Gemini} --- large language model used for the AI features,
-        with structured (schema-constrained) output.
-  \item \textbf{JSON Web Tokens (JWT)} --- stateless authentication.
-  \item \textbf{Docker \& GitHub Actions} --- containerization and continuous
-        integration.
-  \item \textbf{Visual Studio Code \& Git / GitHub} --- code editor and version
-        control.
-\end{itemize}
+This section presents the technologies, frameworks, and tools used to develop
+Fakerni.
+
+\paragraph{Django \& Django REST Framework.}
+Django is a high-level Python web framework, and Django REST Framework (DRF) is a
+powerful toolkit built on top of it for creating REST APIs. In Fakerni, they form
+the backbone of the backend: models describe the data, serializers translate
+objects to and from JSON and validate input, and views handle every request. DRF
+also provides the authentication and permission infrastructure that Fakerni builds
+on.
+\figph{logo-django.png}{Django / Django REST Framework}
+
+\paragraph{Django Channels \& Daphne.}
+Django Channels extends Django to support asynchronous protocols such as
+WebSockets, and Daphne is the ASGI server that runs them. Together they power the
+real-time layer of Fakerni, allowing the server to push updates to clients the
+moment data changes.
+\figph{logo-channels.png}{Django Channels}
+
+\paragraph{PostgreSQL.}
+PostgreSQL is a robust open-source relational database management system. In
+Fakerni it stores all persistent data --- users, groups, memberships, lists,
+items, attachments, and activity logs --- while guaranteeing data integrity through
+constraints and relationships.
+\figph{logo-postgres.png}{PostgreSQL}
+
+\paragraph{Redis.}
+Redis is an in-memory data store used in Fakerni as the \emph{channel layer}: it
+distributes real-time messages between the different connections and server
+processes, which is what allows an update from one user to reach every other
+connected user.
+\figph{logo-redis.png}{Redis}
+
+\paragraph{React \& Vite.}
+React is an open-source JavaScript library for building dynamic user interfaces,
+and Vite is the fast build tool used to develop and bundle the web client. Fakerni
+uses React to build the entire web front-end as a smooth single-page application,
+with reusable components and efficient state management.
+\figph{logo-react.png}{React}
+
+\paragraph{React Native \& Expo.}
+React Native allows the mobile application to be built with the same component
+model as React, and Expo provides the tooling and native modules (camera,
+notifications, secure storage). Fakerni's mobile client reuses the web's
+architecture and API layer while offering a native experience.
+\figph{logo-expo.png}{React Native \& Expo}
+
+\paragraph{Google Gemini.}
+Fakerni's AI features are powered by a large language model accessed through the
+Gemini API. Every call uses \emph{structured output}: the model is given a strict
+schema and must return valid, typed data, which makes the AI reliable enough to
+drive real features such as item extraction and receipt scanning.
+\figph{logo-gemini.png}{Google Gemini}
+
+\paragraph{JSON Web Tokens (JWT), Docker, and GitHub Actions.}
+JSON Web Tokens provide stateless authentication (a short-lived access token and a
+longer-lived refresh token). Docker containerizes the application for consistent
+deployment, and GitHub Actions runs the automated test suite as continuous
+integration on every change. Development was carried out in \textbf{Visual Studio
+Code} with \textbf{Git / GitHub} for version control.
 
 \section{Gantt Chart}
 The project timeline is structured across the six sequential sprints described
 above. Figure~\ref{fig:gantt} illustrates their scheduling over the development
-cycle.
+cycle, showing how the secure foundation (Sprint 1) precedes the core domain
+(Sprint 2), which in turn precedes the value-adding layers of budget, AI,
+real-time, and dashboards.
 \figph{gantt.png}{Fakerni Project Gantt Chart}
 \label{fig:gantt}
 
 \section*{Conclusion}
 This chapter identified the functional and non-functional requirements, defined
-the actors, and detailed the Product Backlog, Sprint Planning, architecture, and
-development environment. The following chapters present the realization of each
-sprint.
+the actors, and detailed the Product Backlog, the sprint planning, the software
+architecture, and the development environment. This foundation prepares the ground
+for the implementation phases presented in the following chapters, starting with
+Sprint 1.
 
 %=====================================================================
-% Reusable sprint macro-sections written out explicitly per sprint
-%=====================================================================
-
-%---------------------------------------------------------------------
 % CHAPTER 3 — SPRINT 1
-%---------------------------------------------------------------------
+%=====================================================================
 \chapter{Sprint 1: Authentication, Accounts and Role-Based Access Control}
 
 \section{Introduction}
-The objective of Sprint 1 is to establish a secure and robust foundation for the
-platform: user accounts, authentication, and the authorization model that governs
-every later feature. This sprint implements email-based registration and login,
-JWT sessions with silent refresh, password reset via a one-time code, and a
-centralized Role-Based Access Control (RBAC) module.
+The primary objective of Sprint 1 is to establish a secure and robust foundation
+for the entire platform. Because every later feature depends on knowing \emph{who}
+the user is and \emph{what} they are allowed to do, this sprint is the most
+critical one for safeguarding user data. It implements email-based registration
+and login, JWT sessions with silent refresh, password reset through a one-time
+code, and --- most importantly --- a centralized Role-Based Access Control (RBAC)
+module that governs every subsequent action. Establishing this managed and secure
+foundation first is what makes the collaborative features of the following sprints
+trustworthy.
 
 \section{Sprint Backlog}
+Table~\ref{tab:s1-backlog} presents the user stories selected for Sprint 1.
 \begin{table}[H]\centering
 \caption{Sprint 1 Backlog}
+\label{tab:s1-backlog}
 \renewcommand{\arraystretch}{1.3}
 \begin{tabularx}{\textwidth}{|p{3.2cm}|X|c|c|}
 \hline
 \textbf{Feature} & \textbf{User Story} & \textbf{Est. (d)} & \textbf{Priority} \\ \hline
-Registration & As a user, I can create an account with my email and password. & 2 & High \\ \hline
-Login (JWT) & As a user, I can log in securely and stay logged in via token refresh. & 3 & High \\ \hline
-Password Reset & As a user, I can reset my password using a one-time code sent to me. & 2 & Medium \\ \hline
-Roles \& RBAC & As a system, access to each action is restricted by the user's role. & 3 & High \\ \hline
-Profile & As a user, I can view and update my profile and device tokens. & 1 & Medium \\ \hline
+Registration & As a user, I want to create an account with my email and a password. & 2 & High \\ \hline
+Login (JWT) & As a user, I want to log in securely and stay logged in through automatic token refresh. & 3 & High \\ \hline
+Password Reset & As a user, I want to reset my password using a one-time code sent to me. & 2 & Medium \\ \hline
+Roles \& RBAC & As the system, access to each action must be restricted by the user's role. & 3 & High \\ \hline
+Profile \& Devices & As a user, I want to view and update my profile and register my device for notifications. & 1 & Medium \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
 \section{Sprint 1 Analysis}
 \subsection{Refinement of the Use Case ``Authenticate''}
+The use case \emph{Authenticate} illustrates the interaction between any user and
+the Fakerni platform to gain secure access to the application. Authentication is
+performed with an email address and a password; on success, the backend issues a
+short-lived \emph{access} token and a longer-lived \emph{refresh} token, and the
+client transparently renews the access token when it expires.
 \figph{uc-authenticate.png}{Refinement Use Case Diagram: ``Authenticate''}
 
 \begin{table}[H]\centering
@@ -684,67 +864,124 @@ Profile & As a user, I can view and update my profile and device tokens. & 1 & M
 \renewcommand{\arraystretch}{1.3}
 \begin{tabularx}{\textwidth}{|p{2.8cm}|X|}
 \hline
-\textbf{Actor} & Any user (Owner, Admin, Member, Individual User) \\ \hline
+\textbf{Actors} & Any user (Owner, Admin, Member, Individual User) \\ \hline
 \textbf{Preconditions} & The user has a registered account with valid credentials. \\ \hline
-\textbf{Postconditions} & The user is authenticated; an access and a refresh JWT are issued and stored on the client. \\ \hline
-\textbf{Main Scenario} & 1. The user enters their email and password.
-2. The client sends the credentials to the API.
+\textbf{Postconditions} & The user is authenticated; an access token and a refresh token are issued and stored on the client. \\ \hline
+\textbf{Main Scenario} &
+1. The user enters their email and password on the login screen.
+2. The client sends the credentials to the backend API.
 3. The backend verifies the hashed password and issues an access token (short-lived) and a refresh token (long-lived).
-4. The client stores the tokens and attaches the access token to every request.
-5. When the access token expires, the client silently obtains a new one using the refresh token. \\ \hline
-\textbf{Exceptions} & Invalid credentials $\rightarrow$ ``Invalid email or password''; expired refresh token $\rightarrow$ the user is logged out and redirected to login. \\ \hline
+4. The client stores the tokens and attaches the access token to every subsequent request.
+5. When the access token expires, the client silently obtains a new one using the refresh token, without interrupting the user. \\ \hline
+\textbf{Exceptions} &
+1. Invalid credentials $\rightarrow$ ``Invalid email or password''.
+2. Expired or invalid refresh token $\rightarrow$ the user is logged out and redirected to the login screen. \\ \hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\end{table}
+
+\subsection{Refinement of the Use Case ``Manage Account and Reset Password''}
+A user can register an account, view and update their profile, and reset a
+forgotten password through a one-time code (OTP) that is sent to them and stored
+encrypted, with a limited validity period. Registering a device token (for push
+notifications) is also part of account management.
+\figph{uc-account.png}{Refinement Use Case Diagram: ``Manage Account and Reset Password''}
+
+\begin{table}[H]\centering
+\caption{Use Case Description: ``Reset Password (OTP)''}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|p{2.8cm}|X|}
+\hline
+\textbf{Actors} & Any registered user \\ \hline
+\textbf{Preconditions} & The user has a registered account and access to their email. \\ \hline
+\textbf{Postconditions} & The user's password is updated, and they can log in with the new password. \\ \hline
+\textbf{Main Scenario} &
+1. The user requests a password reset by entering their email.
+2. The backend generates a one-time code, stores it encrypted with a limited validity, and sends it to the user.
+3. The user submits the code together with a new password.
+4. The backend verifies that the code is valid and not expired, then hashes and stores the new password.
+5. A confirmation is shown, and the user can log in. \\ \hline
+\textbf{Exceptions} &
+1. Invalid or expired code $\rightarrow$ error message.
+2. Weak password $\rightarrow$ validation error. \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
 \subsection{Refinement of the Use Case ``Role-Based Access Control''}
-Every ``who is allowed to do X'' decision is centralized in a single
-authorization module. A user relates to a list through three relationships:
-being its \emph{creator}, holding a \emph{group role} (owner / admin / member), or
-having been granted \emph{shared access}. The backend enforces these rules on
-every request; the client only uses them to hide actions the user cannot perform.
-
+Every ``who is allowed to do X'' decision is centralized in a single authorization
+module. A user relates to a list through three relationships: being its
+\emph{creator}, holding a \emph{group role} (owner, admin, or member), or having
+been granted \emph{explicit shared access}. The backend enforces these rules on
+every request; the client only uses them to hide the actions a user cannot
+perform, so the enforcement is never the client's responsibility.
 \figph{uc-rbac.png}{Refinement Use Case Diagram: ``Role-Based Access Control''}
+
+\section{Interface Prototypes}
+Before implementation, initial prototypes were designed for the key screens of
+Sprint 1. The \textbf{Login} screen presents a clean card with an email field, a
+password field, and a sign-in button, together with links to registration and
+password reset. The \textbf{Registration} screen collects the email, a display
+name, and a password. The \textbf{Profile} screen lets an authenticated user view
+and update their details. These prototypes guided the visual design of the
+implemented interfaces.
 
 \section{Sprint Design}
 \subsection{Sequence Diagram: ``Login and Token Refresh''}
+Figure~\ref{fig:seq-login} details the login flow. The client sends the
+credentials; the backend verifies the hashed password and returns an access and a
+refresh token. On every later request, the access token is attached automatically;
+when it expires (HTTP 401), the client silently uses the refresh token to obtain a
+new access token and retries the original request, so the user is never
+unexpectedly logged out.
 \figph{seq-login.png}{Sequence Diagram: ``Login and Token Refresh''}
+\label{fig:seq-login}
 
 \subsection{Class Diagram}
+Figure~\ref{fig:class-s1} presents the class diagram of Sprint 1, with the
+\texttt{User} entity, the token/OTP helpers, and the authentication and
+permission components.
 \figph{class-sprint1.png}{Class Diagram --- Sprint 1}
+\label{fig:class-s1}
 
 \subsection{Database Schema}
 The main entities introduced in Sprint 1 are:
 \begin{itemize}[nosep]
   \item \textbf{USER:} (\underline{id}, email, name, password (hashed), is\_active, created\_at).
-  \item \textbf{DEVICE\_TOKEN:} (\underline{id}, user\_id, token (encrypted), token\_hash, created\_at).
+  \item \textbf{DEVICE\_TOKEN:} (\underline{id}, user\_id, token (encrypted), token\_hash, created\_at) --- the hash allows lookups without decrypting the token.
   \item \textbf{PASSWORD\_RESET\_OTP:} (\underline{id}, user\_id, code (encrypted), expires\_at).
-  \item \textbf{Roles} are carried by the \texttt{Membership} entity (owner / admin / member), introduced with groups in Sprint 2.
+  \item The user's \textbf{role} is carried by the \texttt{Membership} entity (owner / admin / member), introduced together with groups in Sprint 2.
 \end{itemize}
 
 \section{Realization and Implementation}
 The login interface authenticates the user with email and password and stores the
-returned tokens. The access token is automatically attached to every request; on
-expiry it is silently refreshed, so the user is never unexpectedly logged out.
-Figure~\ref{fig:web-login} shows the login screen.
+returned tokens. The access token is automatically attached to every request, and
+on expiry it is silently refreshed, so the session remains uninterrupted.
+Figure~\ref{fig:web-login} shows the implemented login screen on the web client.
 \figph{web-login.png}{Fakerni --- Login Interface (Web)}
 \label{fig:web-login}
 
 \section{Conclusion}
-Sprint 1 delivered a secure authentication foundation and a centralized
-authorization model. The next sprint builds the core domain on top of it: groups
-and shared lists.
+In this chapter, we detailed the specification, design, and implementation of the
+security foundation of Fakerni: registration and login with JWT sessions and
+silent refresh, password reset through a one-time code, and a centralized
+Role-Based Access Control model. This secure and managed foundation is what makes
+the collaborative features of the next sprints trustworthy. The following chapter
+builds the core domain on top of it: groups and shared lists.
 
-%---------------------------------------------------------------------
+%=====================================================================
 % CHAPTER 4 — SPRINT 2
-%---------------------------------------------------------------------
+%=====================================================================
 \chapter{Sprint 2: Groups and Shared Lists (Fakras)}
 
 \section{Introduction}
-Building on the secure foundation of Sprint 1, Sprint 2 implements the core domain
-of Fakerni: groups (with invitation codes and roles) and the shared lists
-(``Fakras'') they contain --- including items, categories, attachments, barcode
-scanning, sharing, archiving, duplication, and search.
+Building on the secure foundation established in Sprint 1, Sprint 2 implements the
+core domain of Fakerni: the groups (with their invitation codes and roles) and the
+shared lists --- the \emph{Fakras} --- that they contain. This sprint delivers the
+management of groups and memberships, the full life cycle of lists (create, share,
+archive, duplicate, delete), and the items inside them, including categories,
+attachments, barcode scanning, search, and filtering. These two pillars form the
+operational heart of the collaborative experience.
 
 \section{Sprint Backlog}
 \begin{table}[H]\centering
@@ -753,83 +990,138 @@ scanning, sharing, archiving, duplication, and search.
 \begin{tabularx}{\textwidth}{|p{3.2cm}|X|c|c|}
 \hline
 \textbf{Feature} & \textbf{User Story} & \textbf{Est. (d)} & \textbf{Priority} \\ \hline
-Groups & As a user, I can create a group and invite members with a code. & 3 & High \\ \hline
-Shared Lists & As a member, I can create, share, archive, and duplicate a list. & 3 & High \\ \hline
-Items & As a member, I can add, complete, assign, and edit items. & 3 & High \\ \hline
-Attachments \& Barcode & As a member, I can attach a photo and scan a barcode. & 2 & Medium \\ \hline
-Search \& Filter & As a member, I can search and filter items in a list. & 1 & Medium \\ \hline
+Groups & As a user, I want to create a group and invite members with a time-limited code. & 3 & High \\ \hline
+Roles \& Members & As an owner, I want to assign roles and remove members from my group. & 2 & High \\ \hline
+Shared Lists & As a member, I want to create, share, archive, and duplicate a list. & 3 & High \\ \hline
+Items & As a member, I want to add, complete, assign, edit, and delete items. & 3 & High \\ \hline
+Attachments \& Barcode & As a member, I want to attach a photo to an item and scan a barcode. & 2 & Medium \\ \hline
+Search \& Filter & As a member, I want to search and filter items within a list. & 1 & Medium \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
 \section{Sprint 2 Analysis}
 \subsection{Refinement of the Use Case ``Manage Groups and Members''}
-A group has exactly one owner (enforced by a database constraint), optional
-admins, and members. Membership is unique per (user, group). New members join via
-a time-limited invitation code.
+A group has exactly one owner (enforced by a database constraint), optionally
+several admins, and members. Membership is unique per (user, group). A new member
+joins by entering a time-limited invitation code generated for the group; the
+owner can promote members to admin and remove members.
 \figph{uc-groups.png}{Refinement Use Case Diagram: ``Manage Groups and Members''}
 
+\begin{table}[H]\centering
+\caption{Use Case Description: ``Manage Groups and Members''}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|p{2.8cm}|X|}
+\hline
+\textbf{Actors} & Owner, Admin, Member, Individual User \\ \hline
+\textbf{Preconditions} & The user is authenticated. \\ \hline
+\textbf{Postconditions} & A group is created or joined; roles and memberships are updated and reflected for all members. \\ \hline
+\textbf{Main Scenario} &
+1. A user creates a group; the system generates a unique, time-limited invitation code and makes the creator its owner.
+2. Another user joins the group by entering the invitation code and becomes a member.
+3. The owner (or an admin) can view members, promote a member to admin, or remove a member.
+4. The backend validates every action against the centralized permissions and persists the change. \\ \hline
+\textbf{Exceptions} &
+1. Invalid or expired invitation code $\rightarrow$ error message.
+2. Attempt to remove the owner $\rightarrow$ blocked (a group must keep exactly one owner). \\ \hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\end{table}
+
 \subsection{Refinement of the Use Case ``Manage Shared Lists and Items''}
+This use case covers the collaborative core. Any member who can view a list may add
+items and mark any item as done. Editing or deleting a specific item, however, is
+restricted to the item's creator, the list's creator, or a group admin; editing,
+archiving, sharing, or deleting the list itself is restricted to the list's creator
+or a group owner/admin. This distinction is exactly what the centralized
+permissions module enforces.
+\figph{uc-lists.png}{Refinement Use Case Diagram: ``Manage Shared Lists and Items''}
+
 \begin{table}[H]\centering
 \caption{Use Case Description: ``Manage Shared Lists and Items''}
 \renewcommand{\arraystretch}{1.3}
 \begin{tabularx}{\textwidth}{|p{2.8cm}|X|}
 \hline
 \textbf{Actors} & Owner, Admin, Member, Individual User \\ \hline
-\textbf{Preconditions} & The user is authenticated and can view the list (creator, group member, or shared user). \\ \hline
-\textbf{Postconditions} & Lists and items are created, edited, completed, or deleted, and changes are reflected for all members. \\ \hline
-\textbf{Main Scenario} & 1. The user opens a list.
-2. Any member can add an item or mark any item as done.
-3. The item's creator, the list's creator, or a group admin can edit or delete an item.
-4. The list's creator or a group owner/admin can edit, archive, share, or delete the list.
-5. The backend validates every action against the centralized permissions and persists the change. \\ \hline
-\textbf{Exceptions} & Insufficient permissions $\rightarrow$ HTTP 403; missing required fields $\rightarrow$ validation error. \\ \hline
+\textbf{Preconditions} & The user is authenticated and can view the list (as its creator, a group member, or an explicitly shared user). \\ \hline
+\textbf{Postconditions} & Lists and items are created, edited, completed, or deleted, and the changes are reflected for all members. \\ \hline
+\textbf{Main Scenario} &
+1. The user opens a list.
+2. Any member can add an item or mark any item as done (or undo it).
+3. The item's creator, the list's creator, or a group admin can edit or delete an item, or assign it to a member.
+4. The list's creator or a group owner/admin can edit, archive, share, duplicate, or delete the list.
+5. Photos can be attached to items, and barcodes can be scanned to add items quickly.
+6. The backend validates every action against the centralized permissions and persists the change. \\ \hline
+\textbf{Exceptions} &
+1. Insufficient permissions $\rightarrow$ HTTP 403 with a clear message.
+2. Missing required fields (e.g. empty item name) $\rightarrow$ validation error. \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
-\figph{uc-lists.png}{Refinement Use Case Diagram: ``Manage Shared Lists and Items''}
+
+\section{Interface Prototypes}
+Prototypes were designed for the \textbf{Group} screen (with the invitation code
+and member list), the \textbf{List} screen (a Fakra with its items, categories,
+and a floating ``add'' button), and the \textbf{Item} detail (with quantity, unit,
+category, price, assignee, notes, and photo attachments). These guided the final
+implementation shown later in this chapter.
 
 \section{Sprint Design}
 \subsection{Sequence Diagram: ``Add an Item to a List''}
+Figure~\ref{fig:seq-add-item} details how an item is added. The client sends a
+request with the item data; the backend checks that the user can access the list,
+validates and saves the item (setting the creator on the server, so it cannot be
+forged), records an activity-log entry, and returns the created item.
 \figph{seq-add-item.png}{Sequence Diagram: ``Add an Item to a List''}
+\label{fig:seq-add-item}
 
 \subsection{Class Diagram}
+Figure~\ref{fig:class-s2} presents the class diagram of Sprint 2, with the
+\texttt{Household} (group), \texttt{Membership}, \texttt{Fakra}, \texttt{Item},
+\texttt{ItemAttachment}, \texttt{FakraAccess}, and \texttt{ActivityLog} entities.
 \figph{class-sprint2.png}{Class Diagram --- Sprint 2}
+\label{fig:class-s2}
 
 \subsection{Database Schema}
 The main entities introduced in Sprint 2 are:
 \begin{itemize}[nosep]
   \item \textbf{HOUSEHOLD (Group):} (\underline{id}, name, type, owner\_id, invite\_code, invite\_expires\_at, created\_at).
-  \item \textbf{MEMBERSHIP:} (\underline{id}, user\_id, household\_id, role, joined\_at) --- unique per (user, household); one owner per household.
-  \item \textbf{FAKRA (List):} (\underline{id}, title, description, status, due\_date, recurrence, budget, household\_id (nullable), created\_by, created\_at).
-  \item \textbf{ITEM:} (\underline{id}, fakra\_id, name, quantity, unit, category, notes, estimated\_price, status, assigned\_to, done\_by, done\_at, created\_by).
+  \item \textbf{MEMBERSHIP:} (\underline{id}, user\_id, household\_id, role, joined\_at) --- unique per (user, household); a database constraint guarantees exactly one owner per household.
+  \item \textbf{FAKRA (List):} (\underline{id}, title, description, status, due\_date, recurrence, budget, household\_id (nullable), created\_by, created\_at) --- a null household means a personal list.
+  \item \textbf{ITEM:} (\underline{id}, fakra\_id, name, quantity, unit, category, notes, estimated\_price, status, assigned\_to, done\_by, done\_at, created\_by, created\_at).
   \item \textbf{ITEM\_ATTACHMENT:} (\underline{id}, item\_id, file, uploaded\_by, created\_at).
-  \item \textbf{FAKRA\_ACCESS:} (\underline{id}, fakra\_id, user\_id) --- explicit sharing of a personal list.
+  \item \textbf{FAKRA\_ACCESS:} (\underline{id}, fakra\_id, user\_id) --- the explicit sharing of a personal list with a specific user.
   \item \textbf{ACTIVITY\_LOG:} (\underline{id}, fakra\_id, actor\_id, action\_type, description, created\_at).
 \end{itemize}
 
 \section{Realization and Implementation}
 Figure~\ref{fig:web-fakra} shows a shared list with its items on the web client,
-and Figure~\ref{fig:mobile-fakra} the same on mobile.
+and Figure~\ref{fig:mobile-fakra} the same list on the mobile client. Both are
+served by the same backend and stay perfectly consistent.
 \figph{web-fakra.png}{Fakerni --- Shared List View (Web)}
 \label{fig:web-fakra}
 \figph{mobile-fakra.png}{Fakerni --- Shared List View (Mobile)}
 \label{fig:mobile-fakra}
 
 \section{Conclusion}
-Sprint 2 delivered the collaborative core of Fakerni: groups, roles, and shared
-lists with items and attachments. The next sprint adds budget management and
-spending analytics on top of this data.
+In this chapter, we presented the specification, design, and implementation of the
+collaborative core of Fakerni: groups with invitation codes and roles, and shared
+lists with items, categories, attachments, and search. These modules establish the
+data foundation on which the next sprint builds the financial intelligence of the
+platform: budgets, analytics, and expense splitting.
 
-%---------------------------------------------------------------------
+%=====================================================================
 % CHAPTER 5 — SPRINT 3
-%---------------------------------------------------------------------
+%=====================================================================
 \chapter{Sprint 3: Budget Management and Spending Analytics}
 
 \section{Introduction}
-Sprint 3 turns the data already collected --- items and their estimated prices ---
-into financial intelligence: per-list budgets, spending tracking, over-budget
-alerts, monthly analytics, and fair expense-splitting among group members.
+Sprint 3 turns the data already collected --- the items and their estimated prices
+--- into financial intelligence. It adds per-list budgets, spending tracking,
+over-budget alerts, monthly and per-category analytics, and a fair
+expense-splitting feature that computes who owes whom within a group. This gives
+groups a shared, transparent view of their spending that the fragmented tools of
+the current situation could never provide.
 
 \section{Sprint Backlog}
 \begin{table}[H]\centering
@@ -838,21 +1130,22 @@ alerts, monthly analytics, and fair expense-splitting among group members.
 \begin{tabularx}{\textwidth}{|p{3.2cm}|X|c|c|}
 \hline
 \textbf{Feature} & \textbf{User Story} & \textbf{Est. (d)} & \textbf{Priority} \\ \hline
-Budgets & As a member, I can set a budget for a list and track spending against it. & 2 & High \\ \hline
-Over-budget Alerts & As a member, I am alerted once when spending crosses the budget. & 1 & Medium \\ \hline
-Analytics & As a member, I can view monthly spending and category breakdowns. & 2 & High \\ \hline
-Expense Splitting & As a group, we can compute a fair settlement of who owes whom. & 3 & High \\ \hline
+Budgets & As a member, I want to set a budget for a list and track spending against it. & 2 & High \\ \hline
+Over-budget Alerts & As a member, I want to be alerted once when spending crosses the budget. & 1 & Medium \\ \hline
+Analytics & As a member, I want to view monthly spending and category breakdowns. & 2 & High \\ \hline
+Expense Splitting & As a group, we want to compute a fair settlement of who owes whom. & 3 & High \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
 \section{Sprint 3 Analysis}
 \subsection{Refinement of the Use Case ``Track Budget and Split Expenses''}
-The budget cap is the explicit budget when set, otherwise the sum of item prices.
-Spending is the total of completed items. An over-budget alert fires exactly once
-when spending crosses the cap and resets if it drops back under. The settlement
-algorithm computes each member's fair share and proposes the minimum set of
-transfers to balance the group.
+The budget cap is the explicit budget when one is set, otherwise the sum of the
+item prices. Spending is the total of the completed items. An over-budget alert
+fires exactly once when spending crosses the cap and resets automatically if
+spending later drops back under it. The expense-splitting feature computes each
+member's fair share of the total and proposes the minimum set of transfers needed
+to balance the group.
 \figph{uc-budget.png}{Refinement Use Case Diagram: ``Track Budget and Split Expenses''}
 
 \begin{table}[H]\centering
@@ -862,44 +1155,69 @@ transfers to balance the group.
 \hline
 \textbf{Actors} & Owner, Admin, Member \\ \hline
 \textbf{Preconditions} & The user can view the list; items may carry estimated prices. \\ \hline
-\textbf{Postconditions} & Budget indicators are updated; an alert may be sent; a settlement plan is produced. \\ \hline
-\textbf{Main Scenario} & 1. A member sets a budget on the list.
-2. As items are completed, spending is recomputed.
-3. When spending crosses the budget, a one-time alert is sent to the members.
-4. The group opens the analytics view to see spending by month and category.
-5. The system computes each member's fair share and suggests the minimum transfers to settle up. \\ \hline
-\textbf{Exceptions} & Negative price $\rightarrow$ validation error; no completed items $\rightarrow$ empty analytics state. \\ \hline
+\textbf{Postconditions} & Budget indicators are updated; an alert may be sent; a settlement plan is produced on request. \\ \hline
+\textbf{Main Scenario} &
+1. A member sets a budget on the list.
+2. As items are completed, the system recomputes the spending and the remaining budget.
+3. When spending crosses the budget for the first time, a one-time alert is sent to the members.
+4. The group opens the analytics view to see spending by month and by category.
+5. On request, the system computes each member's fair share and proposes the minimum transfers to settle up. \\ \hline
+\textbf{Exceptions} &
+1. Negative price $\rightarrow$ validation error.
+2. No completed items $\rightarrow$ an empty analytics state is shown. \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
+\section{Interface Prototypes}
+Prototypes were designed for the \textbf{budget bar} (spent vs.\ cap, with an
+over-budget warning), the \textbf{analytics} view (monthly totals and category
+breakdowns), and the \textbf{settle-up} screen that lists the proposed transfers
+between members.
+
 \section{Sprint Design}
 \subsection{Sequence Diagram: ``Complete an Item and Check the Budget''}
+Figure~\ref{fig:seq-budget} details what happens when an item is completed: the
+backend marks the item done, recomputes the spending, and --- if the budget is
+crossed for the first time --- sends a single alert and marks the alert as sent so
+it is not repeated.
 \figph{seq-budget.png}{Sequence Diagram: ``Complete an Item and Check the Budget''}
+\label{fig:seq-budget}
 
 \subsection{Class Diagram}
+Figure~\ref{fig:class-s3} presents the class diagram of Sprint 3, extending the
+\texttt{Fakra} entity with the budget and the computed spending indicators, and
+adding the settlement logic used for expense splitting.
 \figph{class-sprint3.png}{Class Diagram --- Sprint 3}
+\label{fig:class-s3}
 
 \section{Realization and Implementation}
-The list view displays a live budget bar (spent vs.\ cap) and an over-budget
+The list view displays a live budget bar (spent vs.\ cap) with an over-budget
 warning, while the analytics view shows monthly totals and category breakdowns.
-The ``settle up'' screen presents the computed transfers between members.
+The ``settle up'' screen presents the computed transfers that balance the group.
+Figure~\ref{fig:budget} illustrates the budget and analytics interface.
 \figph{budget-analytics.png}{Fakerni --- Budget Bar and Spending Analytics}
+\label{fig:budget}
 
 \section{Conclusion}
-Sprint 3 added financial intelligence to Fakerni. The next sprint introduces
-AI-assisted features that reduce the effort of entering and managing items.
+In this chapter, we presented the budget-management and spending-analytics module,
+including the one-shot over-budget alert and the fair expense-splitting algorithm.
+This financial intelligence is built entirely on data the application already
+collects. The next sprint reduces the effort of entering that data by adding
+AI-assisted features.
 
-%---------------------------------------------------------------------
+%=====================================================================
 % CHAPTER 6 — SPRINT 4
-%---------------------------------------------------------------------
+%=====================================================================
 \chapter{Sprint 4: AI-Assisted Features}
 
 \section{Introduction}
-Sprint 4 integrates a large language model to make item entry and management
-effortless. All AI calls use \emph{structured output}: the model is given a strict
-schema and must return valid, typed data --- so the application never has to parse
-free-form text and never receives malformed results.
+Sprint 4 integrates a large language model to make the entry and management of
+items effortless. The reliability of these features rests on one key idea:
+\emph{structured output}. Rather than asking the model for free text and hoping to
+parse it, each call gives the model a strict schema, and the model must return
+valid, typed data. This is what allows the AI to drive real features such as
+turning a sentence or a receipt photo into ready-to-save items.
 
 \section{Sprint Backlog}
 \begin{table}[H]\centering
@@ -908,11 +1226,11 @@ free-form text and never receives malformed results.
 \begin{tabularx}{\textwidth}{|p{3.2cm}|X|c|c|}
 \hline
 \textbf{Feature} & \textbf{User Story} & \textbf{Est. (d)} & \textbf{Priority} \\ \hline
-Smart Add (text) & As a user, I can type a sentence and get structured items. & 2 & High \\ \hline
-Receipt Scan & As a user, I can photograph a receipt and get its items. & 2 & High \\ \hline
-Suggestions & As a user, I get relevant item suggestions for a list. & 1 & Medium \\ \hline
-Smart Commands & As a user, I can issue natural-language commands on items. & 2 & Medium \\ \hline
-Spending Digest & As a user, I get an AI-written summary of my spending. & 1 & Low \\ \hline
+Smart Add (text) & As a user, I want to type a sentence and get structured items. & 2 & High \\ \hline
+Receipt Scan & As a user, I want to photograph a receipt and get its items. & 2 & High \\ \hline
+Suggestions & As a user, I want relevant item suggestions for a list. & 1 & Medium \\ \hline
+Smart Commands & As a user, I want to issue natural-language commands on items. & 2 & Medium \\ \hline
+Spending Digest & As a user, I want an AI-written summary of my spending. & 1 & Low \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
@@ -920,36 +1238,70 @@ Spending Digest & As a user, I get an AI-written summary of my spending. & 1 & L
 \section{Sprint 4 Analysis}
 \subsection{Refinement of the Use Case ``Assist Item Entry with AI''}
 The model receives an instruction prompt and a strict output schema. For item
-extraction, it returns a list of items with typed fields (name, quantity, unit,
-category, notes, estimated price). For smart commands, the action is constrained
-to a fixed set (done / undo / delete), so the model can only produce actions the
-system can execute. AI endpoints are rate-limited to protect cost, and every call
-is wrapped so a failure returns a clean error instead of crashing.
+extraction (from text or from a receipt photo), it returns a list of items with
+typed fields --- name, quantity, unit, category, notes, and estimated price. For
+smart commands, the allowed action is constrained to a fixed set (\emph{done},
+\emph{undo}, \emph{delete}), so the model can only produce actions the system knows
+how to execute. The AI endpoints are rate-limited to control cost, and every call
+is wrapped so that a failure returns a clean error instead of crashing the request.
 \figph{uc-ai.png}{Refinement Use Case Diagram: ``Assist Item Entry with AI''}
+
+\begin{table}[H]\centering
+\caption{Use Case Description: ``Smart Add from Text''}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|p{2.8cm}|X|}
+\hline
+\textbf{Actors} & Any user who can add items to a list \\ \hline
+\textbf{Preconditions} & The user can view the list; the AI service is available. \\ \hline
+\textbf{Postconditions} & One or more structured items are proposed and, once confirmed, added to the list. \\ \hline
+\textbf{Main Scenario} &
+1. The user types a free-text sentence (e.g. ``2 kg tomatoes, milk and bread'').
+2. The client sends the text to the AI endpoint.
+3. The backend calls the language model with the instruction prompt and the strict item schema.
+4. The model returns a validated list of typed items.
+5. The items are shown to the user for confirmation and then saved to the list. \\ \hline
+\textbf{Exceptions} &
+1. The model or the API key is unavailable $\rightarrow$ a clean error is returned and the user can add items manually.
+2. The rate limit is exceeded $\rightarrow$ HTTP 429 with a clear message. \\ \hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\end{table}
 
 \section{Sprint Design}
 \subsection{Sequence Diagram: ``Smart Add from Text''}
+Figure~\ref{fig:seq-ai} details the flow: the client sends the text, the backend
+invokes the model with a schema-constrained request, receives validated items, and
+returns them for the user to confirm.
 \figph{seq-ai.png}{Sequence Diagram: ``Smart Add from Text''}
+\label{fig:seq-ai}
 
 \section{Realization and Implementation}
 The Smart Add field turns a sentence such as ``2 kg tomatoes, milk, and bread''
-into three structured items ready to save; the receipt scanner extracts items from
-a photo; and the spending digest produces a short, human-readable summary.
+into three structured items ready to save; the receipt scanner extracts the items
+from a photograph; and the spending digest produces a short, human-readable summary
+of the group's spending. Figure~\ref{fig:ai} illustrates the AI features.
 \figph{ai-smartadd.png}{Fakerni --- AI Smart Add and Receipt Scan}
+\label{fig:ai}
 
 \section{Conclusion}
-Sprint 4 delivered reliable, schema-constrained AI assistance. The next sprint
-makes collaboration truly live with real-time synchronization and presence.
+In this chapter, we presented the AI-assisted features and, above all, the
+structured-output approach that makes them reliable. The AI reduces the friction of
+entering and organizing items without ever producing malformed data. The next
+sprint makes the whole experience live, with real-time synchronization and
+presence.
 
-%---------------------------------------------------------------------
+%=====================================================================
 % CHAPTER 7 — SPRINT 5
-%---------------------------------------------------------------------
+%=====================================================================
 \chapter{Sprint 5: Real-Time Collaboration and Presence}
 
 \section{Introduction}
-Sprint 5 makes Fakerni collaborative in real time. Using WebSockets over Django
-Channels, every change made by one member appears instantly on every other
-member's screen, and a presence indicator shows who is currently viewing a list.
+Sprint 5 makes Fakerni genuinely collaborative in real time. Using WebSockets over
+Django Channels, every change made by one member appears instantly on every other
+member's screen, and a presence indicator shows who is currently viewing a given
+list. This sprint is the most technically demanding part of the project, because
+it combines authenticated WebSocket connections, message distribution through a
+channel layer, and a live presence registry.
 
 \section{Sprint Backlog}
 \begin{table}[H]\centering
@@ -958,10 +1310,10 @@ member's screen, and a presence indicator shows who is currently viewing a list.
 \begin{tabularx}{\textwidth}{|p{3.2cm}|X|c|c|}
 \hline
 \textbf{Feature} & \textbf{User Story} & \textbf{Est. (d)} & \textbf{Priority} \\ \hline
-Live Sync & As a member, I see other members' changes instantly. & 3 & High \\ \hline
-Live Presence & As a member, I can see who is currently viewing a list. & 2 & High \\ \hline
-Secure WS Auth & As a system, WebSocket connections are authenticated with JWT. & 2 & High \\ \hline
-Auto-Reconnect & As a member, my live connection recovers automatically after a drop. & 1 & Medium \\ \hline
+Live Sync & As a member, I want to see other members' changes instantly. & 3 & High \\ \hline
+Live Presence & As a member, I want to see who is currently viewing a list. & 2 & High \\ \hline
+Secure WS Auth & As the system, every WebSocket connection must be authenticated with JWT. & 2 & High \\ \hline
+Auto-Reconnect & As a member, my live connection must recover automatically after a drop. & 1 & Medium \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
@@ -970,11 +1322,12 @@ Auto-Reconnect & As a member, my live connection recovers automatically after a 
 \subsection{Refinement of the Use Case ``Collaborate in Real Time''}
 A custom middleware authenticates each WebSocket using the JWT passed in the
 connection URL, and the consumer rejects any connection whose user cannot access
-the list. Three channel scopes are used --- per group, per list, and per user ---
-so each event reaches exactly the right audience. When a REST action changes data,
-the server broadcasts an event to the relevant channel; every connected client
-updates instantly. A presence registry tracks who is viewing each list and
-broadcasts the (de-duplicated) viewer list on every join and leave.
+the requested list. Three channel scopes are used --- one per group, one per list,
+and one per user --- so that each event reaches exactly the right audience. When a
+REST action changes data, the server broadcasts an event to the relevant channel,
+and every connected client updates instantly. A presence registry tracks who is
+viewing each list and broadcasts the de-duplicated viewer list on every join and
+leave.
 \figph{uc-realtime.png}{Refinement Use Case Diagram: ``Collaborate in Real Time''}
 
 \begin{table}[H]\centering
@@ -984,40 +1337,60 @@ broadcasts the (de-duplicated) viewer list on every join and leave.
 \hline
 \textbf{Actors} & Owner, Admin, Member, Individual User \\ \hline
 \textbf{Preconditions} & The user is authenticated and opens a list they can access. \\ \hline
-\textbf{Postconditions} & The client is subscribed to live updates; presence is broadcast; every change is reflected instantly. \\ \hline
-\textbf{Main Scenario} & 1. The client opens a WebSocket to the list, passing its JWT.
-2. The middleware authenticates the token; the consumer verifies access.
-3. The user joins the list's channel and is added to the presence registry.
-4. Any change (add / complete / edit / delete) is broadcast to all subscribers.
-5. On leaving, the user is removed and the new viewer list is broadcast. \\ \hline
-\textbf{Exceptions} & Invalid or missing token $\rightarrow$ connection refused; connection drop $\rightarrow$ automatic reconnection after a short delay. \\ \hline
+\textbf{Postconditions} & The client is subscribed to live updates; presence is broadcast; every change is reflected instantly on all screens. \\ \hline
+\textbf{Main Scenario} &
+1. The client opens a WebSocket to the list, passing its JWT in the connection URL.
+2. The middleware authenticates the token; the consumer verifies that the user can access the list.
+3. The user joins the list's channel and is added to the presence registry, and the new viewer list is broadcast.
+4. Any change (add, complete, edit, delete) performed by any member is broadcast to all subscribers, whose screens update immediately.
+5. On leaving, the user is removed from the registry and the updated viewer list is broadcast. \\ \hline
+\textbf{Exceptions} &
+1. Invalid or missing token $\rightarrow$ the connection is refused.
+2. Connection drop $\rightarrow$ the client reconnects automatically after a short delay. \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
+\section{Interface Prototypes}
+Prototypes were designed for the \textbf{presence bar} (avatars of the users
+currently viewing a list) and for the \textbf{live update} behaviour (items
+appearing, being ticked off, or disappearing without a manual refresh).
+
 \section{Sprint Design}
 \subsection{Sequence Diagram: ``Broadcast an Item Change''}
+Figure~\ref{fig:seq-rt} details how a change propagates: a member performs a REST
+action; after saving, the backend broadcasts an event to the list's channel; the
+channel layer delivers it to every connected consumer; and each client updates its
+view instantly.
 \figph{seq-realtime.png}{Sequence Diagram: ``Broadcast an Item Change''}
+\label{fig:seq-rt}
 
 \section{Realization and Implementation}
 When one member checks off an item, it updates on every other member's screen
 within a moment, and avatars show who else is currently in the list.
+Figure~\ref{fig:rt} illustrates the live updates and presence.
 \figph{realtime-presence.png}{Fakerni --- Live Updates and Presence Avatars}
+\label{fig:rt}
 
 \section{Conclusion}
-Sprint 5 delivered authenticated, resilient real-time collaboration --- the most
-technically demanding part of the project. The final sprint consolidates the
-experience with role-based dashboards and the multilingual interface.
+In this chapter, we presented the real-time collaboration layer: authenticated
+WebSockets, message distribution through the channel layer, a live presence
+registry, and automatic reconnection. This is the most technically demanding part
+of the project and the feature that most distinguishes Fakerni. The final sprint
+consolidates the experience with role-based dashboards and the multilingual
+interface.
 
-%---------------------------------------------------------------------
+%=====================================================================
 % CHAPTER 8 — SPRINT 6
-%---------------------------------------------------------------------
+%=====================================================================
 \chapter{Sprint 6: Role-Based Dashboards and Multilingual Interface}
 
 \section{Introduction}
 Sprint 6 gives each user a consolidated, role-aware overview of their activity,
-adds push notifications, and finalizes the dynamic multilingual interface
-(English, French, and Arabic with right-to-left layout).
+adds push notifications for relevant events, and finalizes the dynamic multilingual
+interface supporting English, French, and Arabic (with right-to-left layout). This
+sprint completes the user experience and makes the platform accessible to a wide
+range of users.
 
 \section{Sprint Backlog}
 \begin{table}[H]\centering
@@ -1026,38 +1399,63 @@ adds push notifications, and finalizes the dynamic multilingual interface
 \begin{tabularx}{\textwidth}{|p{3.2cm}|X|c|c|}
 \hline
 \textbf{Feature} & \textbf{User Story} & \textbf{Est. (d)} & \textbf{Priority} \\ \hline
-Overview Dashboard & As a user, I see key indicators of my groups and lists at a glance. & 2 & High \\ \hline
-Notifications & As a user, I receive push notifications for relevant events. & 2 & Medium \\ \hline
-Multilingual & As a user, I can switch between English, French, and Arabic. & 1 & Low \\ \hline
-Right-to-Left & As an Arabic user, the interface mirrors correctly (RTL). & 1 & Low \\ \hline
+Overview Dashboard & As a user, I want to see key indicators of my groups and lists at a glance. & 2 & High \\ \hline
+Notifications & As a user, I want to receive push notifications for relevant events. & 2 & Medium \\ \hline
+Multilingual & As a user, I want to switch between English, French, and Arabic. & 1 & Low \\ \hline
+Right-to-Left & As an Arabic user, I want the interface to mirror correctly (RTL). & 1 & Low \\ \hline
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \end{table}
 
 \section{Sprint 6 Analysis}
 \subsection{Refinement of the Use Case ``Consult Dashboard and Switch Language''}
-The dashboard aggregates the user's groups, lists, pending items, and budget
-status into role-appropriate indicators. The language switcher updates all labels
-in real time and stores the preference locally; selecting Arabic mirrors the
-layout to right-to-left.
+The dashboard aggregates the user's groups, lists, pending items, and budget status
+into role-appropriate indicators. The language switcher updates all labels in real
+time and stores the preference locally; selecting Arabic mirrors the whole layout
+to right-to-left.
 \figph{uc-dashboard.png}{Refinement Use Case Diagram: ``Consult Dashboard and Switch Language''}
+
+\begin{table}[H]\centering
+\caption{Use Case Description: ``Switch Application Language''}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|p{2.8cm}|X|}
+\hline
+\textbf{Actors} & All users (and guests on the login screen) \\ \hline
+\textbf{Preconditions} & The user is on any screen with the language switcher. \\ \hline
+\textbf{Postconditions} & All text updates to the selected language, the layout direction adapts (LTR/RTL), and the preference is stored. \\ \hline
+\textbf{Main Scenario} &
+1. The user opens the language switcher and selects English, French, or Arabic.
+2. The application updates every label from the translation dictionary in real time.
+3. If Arabic is selected, the layout is mirrored to right-to-left.
+4. The chosen language is saved locally so it persists on the next visit. \\ \hline
+\textbf{Exceptions} &
+1. Local storage disabled $\rightarrow$ the language changes for the current session but resets on reload. \\ \hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\end{table}
 
 \section{Sprint Design}
 \subsection{Sequence Diagram: ``Load the Overview Dashboard''}
+Figure~\ref{fig:seq-dash} details how the dashboard is populated: the client
+requests the user's groups, lists, and indicators; the backend returns them scoped
+to the user's role; and the client renders the role-appropriate overview.
 \figph{seq-dashboard.png}{Sequence Diagram: ``Load the Overview Dashboard''}
+\label{fig:seq-dash}
 
 \section{Realization and Implementation}
-Figure~\ref{fig:web-dash} shows the web overview dashboard and
-Figure~\ref{fig:mobile-dash} its mobile counterpart.
+Figure~\ref{fig:web-dash} shows the overview dashboard on the web client, and
+Figure~\ref{fig:mobile-dash} its mobile counterpart. Both present the user's
+groups, lists, pending items, and budget status at a glance.
 \figph{web-dashboard.png}{Fakerni --- Overview Dashboard (Web)}
 \label{fig:web-dash}
 \figph{mobile-dashboard.png}{Fakerni --- Overview Dashboard (Mobile)}
 \label{fig:mobile-dash}
 
 \section{Conclusion}
-Sprint 6 completed the user experience with role-based dashboards, notifications,
-and full internationalization. Together, the six sprints deliver a complete,
-role-aware, real-time, AI-assisted collaborative platform.
+In this chapter, we completed the user experience with role-based dashboards, push
+notifications, and full internationalization including right-to-left support.
+Together, the six sprints deliver a complete, role-aware, real-time, and
+AI-assisted collaborative platform.
 
 %=====================================================================
 % GENERAL CONCLUSION AND PERSPECTIVES
@@ -1066,40 +1464,48 @@ role-aware, real-time, AI-assisted collaborative platform.
 \addcontentsline{toc}{chapter}{General Conclusion and Perspectives}
 
 \section*{General Conclusion}
-This report was carried out as part of a project conducted at \textbf{\myCompany}.
-Its objective was the design and development of \textbf{Fakerni}, a collaborative,
-real-time, and AI-assisted platform enabling any group to create and share lists,
-coordinate tasks with role-based permissions, track budgets, and stay synchronized
-across web and mobile.
+This report was carried out as part of an internship project conducted at
+\textbf{\myCompany}. Its objective was the design and development of
+\textbf{Fakerni}, a collaborative, real-time, and AI-assisted platform enabling any
+group to create and share lists, coordinate tasks with role-based permissions,
+track budgets and spending, and stay perfectly synchronized across web and mobile.
 
-To achieve this objective, we developed a layered client--server architecture with
-a single backend serving both a React web client and a React Native mobile client.
-Particular effort was devoted to securing the application through JWT
-authentication and a centralized Role-Based Access Control module, to making
-collaboration truly live through authenticated WebSockets and presence, and to
-integrating reliable AI assistance through schema-constrained model output.
+To achieve this objective, we developed a layered client--server architecture in
+which a single backend serves both a React web client and a React Native mobile
+client. Particular effort was devoted to securing the application through a
+JWT-based authentication system and a centralized Role-Based Access Control module;
+to making collaboration genuinely live through authenticated WebSockets and a
+presence registry; and to integrating reliable AI assistance through
+schema-constrained model output. Budget tracking, spending analytics, and fair
+expense-splitting were built on top of the data the application already collects,
+and a dynamic multilingual interface (English, French, and Arabic with
+right-to-left support) makes the platform broadly accessible.
 
 Throughout the project, the \textbf{Agile Scrum} methodology ensured adaptability
-and the incremental delivery of validated features at the end of each sprint. The
-use of modern technologies --- Django, Django Channels, React, React Native,
-PostgreSQL, and Redis --- combined with a modular architecture, made it possible to
-build a robust, scalable, and maintainable solution. The implementation required
-considerable research to overcome challenges such as authenticated real-time
-communication, centralized multi-role authorization, and reliable AI integration.
+to evolving requirements and the incremental delivery of validated features at the
+end of each sprint. The use of modern technologies --- Django, Django Channels,
+React, React Native, PostgreSQL, and Redis --- combined with a modular architecture
+and a centralized permissions module, made it possible to build a robust, scalable,
+and maintainable solution. The implementation required considerable research to
+overcome challenges such as authenticated real-time communication, consistent
+multi-role authorization across REST and WebSocket code paths, and the reliable
+integration of a large language model. This experience strengthened my skills in
+full-stack development, real-time systems, access control, AI integration, database
+design, and agile project management.
 
 \section*{Perspectives}
 Several improvements and extensions can be envisioned for the Fakerni platform:
 \begin{itemize}[nosep]
   \item \textbf{Offline Mode:} allow members to view and edit lists offline, with
-        synchronization when connectivity returns.
-  \item \textbf{Multi-Server Presence:} move the presence registry to Redis so
-        that live presence scales across multiple backend processes.
-  \item \textbf{Advanced Analytics:} add time-based trends, forecasting, and
+        automatic synchronization when connectivity returns.
+  \item \textbf{Multi-Server Presence:} move the presence registry to Redis so that
+        live presence scales seamlessly across multiple backend processes.
+  \item \textbf{Advanced Analytics:} add time-based trends, spending forecasts, and
         cross-group comparisons.
-  \item \textbf{Third-Party Integrations:} connect to calendars, payment apps, and
-        online grocery services.
-  \item \textbf{Automated Reports:} scheduled export of activity and spending
-        summaries in PDF or spreadsheet formats.
+  \item \textbf{Third-Party Integrations:} connect to calendars, payment
+        applications, and online-grocery services.
+  \item \textbf{Automated Reports:} schedule the export of activity and spending
+        summaries in PDF or spreadsheet formats, sent automatically by email.
 \end{itemize}
 
 %=====================================================================
@@ -1117,16 +1523,20 @@ Several improvements and extensions can be envisioned for the Fakerni platform:
         \url{https://channels.readthedocs.io/}
   \item \textbf{React} --- JavaScript library for the web user interface.
         \url{https://react.dev/}
-  \item \textbf{React Native \& Expo} --- framework for the mobile application.
-        \url{https://reactnative.dev/} , \url{https://expo.dev/}
+  \item \textbf{Vite} --- build tool for the web front-end.
+        \url{https://vite.dev/}
+  \item \textbf{React Native} --- framework for the mobile application.
+        \url{https://reactnative.dev/}
+  \item \textbf{Expo} --- tooling and native modules for React Native.
+        \url{https://expo.dev/}
   \item \textbf{PostgreSQL} --- relational database management system.
         \url{https://www.postgresql.org/}
   \item \textbf{Redis} --- in-memory data store used as the channel layer.
         \url{https://redis.io/}
   \item \textbf{JSON Web Tokens (JWT)} --- open standard for stateless
         authentication. \url{https://jwt.io/}
-  \item \textbf{Google Gemini API} --- large language model used for AI features.
-        \url{https://ai.google.dev/}
+  \item \textbf{Google Gemini API} --- large language model used for the AI
+        features. \url{https://ai.google.dev/}
   \item \textbf{Scrum Guide} --- the Agile Scrum framework reference.
         \url{https://www.scrumguides.org/}
 \end{enumerate}
